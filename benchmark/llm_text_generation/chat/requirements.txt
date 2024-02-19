@@ -1,0 +1,4 @@
+aiohttp
+numpy
+tqdm
+zeus-ml

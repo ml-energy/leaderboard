@@ -1,0 +1,25 @@
+# LLM Text Generation (Chat)
+
+This benchmark suite benchmarks vLLM and TGI with the chat completion task.
+
+## Building Docker images
+
+```sh
+git clone git@github.com:ml-energy/vllm.git
+cd vllm
+git checkout v0.3.0
+DOCKER_BUILDKIT=1 docker build . --target vllm-openai --tag mlenergy/vllm:v0.3.0-openai --build-arg max_jobs=16 --build-arg nvcc_threads=16
+```
+
+```sh
+git clone git@github.com:ml-energy/text-generation-inference.git
+cd text-generation-inference
+git checkout v1.4.0
+docker build -t mlenergy/tgi:v1.4.0 .
+```
+
+## Installing Benchmark Script Dependencies
+
+```sh
+pip install -r requirements.txt
+```
