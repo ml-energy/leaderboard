@@ -1,0 +1,3 @@
+- Flattened `bos_token` with `bos_token.content`.
+- Flattened `eos_token` with `eos_token.content`.
+- Removed called to `strip()`, which caused template errors in TGI v1.4.0.

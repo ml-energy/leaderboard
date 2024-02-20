@@ -23,3 +23,13 @@ docker build -t mlenergy/tgi:v1.4.0 .
 ```sh
 pip install -r requirements.txt
 ```
+
+## Starting the NVML container
+
+Changing the power limit requires the `SYS_ADMIN` linux security capability, which we delegate to a daemon Docker container running a base CUDA image.
+
+```sh
+bash ../../common/start_nvml_container.sh
+```
+
+With the `nvml` container running, you can change power limit with something like `docker exec nvml nvidia-smi -i 0 -pl 200`.

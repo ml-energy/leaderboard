@@ -16,7 +16,7 @@ from zeus.monitor import ZeusMonitor
 
 
 # SYSTEM_PROMPT = "A chat between a human user (prompter) and an artificial intelligence (AI) assistant. The assistant gives helpful, detailed, and polite answers to the user's questions. "
-SYSTEM_PROMPT = "You are a helpful artifical intellicence (AI) assistant."
+SYSTEM_PROMPT = "You are an artifical intellicence assistant that gives helpful answers to the user's questions or instructions."
 DEFAULT_TIMEOUT = aiohttp.ClientTimeout(total=3 * 3600)
 
 
@@ -37,9 +37,11 @@ class Results:
     server_side_total_energy: float = 0.0
     server_side_energy_per_request: float = 0.0
     server_side_energy_per_output_token: float = 0.0
+    server_side_average_power: float = 0.0
     client_side_total_energy: float = 0.0
     client_side_energy_per_request: float = 0.0
     client_side_energy_per_output_token: float = 0.0
+    client_side_average_power: float = 0.0
     results: list[Result] = field(default_factory=list)
 
 
@@ -209,9 +211,11 @@ def run_benchmark(
     results.server_side_total_energy = server_side_total_energy
     results.server_side_energy_per_request = results.server_side_total_energy / num_results
     results.server_side_energy_per_output_token = results.server_side_total_energy / results.total_completion_tokens
+    results.server_side_average_power = server_side_total_energy / results.total_benchmark_runtime
     results.client_side_total_energy = client_side_total_energy
     results.client_side_energy_per_request = client_side_total_energy / num_results
     results.client_side_energy_per_output_token = client_side_total_energy / results.total_completion_tokens
+    results.client_side_average_power = client_side_total_energy / results.total_benchmark_runtime
 
     with open(out_filename, "w") as f:
         f.write(json.dumps(asdict(results), indent=2))
