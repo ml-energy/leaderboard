@@ -2,7 +2,9 @@
 
 This benchmark suite benchmarks vLLM and TGI with the chat completion task.
 
-## Building Docker images
+## Setup
+
+### Building Docker images
 
 ```sh
 git clone git@github.com:ml-energy/vllm.git
@@ -18,13 +20,13 @@ git checkout v1.4.0
 docker build -t mlenergy/tgi:v1.4.0 .
 ```
 
-## Installing Benchmark Script Dependencies
+### Installing Benchmark Script Dependencies
 
 ```sh
 pip install -r requirements.txt
 ```
 
-## Starting the NVML container
+### Starting the NVML container
 
 Changing the power limit requires the `SYS_ADMIN` linux security capability, which we delegate to a daemon Docker container running a base CUDA image.
 
@@ -33,3 +35,13 @@ bash ../../common/start_nvml_container.sh
 ```
 
 With the `nvml` container running, you can change power limit with something like `docker exec nvml nvidia-smi -i 0 -pl 200`.
+
+
+## Benchmarking
+
+### Obtaining one datapoint
+
+The script `scripts/benchmark_one.py` assumes that it was ran from the directory where `scripts` is, like this:
+```sh
+python scripts/benchmark_one.py --help
+```

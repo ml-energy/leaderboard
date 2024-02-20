@@ -33,12 +33,15 @@ def start_server(
     gpu_str = ",".join(str(gpu_id) for gpu_id in gpu_ids)
     gpu_str = f'"device={gpu_str}"'
     hf_cache_path = "/data/leaderboard/hfcache"
-    tokconf_dir = f"{os.getcwd()}/tokenizer_configs"
+    models_dir = f"{os.getcwd()}/models"
     tokconf_filename = f"{model}/tokenizer_config.json"
-    tokconf_path = f"{tokconf_dir}/{tokconf_filename}"
+    tokconf_path = f"{models_dir}/{tokconf_filename}"
+    revision_filename = f"{model}/revision.txt"
+    revision_path = f"{models_dir}/{revision_filename}"
 
     assert Path(hf_cache_path).exists(), f"Hugging Face cache not found: {hf_cache_path}"
     assert Path(tokconf_path).exists(), f"Tokenizer config not found: {tokconf_path}"
+    assert Path(revision_path).exists(), f"Revision file not found: {revision_path}"
 
     if backend == "vllm":
         server_cmd = [
@@ -49,6 +52,7 @@ def start_server(
             "-v", f"{hf_cache_path}:/root/.cache/huggingface",
             server_image,
             "--model", model,
+            "--revision", open(revision_path).read().strip(),
             "--chat-template", json.load(open(tokconf_path))["chat_template"],
             "--tensor-parallel-size", str(len(gpu_ids)),
         ]
@@ -59,11 +63,12 @@ def start_server(
             "-e", f"HUGGING_FACE_HUB_TOKEN={huggingface_token}",
             "-p", f"{port}:80",
             "-v", f"{hf_cache_path}:/root/.cache/huggingface",
-            "-v", f"{tokconf_dir}:/tokenizer_configs",
+            "-v", f"{models_dir}:/models",
             server_image,
             "--model-id", model,
+            "--revision", open(revision_path).read().strip(),
             "--huggingface-hub-cache", "/root/.cache/huggingface/hub",
-            "--tokenizer-config-path", f"/{tokconf_filename}",
+            "--tokenizer-config-path", f"/models/{tokconf_filename}",
             "--num-shard", str(len(gpu_ids)),
         ]
     else:
