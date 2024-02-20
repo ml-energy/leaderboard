@@ -13,11 +13,11 @@ from typing import Literal
 def set_power_limit(power_limit: int, gpu_ids: list[int]) -> None:
     for gpu_id in gpu_ids:
         subprocess.check_call([
-            "docker", "run", "nvml",
+            "docker", "exec", "nvml",
             "nvidia-smi", "-i", str(gpu_id), "-pm", "1",
         ])
         subprocess.check_call([
-            "docker", "run", "nvml",
+            "docker", "exec", "nvml",
             "nvidia-smi", "-i", str(gpu_id), "-pl", str(power_limit),
         ])
 
