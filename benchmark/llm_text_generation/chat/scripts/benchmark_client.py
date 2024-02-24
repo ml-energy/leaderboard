@@ -24,6 +24,8 @@ DEFAULT_TIMEOUT = aiohttp.ClientTimeout(total=3 * 3600)
 class Results:
     model: str
     backend: str
+    num_gpus: int
+    power_limit: int
     request_rate: float
     num_requests: int
     num_failures: int = 0
@@ -95,6 +97,7 @@ async def get_request(
 
 async def send_request(
     result_intermediate: ResultIntermediate,
+    backend: str,
     model: str,
     api_url: str,
     prompt: str,
@@ -106,9 +109,14 @@ async def send_request(
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
+            {"role": "assistant", "content": ""},
         ],
         "stream": False,
         "max_tokens": 1024,
+        "temperature": 0.8,
+        "top_p": 0.95,
+        "stop": ["\nUser:", "<|endoftext|>", "</s>"],
+        "add_generation_prompt": False,
     }
 
     async with aiohttp.ClientSession(timeout=DEFAULT_TIMEOUT) as session:
@@ -132,6 +140,7 @@ async def send_request(
 
 async def benchmark(
     results: Results,
+    backend: str,
     model: str,
     api_url: str,
     input_requests: list[str],
@@ -144,7 +153,7 @@ async def benchmark(
         pbar.update(1)
         task = asyncio.create_task(
             # Ensures results has same ordering as the input dataset
-            send_request(ri, model, api_url, prompt)
+            send_request(ri, backend, model, api_url, prompt)
         )
         tasks.append(task)
     await asyncio.gather(*tasks)
@@ -167,17 +176,20 @@ def run_benchmark(
     input_requests: list[str],
     out_filename: str,
 ):
+    zeus_monitor = ZeusMonitor()
+
     results = Results(
         model=args.model,
         backend=args.backend,
+        num_gpus=len(zeus_monitor.gpu_indices),
+        power_limit=args.power_limit,
         request_rate=args.request_rate,
         num_requests=len(input_requests),
         results=[Result() for _ in input_requests],
     )
 
-    zeus_monitor = ZeusMonitor()
     zeus_monitor.begin_window(out_filename, sync_cuda=False)
-    asyncio.run(benchmark(results, args.model, api_url, input_requests, args.request_rate))
+    asyncio.run(benchmark(results, args.backend, args.model, api_url, input_requests, args.request_rate))
     measurements = zeus_monitor.end_window(out_filename, sync_cuda=False)
 
     client_side_total_energy = measurements.total_energy
@@ -245,7 +257,7 @@ def wait_server_ready(list_models_url: str) -> None:
             response.raise_for_status()
             break
         except requests.exceptions.RequestException:
-            print("Waiting for server to be ready...")
+            print("Waiting for the server to be ready...")
             time.sleep(1)
 
 
@@ -253,7 +265,7 @@ def main(args: argparse.Namespace):
     if args.backend not in ["tgi", "vllm"]:
         raise ValueError(f"Unknown backend: {args.backend}")
 
-    arg_out_filename = f"{args.benchmark_name}-args.json"
+    arg_out_filename = f"{args.benchmark_name}+args.json"
     with open(arg_out_filename, "w") as f:
         f.write(json.dumps(vars(args), indent=2))
     print(args)
@@ -274,7 +286,7 @@ def main(args: argparse.Namespace):
 
     # Note: output filenames are 1-indexed
     for i in range(1, args.num_runs + 1):
-        run_benchmark(args, api_url, input_requests, f"{args.benchmark_name}-run{i}.json")
+        run_benchmark(args, api_url, input_requests, f"{args.benchmark_name}+run{i}.json")
 
 
 if __name__ == "__main__":
@@ -301,5 +313,6 @@ if __name__ == "__main__":
         help="Name of the benchmark. Result files will be written to paths derived from this.",
     )
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--power-limit", type=int, required=True, help="Not used but passed in in order to save to results file.")
     args = parser.parse_args()
     main(args)

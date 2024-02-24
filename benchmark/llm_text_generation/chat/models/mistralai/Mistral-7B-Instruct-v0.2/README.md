@@ -1,0 +1,1 @@
+- Modified `chat_template` so that it supports the `system` role.

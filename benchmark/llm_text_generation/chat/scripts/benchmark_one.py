@@ -86,6 +86,7 @@ def start_client(
     request_rate: str,
     gpu_ids: list[int],
     benchmark_name: str,
+    power_limit: int,
 ) -> subprocess.Popen:
     client_cmd = [
         "python", "scripts/benchmark_client.py",
@@ -95,6 +96,7 @@ def start_client(
         "--sharegpt-path", sharegpt_path,
         "--request-rate", request_rate,
         "--benchmark-name", benchmark_name,
+        "--power-limit", str(power_limit),
     ]
     print("Client:", " ".join(client_cmd))
     return subprocess.Popen(
@@ -140,6 +142,7 @@ def main(args: argparse.Namespace) -> None:
         args.request_rate,
         args.gpu_ids,
         benchmark_name,
+        args.power_limit,
     )
 
     try:
@@ -157,12 +160,12 @@ def main(args: argparse.Namespace) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--backend", required=True, choices=["vllm", "tgi"], help="Server to benchmark.")
-    parser.add_argument("--server-image", help="Docker image to use for the server.")
+    parser.add_argument("--server-image", required=True, help="Docker image to use for the server.")
     parser.add_argument("--model", required=True, help="Model to benchmark, e.g., meta-llama/Llama-2-7b-chat-hf.")
-    parser.add_argument("--sharegpt-path", help="Path to the ShareGPT dataset to feed to the server.")
+    parser.add_argument("--sharegpt-path", required=True, help="Path to the ShareGPT dataset to feed to the server.")
     parser.add_argument("--request-rate", required=True, help="Poisson process rate for request arrival times.")
-    parser.add_argument("--power-limit", type=int, help="GPU power limit in Watts.")
+    parser.add_argument("--power-limit", type=int, required=True, help="GPU power limit in Watts.")
     parser.add_argument("--result-root", default="results", help="Root directory to save results.")
-    parser.add_argument("--huggingface-token", help="Hugging Face API token.")
-    parser.add_argument("--gpu-ids", nargs="+", type=int, help="GPU IDs to use for the server.")
+    parser.add_argument("--huggingface-token", required=True, help="Hugging Face API token.")
+    parser.add_argument("--gpu-ids", nargs="+", type=int, required=True, help="GPU IDs to use for the server.")
     main(parser.parse_args())
