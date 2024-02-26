@@ -1,12 +1,11 @@
-- Added empty `bos_token` because TGI v1.4.2 fails to load the local tokenizer configuration file if it's missing.
-- Added `chat_template`.
+- Added `chat_template` that uses the chat format recommended by phi-2's HuggingFace hub README.
 
 ### Chat template
 
 ```jinja
 {% if messages[0]['role'] == 'system' %}
     {% set loop_messages = messages[1:] %}
-    {% set system_message = messages[0]['content'] %}
+    {% set system_message = messages[0]['content']  + ' ' %}
 {% else %}
     {% set loop_messages = messages %}
     {% set system_message = '' %}
@@ -16,11 +15,13 @@
         {{ raise_exception('Conversation roles must alternate user/assistant/user/assistant/...') }}
     {% endif %}
     {% if loop.index0 == 0 %}
-        {{ system_message }}
+        {% set content = system_message + message['content'] %}
+    {% else %}
+        {% set content = message['content'] %}
     {% endif %}
-    {{ '\n\n' + (message['role'] | title) + ': ' + message['content'] }}
+    {{ (message['role'] | title) + ': ' + content + '\n' }}
 {% endfor %}
 {% if add_generation_prompt %}
-    {{ '\n\nAssistant:' }}
+    {{ 'Assistant:' }}
 {% endif %}
 ```
