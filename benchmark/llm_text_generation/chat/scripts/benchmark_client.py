@@ -109,7 +109,7 @@ async def send_request(
         "model": model,
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
+            {"role": "user", "content": prompt.strip()},
         ],
         "stream": False,
         "max_tokens": 1024,

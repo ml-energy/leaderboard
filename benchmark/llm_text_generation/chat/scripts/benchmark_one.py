@@ -29,6 +29,7 @@ def start_server(
     model: str,
     huggingface_token: str,
     gpu_ids: list[int],
+    log_level: str,
 ) -> subprocess.Popen:
     gpu_str = ",".join(str(gpu_id) for gpu_id in gpu_ids)
     gpu_str = f'"device={gpu_str}"'
@@ -48,6 +49,7 @@ def start_server(
             "docker", "run",
             "--gpus", gpu_str,
             "-e", f"HF_TOKEN={huggingface_token}",
+            "-e", f"LOG_LEVEL={log_level}",
             "-p", f"{port}:8000",
             "-v", f"{hf_cache_path}:/root/.cache/huggingface",
             server_image,
@@ -61,6 +63,7 @@ def start_server(
             "docker", "run",
             "--gpus", gpu_str,
             "-e", f"HUGGING_FACE_HUB_TOKEN={huggingface_token}",
+            "-e", f"LOG_LEVEL={log_level}",
             "-p", f"{port}:80",
             "-v", f"{hf_cache_path}:/root/.cache/huggingface",
             "-v", f"{models_dir}:/models",
@@ -130,6 +133,7 @@ def main(args: argparse.Namespace) -> None:
         args.model,
         args.huggingface_token,
         args.gpu_ids,
+        args.log_level,
     )
     atexit.register(lambda: terminate_server(server_handle))
 
@@ -169,4 +173,5 @@ if __name__ == "__main__":
     parser.add_argument("--result-root", default="results", help="Root directory to save results.")
     parser.add_argument("--huggingface-token", required=True, help="Hugging Face API token.")
     parser.add_argument("--gpu-ids", nargs="+", type=int, required=True, help="GPU IDs to use for the server.")
+    parser.add_argument("--log-level", default="INFO", help="Logging level for the server.")
     main(parser.parse_args())
