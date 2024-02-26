@@ -104,19 +104,18 @@ async def send_request(
 ) -> None:
     headers = {"Content-Type": "application/json"}
     # OpenAI Chat Completions API request format
+    # Assuming `add_generation_prompt` is either not needed or set to true
     pload = {
         "model": model,
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
-            {"role": "assistant", "content": ""},
         ],
         "stream": False,
         "max_tokens": 1024,
         "temperature": 0.8,
         "top_p": 0.95,
         "stop": ["\nUser:", "<|endoftext|>", "</s>"],
-        "add_generation_prompt": False,
     }
 
     async with aiohttp.ClientSession(timeout=DEFAULT_TIMEOUT) as session:
@@ -245,9 +244,11 @@ def run_benchmark(
     print(f"(Client-side) Total energy: {results.client_side_total_energy:.2f} J")
     print(f"(Client-side) Energy per request: {results.client_side_energy_per_request:.2f} J")
     print(f"(Client-side) Energy per token: {results.client_side_energy_per_output_token:.2f} J")
+    print(f"(Client-side) Average power: {results.client_side_average_power:.2f} W")
     print(f"(Server-side) Total energy: {results.server_side_total_energy:.2f} J")
     print(f"(Server-side) Energy per request: {results.server_side_energy_per_request:.2f} J")
     print(f"(Server-side) Energy per token: {results.server_side_energy_per_output_token:.2f} J")
+    print(f"(Server-side) Average power: {results.server_side_average_power:.2f} W")
 
 
 def wait_server_ready(list_models_url: str) -> None:

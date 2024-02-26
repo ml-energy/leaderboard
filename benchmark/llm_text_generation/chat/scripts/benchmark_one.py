@@ -70,6 +70,7 @@ def start_server(
             "--huggingface-hub-cache", "/root/.cache/huggingface/hub",
             "--tokenizer-config-path", f"/models/{tokconf_filename}",
             "--num-shard", str(len(gpu_ids)),
+            "--max-concurrent-requests", "512",
         ]
     else:
         raise ValueError(f"Unknown backend: {backend}")
