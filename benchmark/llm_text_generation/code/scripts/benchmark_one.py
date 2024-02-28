@@ -54,6 +54,7 @@ def start_server(
             "--model", model,
             "--revision", open(revision_path).read().strip(),
             "--tensor-parallel-size", str(len(gpu_ids)),
+            "--gpu-memory-utilization", "1.0",
         ]
     elif backend == "tgi":
         server_cmd = [
@@ -70,6 +71,7 @@ def start_server(
             "--revision", open(revision_path).read().strip(),
             "--huggingface-hub-cache", "/root/.cache/huggingface/hub",
             "--num-shard", str(len(gpu_ids)),
+            "--cuda-memory-fraction", "1.0",
             "--max-concurrent-requests", "512",
             "--max-stop-sequences", "7",
         ]
