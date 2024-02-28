@@ -45,6 +45,7 @@ def start_server(
         server_cmd = [
             "docker", "run",
             "--gpus", gpu_str,
+            "--ipc", "host",
             "-e", f"HF_TOKEN={huggingface_token}",
             "-e", f"LOG_LEVEL={log_level}",
             "-p", f"{port}:8000",
@@ -58,6 +59,7 @@ def start_server(
         server_cmd = [
             "docker", "run",
             "--gpus", gpu_str,
+            "--ipc", "host",
             "-e", f"HUGGING_FACE_HUB_TOKEN={huggingface_token}",
             "-e", f"LOG_LEVEL={log_level}",
             "-p", f"{port}:80",
