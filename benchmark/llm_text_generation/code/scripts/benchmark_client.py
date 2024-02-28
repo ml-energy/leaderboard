@@ -86,7 +86,7 @@ def load_evalplus(dataset: Literal["humaneval", "mbpp"]) -> list[tuple[str, str]
     else:
         raise ValueError(f"Unknown EvalPlus dataset: {dataset}")
 
-    return [(task_id, problem["prompt"]) for task_id, problem in gen_fn().items()]
+    return [(task_id, problem["prompt"].strip()) for task_id, problem in gen_fn().items()]
 
 
 async def get_request(
@@ -119,12 +119,12 @@ async def send_request(
     prompt: str,
 ) -> None:
     headers = {"Content-Type": "application/json"}
+    # We do greedy decoding following https://evalplus.github.io/leaderboard.html
     if backend == "vllm":
         pload = {
             "prompt": prompt,
             "max_tokens": 512,
-            # "temperature": 0.8,
-            # "top_p": 0.95,
+            "temperature": 0.0,
             "stop": STOP_SEQUENCES,
         }
     else:  # tgi
@@ -132,9 +132,7 @@ async def send_request(
             "inputs": prompt,
             "parameters": {
                 "max_new_tokens": 512,
-                # "do_sample": True,
-                # "temperature": 0.8,
-                # "top_p": 0.95,
+                "do_sample": False,
                 "stop": STOP_SEQUENCES,
                 "details": True,
             },
@@ -186,18 +184,10 @@ async def benchmark(
         result.prompt = intermediate.prompt
         if result.success:
             output = json.loads(b"".join(intermediate.response_bytes).decode("utf-8"))
-            print(output)
-            if backend == "vllm":
-                # result.response = output["choices"][0]["message"]["content"]
-                # result.num_prompt_tokens = output["usage"]["prompt_tokens"]
-                # result.num_completion_tokens = output["usage"]["completion_tokens"]
-                # result.energy = output["usage"]["energy"]
-                pass
-            else:  # tgi
-                result.response = strip_stop_sequence(output["generated_text"], STOP_SEQUENCES)
-                result.num_prompt_tokens = output["details"]["prefill_tokens"]
-                result.num_completion_tokens = output["details"]["generated_tokens"]
-                result.energy = output["details"]["energy"]
+            result.response = strip_stop_sequence(output["generated_text"], STOP_SEQUENCES)
+            result.num_prompt_tokens = output["details"]["prefill_tokens"]
+            result.num_completion_tokens = output["details"]["generated_tokens"]
+            result.energy = output["details"]["energy"]
 
 
 def run_benchmark(
