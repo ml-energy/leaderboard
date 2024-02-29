@@ -9,6 +9,7 @@ import time
 from typing import AsyncGenerator
 from dataclasses import asdict, dataclass, field
 
+import pynvml
 import aiohttp
 import numpy as np
 from tqdm.asyncio import tqdm
@@ -23,6 +24,7 @@ DEFAULT_TIMEOUT = aiohttp.ClientTimeout(total=3 * 3600)
 class Results:
     model: str
     backend: str
+    gpu_model: str
     num_gpus: int
     power_limit: int
     request_rate: float
@@ -176,9 +178,15 @@ def run_benchmark(
 ):
     zeus_monitor = ZeusMonitor()
 
+    pynvml.nvmlInit()
+    handle = pynvml.nvmlDeviceGetHandleByIndex(zeus_monitor.nvml_gpu_indices[0])
+    gpu_model = pynvml.nvmlDeviceGetName(handle)
+    pynvml.nvmlShutdown()
+
     results = Results(
         model=args.model,
         backend=args.backend,
+        gpu_model=gpu_model,
         num_gpus=len(zeus_monitor.gpu_indices),
         power_limit=args.power_limit,
         request_rate=args.request_rate,
