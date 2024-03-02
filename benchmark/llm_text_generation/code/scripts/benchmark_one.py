@@ -54,7 +54,7 @@ def start_server(
             "--model", model,
             "--revision", open(revision_path).read().strip(),
             "--tensor-parallel-size", str(len(gpu_ids)),
-            "--gpu-memory-utilization", "1.0",
+            "--gpu-memory-utilization", "0.95",
         ]
     elif backend == "tgi":
         server_cmd = [
@@ -71,7 +71,7 @@ def start_server(
             "--revision", open(revision_path).read().strip(),
             "--huggingface-hub-cache", "/root/.cache/huggingface/hub",
             "--num-shard", str(len(gpu_ids)),
-            "--cuda-memory-fraction", "1.0",
+            "--cuda-memory-fraction", "0.95",
             "--max-concurrent-requests", "512",
             "--max-stop-sequences", "7",
         ]
@@ -120,7 +120,7 @@ def terminate_server(server_handle: subprocess.Popen) -> None:
 def run_evalplus_eval(dataset: str, benchmark_name: str) -> None:
     benchmark_path = Path(benchmark_name)
     results_dir = benchmark_path.parent.absolute()
-    benchmark_filename = f"{benchmark_path.name}+run1+evalplus.jsonl"
+    benchmark_filename = f"{benchmark_path.name}+results+evalplus.jsonl"
 
     assert results_dir.exists(), f"Results directory not found: {results_dir}"
     assert (results_dir / benchmark_filename).exists(), f"Benchmark file not found: {results_dir / benchmark_filename}"
@@ -144,7 +144,7 @@ def run_evalplus_eval(dataset: str, benchmark_name: str) -> None:
         if "pass@1" in line:
             results[key] = float(line.split(" ")[1][:-1])
 
-    with open(f"{benchmark_name}+evalplus_acc.json", "w", encoding="utf-8") as f:
+    with open(f"{benchmark_name}+results+evalplus_acc.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
 
 

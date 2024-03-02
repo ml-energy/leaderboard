@@ -1,5 +1,9 @@
-requests
-aiohttp
-numpy
-tqdm
+torch==2.2.1
+diffusers==0.26.3
+datasets
+transformers
+accelerate
+torchmetrics[image]
+pillow
+pynvml
 zeus-ml

@@ -31,7 +31,7 @@ class Results:
     num_requests: int
     num_failures: int = 0
     system_prompt: str = SYSTEM_PROMPT
-    total_benchmark_runtime: float = 0.0
+    total_runtime: float = 0.0
     requests_per_second: float = 0.0
     total_prompt_tokens: int = 0
     total_completion_tokens: int = 0
@@ -220,8 +220,8 @@ def run_benchmark(
     if num_results == 0:
         raise RuntimeError("All requests failed!")
 
-    results.total_benchmark_runtime = measurements.time
-    results.requests_per_second = num_results / results.total_benchmark_runtime
+    results.total_runtime = measurements.time
+    results.requests_per_second = num_results / results.total_runtime
     results.total_prompt_tokens = total_prompt_tokens
     results.total_completion_tokens = total_completion_tokens
     results.latency_per_request = total_latency / num_results
@@ -229,11 +229,11 @@ def run_benchmark(
     results.server_side_total_energy = server_side_total_energy
     results.server_side_energy_per_request = results.server_side_total_energy / num_results
     results.server_side_energy_per_output_token = results.server_side_total_energy / results.total_completion_tokens
-    results.server_side_average_power = server_side_total_energy / results.total_benchmark_runtime
+    results.server_side_average_power = server_side_total_energy / results.total_runtime
     results.client_side_total_energy = client_side_total_energy
     results.client_side_energy_per_request = client_side_total_energy / num_results
     results.client_side_energy_per_output_token = client_side_total_energy / results.total_completion_tokens
-    results.client_side_average_power = client_side_total_energy / results.total_benchmark_runtime
+    results.client_side_average_power = client_side_total_energy / results.total_runtime
 
     with open(out_filename, "w") as f:
         f.write(json.dumps(asdict(results), indent=2))
@@ -244,7 +244,7 @@ def run_benchmark(
     print(f"Backend: {results.backend}")
     print(f"Request rate: {results.request_rate} requests/s")
     print()
-    print(f"Total benchmark runtime: {results.total_benchmark_runtime:.2f} s")
+    print(f"Total benchmark runtime: {results.total_runtime:.2f} s")
     print(f"Requests per second: {results.requests_per_second:.2f} requests/s")
     print(f"Average latency per request: {results.latency_per_request:.2f} s")
     print(f"Average latency per output token: {results.latency_per_output_token:.2f} s")
@@ -292,9 +292,7 @@ def main(args: argparse.Namespace):
     else:
         raise ValueError(f"Unknown backend: {args.backend}")
 
-    # Note: output filenames are 1-indexed
-    for i in range(1, args.num_runs + 1):
-        run_benchmark(args, api_url, input_requests, f"{args.benchmark_name}+run{i}.json")
+    run_benchmark(args, api_url, input_requests, f"{args.benchmark_name}+results.json")
 
 
 if __name__ == "__main__":
@@ -303,12 +301,6 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, required=True, help="Port of the server to benchmark.")
     parser.add_argument("--model", required=True, help="Model to benchmark, e.g., meta-llama/Llama-2-7b-chat-hf.")
     parser.add_argument("--sharegpt-path", help="Path to the ShareGPT dataset to feed to the server.")
-    parser.add_argument(
-        "--num-runs",
-        type=int,
-        default=1,
-        help="Runs the benchmark num-runs times, writing results to separate files.",
-    )
     parser.add_argument(
         "--request-rate",
         type=float,

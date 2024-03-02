@@ -58,7 +58,7 @@ def start_server(
             "--revision", open(revision_path).read().strip(),
             "--chat-template", json.load(open(tokconf_path))["chat_template"],
             "--tensor-parallel-size", str(len(gpu_ids)),
-            "--gpu-memory-utilization", "1.0",
+            "--gpu-memory-utilization", "0.95",
         ]
     elif backend == "tgi":
         server_cmd = [
@@ -75,7 +75,7 @@ def start_server(
             "--revision", open(revision_path).read().strip(),
             "--huggingface-hub-cache", "/root/.cache/huggingface/hub",
             "--tokenizer-config-path", f"/models/{tokconf_filename}",
-            "--cuda-memory-fraction", "1.0",
+            "--cuda-memory-fraction", "0.95",
             "--num-shard", str(len(gpu_ids)),
             "--max-concurrent-requests", "512",
         ]
