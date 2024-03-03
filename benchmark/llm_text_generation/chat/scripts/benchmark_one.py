@@ -122,6 +122,11 @@ def terminate_server(server_handle: subprocess.Popen) -> None:
 
 
 def main(args: argparse.Namespace) -> None:
+    if args.model.startswith("models/"):
+        args.model = args.model[len("models/"):]
+    if args.model.endswith("/"):
+        args.model = args.model[:-1]
+
     results_dir = Path(args.result_root) / args.model
     benchmark_name = str(
         results_dir / f"{args.backend}+rate{args.request_rate}+pl{args.power_limit}+gpus{len(args.gpu_ids)}",
