@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import time
 import json
 import argparse
+from pprint import pprint
 from pathlib import Path
 from contextlib import suppress
 from dataclasses import dataclass, field, asdict
@@ -40,7 +40,7 @@ class Results:
     average_batch_energy: float = 0.0
     average_power_consumption: float = 0.0
     peak_memory: float = 0.0
-    results: list[Result] = field(default_factory=list)
+    results: list[Result] = field(default_factory=list, repr=False)
 
 
 @dataclass
@@ -69,28 +69,36 @@ def get_pipeline(model_id: str):
 
     # Add additional args
     kwargs["safety_checker"] = None
+    kwargs["revision"] = open(f"models/{model_id}/revision.txt").read().strip()
     
     try:
         pipeline =  AutoPipelineForText2Image.from_pretrained(model_id, **kwargs).to("cuda:0")
-        print("Instantiated AutoPipelineForText2Image:, ", pipeline)
+        print("\nInstantiated pipeline via AutoPipelineForText2Image:\n", pipeline)
     except ValueError:
         pipeline = DiffusionPipeline.from_pretrained(model_id, **kwargs).to("cuda:0")
-        print("Instantiated DiffusionPipeline:, ", pipeline)
+        print("\nInstantiated pipeline via DiffusionPipeline:\n", pipeline)
 
     return pipeline
 
 
-def load_partiprompts(batch_size: int, seed: int) -> tuple[int, list[list[str]]]:
+def load_partiprompts(
+    batch_size: int,
+    seed: int,
+    subset: float | None = None,
+) -> tuple[int, list[list[str]]]:
     """Load the parti-prompts dataset and return it as a list of batches of prompts.
 
     Depending on the batch size, the final batch may not be full. The final batch
-    is dropped in that case.
+    is dropped in that case. If `subset` is not None, only a subset of the dataset
+    is returned.
 
     Returns:
         Total number of prompts and a list of batches of prompts.
     """
     dataset = load_dataset("nateraw/parti-prompts", split="train").shuffle(seed=seed)
     assert isinstance(dataset, Dataset)
+    if subset is not None:
+        dataset = dataset.select(range(int(subset * len(dataset))))
     prompts: list[str] = dataset["Prompt"]
     batched = [prompts[i : i + batch_size] for i in range(0, len(prompts), batch_size)]
     if len(batched[-1]) < batch_size:
@@ -106,13 +114,14 @@ def calculate_clip_score(
 ) -> torch.Tensor:
     """Calculate the CLIP score for each image and prompt pair.
 
+    `images_np` is assumed to be already scaled to [0, 255] and in uint8 format.
+
     Returns:
         The clip score of each image and prompt as a list of floats.
         Tensor shape is (batch size,).
     """
     model = model.to("cuda:0")
 
-    images_np = (images_np * 255).astype("uint8")
     images = list(torch.from_numpy(images_np).permute(0, 3, 1, 2))
     assert len(images) == len(text)
     
@@ -145,27 +154,20 @@ def count_parameters(pipeline) -> dict[str, int]:
     for name, attr in vars(pipeline).items():
         if isinstance(attr, ModelMixin):
             num_params[name] = attr.num_parameters(only_trainable=False, exclude_embeddings=True)
+        elif isinstance(attr, torch.nn.Module):
+            num_params[name] = sum(p.numel() for p in attr.parameters())
     return num_params
 
 
-def gpu_warmup(pipeline):
-    """Warm up the GPU by running the given pipeline for 10 secs."""
-    print("Warming up GPU")
-    generator = torch.manual_seed(2)
-    timeout_start = time.time()
-    prompts, _ = load_partiprompts(1, 1)
-    while time.time() < timeout_start + 10:
-        _ = pipeline(
-            prompts, num_images_per_prompt=10, generator=generator, output_type="np"
-        ).images
-    print("Finished warming up GPU")
-
-
-@torch.no_grad
 def benchmark(args: argparse.Namespace) -> None:
+    if args.model.startswith("models/"):
+        args.model = args.model[len("models/") :]
+    if args.model.endswith("/"):
+        args.model = args.model[:-1]
+
     set_seed(args.seed)
 
-    results_dir = Path(args.results_root) / args.model_id
+    results_dir = Path(args.results_root) / args.model
     results_dir.mkdir(parents=True, exist_ok=True)
     benchmark_name = str(results_dir / f"bs{args.batch_size}+pl{args.power_limit}")
     image_dir = results_dir / f"bs{args.batch_size}+pl{args.power_limit}+generated"
@@ -186,13 +188,18 @@ def benchmark(args: argparse.Namespace) -> None:
     pynvml.nvmlDeviceSetPowerManagementLimit(handle, args.power_limit * 1000)
     pynvml.nvmlShutdown()
 
-    num_prompts, batched_prompts = load_partiprompts(args.batch_size, args.seed)
+    num_prompts, batched_prompts = load_partiprompts(args.batch_size, args.seed, args.subset)
 
-    pipeline = get_pipeline(args.model_id)
+    pipeline = get_pipeline(args.model)
 
     # Warmup
+    print("Warming up with three batches...")
     for i in range(3):
-        _ = pipeline(batched_prompts[i], output_type="np")
+        _ = pipeline(
+            batched_prompts[i],
+            num_inference_steps=args.num_inference_steps,
+            output_type="np",
+        )
 
     rng = torch.manual_seed(args.seed)
 
@@ -204,9 +211,16 @@ def benchmark(args: argparse.Namespace) -> None:
     torch.cuda.reset_peak_memory_stats(device="cuda:0")
     zeus_monitor.begin_window("benchmark", sync_cuda=False)
 
-    for intermediate in intermediates:
+    for ind, intermediate in enumerate(intermediates):
+        print(f"Batch {ind + 1}/{len(intermediates)}")
         zeus_monitor.begin_window("batch", sync_cuda=False)
-        images = pipeline(intermediate.prompts, generator=rng, output_type="np", **args.settings).images
+        images = pipeline(
+            intermediate.prompts,
+            generator=rng,
+            num_inference_steps=args.num_inference_steps,
+            output_type="np",
+            **args.settings,
+        ).images
         batch_measurements = zeus_monitor.end_window("batch", sync_cuda=False)
 
         intermediate.images = images
@@ -215,6 +229,10 @@ def benchmark(args: argparse.Namespace) -> None:
 
     measurements = zeus_monitor.end_window("benchmark", sync_cuda=False)
     peak_memory = torch.cuda.max_memory_allocated(device="cuda:0")
+
+    # Scale images to [0, 256] and convert to uint8
+    for intermediate in intermediates:
+        intermediate.images = (intermediate.images * 255).astype("uint8")
 
     # Compute the CLIP score for each image and prompt pair.
     # Code was mostly inspired from torchmetrics.multimodal.clip_score, but
@@ -242,7 +260,7 @@ def benchmark(args: argparse.Namespace) -> None:
         ):
             if ind % args.image_save_every == 0:
                 image_path = str(image_dir / f"{prompt}.png")
-                Image.fromarray((image * 255).astype(np.uint8)).save(image_path)
+                Image.fromarray(image).save(image_path)
             else:
                 image_path = None
 
@@ -258,7 +276,7 @@ def benchmark(args: argparse.Namespace) -> None:
             ind += 1
 
     final_results = Results(
-        model=args.model_id,
+        model=args.model,
         num_parameters=count_parameters(pipeline),
         gpu_model=gpu_model,
         power_limit=args.power_limit,
@@ -275,20 +293,24 @@ def benchmark(args: argparse.Namespace) -> None:
         results=results,
     )
 
-    with open(f"{benchmark_name}+restults.json", "w") as f:
+    with open(f"{benchmark_name}+results.json", "w") as f:
         f.write(json.dumps(asdict(final_results), indent=2))
-    print("Benchmark results written to", f"{benchmark_name}+restults.json")
-    print("Benchmark results:", final_results)
+    print("Benchmark results written to", f"{benchmark_name}+results.json")
+
+    print("Benchmark results:")
+    pprint(final_results)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("model_id", type=str, help="The model to benchmark.")
-    parser.add_argument("results_root", type=str, help="The root directory to save results to.")
-    parser.add_argument("--batch_size", type=int, default=1, help="The size of each batch of prompts.")
-    parser.add_argument("--power_limit", type=int, default=300, help="The power limit to set for the GPU in Watts.")
+    parser.add_argument("--model", type=str, help="The model to benchmark.")
+    parser.add_argument("--results-root", type=str, help="The root directory to save results to.")
+    parser.add_argument("--batch-size", type=int, default=1, help="The size of each batch of prompts.")
+    parser.add_argument("--power-limit", type=int, default=300, help="The power limit to set for the GPU in Watts.")
+    parser.add_argument("--num-inference-steps", type=int, default=50, help="The number of denoising steps.")
+    parser.add_argument("--subset", type=float, default=None, help="Only use a subset of the dataset.")
+    parser.add_argument("--image-save-every", type=int, default=10, help="Save images to file every N prompts.")
     parser.add_argument("--seed", type=int, default=0, help="The seed to use for the RNG.")
-    parser.add_argument("--image_save_every", type=int, default=10, help="Save images to file every N prompts.")
     parser.add_argument("--clip-model", type=str, default="openai/clip-vit-large-patch14", help="The CLIP model to use to calculate the CLIP score.")
     parser.add_argument("--settings", type=json.loads, default={}, help="Any additional settings to pass to pipeline forward.")
     args = parser.parse_args()
