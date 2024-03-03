@@ -16,7 +16,7 @@ from tqdm.asyncio import tqdm
 from zeus.monitor import ZeusMonitor
 
 
-SYSTEM_PROMPT = "You are an artifical intellicence assistant that gives helpful answers to the user's questions or instructions."
+SYSTEM_PROMPT = "You are an artificial intelligence assistant that gives helpful answers to the user's questions or instructions."
 DEFAULT_TIMEOUT = aiohttp.ClientTimeout(total=3 * 3600)
 
 
