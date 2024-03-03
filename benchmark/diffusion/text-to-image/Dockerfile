@@ -17,4 +17,4 @@ WORKDIR /workspace/text-to-image
 RUN pip install -r requirements.txt
 
 # Benchmark script to run
-ENTRYPOINT ["python3", "scripts/benchmark_one.py"]
+ENTRYPOINT ["python3", "scripts/benchmark_one_datapoint.py"]

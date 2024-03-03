@@ -14,7 +14,7 @@ docker build -t mlenergy/leaderboard:diffusion-benchmark .
 
 ### Obtaining one datapoint
 
-The Docker image we've build runs `python scripts/benchmark_one.py` as its `ENTRYPOINT`.
+The Docker image we've build runs `python scripts/benchmark_one_datapoint.py` as its `ENTRYPOINT`.
 
 ```sh
 docker run \
@@ -29,3 +29,7 @@ docker run \
   --image-save-every 5 \
   --model stabilityai/stable-diffusion-2-1
 ```
+
+### Obtaining all datapoints for a single model
+
+Run `scripts/benchmark_one_model.py`.

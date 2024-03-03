@@ -41,7 +41,11 @@ With the `nvml` container running, you can change power limit with something lik
 
 ### Obtaining one datapoint
 
-The script `scripts/benchmark_one.py` assumes that it was ran from the directory where `scripts` is, like this:
+The script `scripts/benchmark_one_datapoint.py` assumes that it was ran from the directory where `scripts` is, like this:
 ```sh
-python scripts/benchmark_one.py --help
+python scripts/benchmark_one_datapoint.py --help
 ```
+
+### Obtaining all datapoints for a single model
+
+Run `scripts/benchmark_one_model.py`.
