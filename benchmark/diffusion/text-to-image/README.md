@@ -10,6 +10,10 @@ This benchmark suite benchmarks diffusion models with the text-to-image task.
 docker build -t mlenergy/leaderboard:diffusion-benchmark .
 ```
 
+### HuggingFace cache directory
+
+The scripts assume the HuggingFace cache directory will be under `/data/leaderboard/hfcache` on the node that runs this benchmark.
+
 ## Benchmarking
 
 ### Obtaining one datapoint

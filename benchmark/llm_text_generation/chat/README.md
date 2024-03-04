@@ -36,6 +36,10 @@ bash ../../common/start_nvml_container.sh
 
 With the `nvml` container running, you can change power limit with something like `docker exec nvml nvidia-smi -i 0 -pl 200`.
 
+### HuggingFace cache directory
+
+The scripts assume the HuggingFace cache directory will be under `/data/leaderboard/hfcache` on the node that runs this benchmark.
+
 
 ## Benchmarking
 

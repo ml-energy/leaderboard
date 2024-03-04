@@ -84,26 +84,26 @@ def get_pipeline(model_id: str):
 def load_partiprompts(
     batch_size: int,
     seed: int,
-    subset: float | None = None,
+    num_batches: int | None = None,
 ) -> tuple[int, list[list[str]]]:
     """Load the parti-prompts dataset and return it as a list of batches of prompts.
 
     Depending on the batch size, the final batch may not be full. The final batch
-    is dropped in that case. If `subset` is not None, only a subset of the dataset
-    is returned.
+    is dropped in that case. If `num_batches` is not None, only that many batches
+    is returned. If `num_batches` is None, all batches are returned.
 
     Returns:
         Total number of prompts and a list of batches of prompts.
     """
     dataset = load_dataset("nateraw/parti-prompts", split="train").shuffle(seed=seed)
     assert isinstance(dataset, Dataset)
-    if subset is not None:
-        dataset = dataset.select(range(int(subset * len(dataset))))
+    if num_batches is not None:
+        dataset = dataset.select(range(min(num_batches * batch_size, len(dataset))))
     prompts: list[str] = dataset["Prompt"]
     batched = [prompts[i : i + batch_size] for i in range(0, len(prompts), batch_size)]
     if len(batched[-1]) < batch_size:
         batched.pop()
-    return len(prompts) * batch_size, batched
+    return len(batched) * batch_size, batched
 
 
 def calculate_clip_score(
@@ -167,7 +167,7 @@ def benchmark(args: argparse.Namespace) -> None:
 
     set_seed(args.seed)
 
-    results_dir = Path(args.results_root) / args.model
+    results_dir = Path(args.result_root) / args.model
     results_dir.mkdir(parents=True, exist_ok=True)
     benchmark_name = str(results_dir / f"bs{args.batch_size}+pl{args.power_limit}")
     image_dir = results_dir / f"bs{args.batch_size}+pl{args.power_limit}+generated"
@@ -188,7 +188,7 @@ def benchmark(args: argparse.Namespace) -> None:
     pynvml.nvmlDeviceSetPowerManagementLimit(handle, args.power_limit * 1000)
     pynvml.nvmlShutdown()
 
-    num_prompts, batched_prompts = load_partiprompts(args.batch_size, args.seed, args.subset)
+    num_prompts, batched_prompts = load_partiprompts(args.batch_size, args.seed, args.num_batches)
 
     pipeline = get_pipeline(args.model)
 
@@ -304,11 +304,11 @@ def benchmark(args: argparse.Namespace) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, help="The model to benchmark.")
-    parser.add_argument("--results-root", type=str, help="The root directory to save results to.")
+    parser.add_argument("--result-root", type=str, help="The root directory to save results to.")
     parser.add_argument("--batch-size", type=int, default=1, help="The size of each batch of prompts.")
     parser.add_argument("--power-limit", type=int, default=300, help="The power limit to set for the GPU in Watts.")
     parser.add_argument("--num-inference-steps", type=int, default=50, help="The number of denoising steps.")
-    parser.add_argument("--subset", type=float, default=None, help="Only use a subset of the dataset.")
+    parser.add_argument("--num-batches", type=int, default=None, help="The number of batches to use from the dataset.")
     parser.add_argument("--image-save-every", type=int, default=10, help="Save images to file every N prompts.")
     parser.add_argument("--seed", type=int, default=0, help="The seed to use for the RNG.")
     parser.add_argument("--clip-model", type=str, default="openai/clip-vit-large-patch14", help="The CLIP model to use to calculate the CLIP score.")
