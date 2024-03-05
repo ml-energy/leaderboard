@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import argparse
 import subprocess
 from itertools import product
@@ -32,14 +33,27 @@ server_image: dict[str, str] = {
 }
 
 
+def print_and_write(outfile, line: str, flush: bool = False):
+    print(line, end="", flush=flush)
+    outfile.write(line)
+    if flush:
+        outfile.flush()
+
+
 def main(args: argparse.Namespace) -> None:
-    print(f"Benchmarking {args.model}")
-    print(f"Request rates: {request_rates}")
-    print(f"Power limits: {power_limits}")
+    outdir = f"{args.result_root}/{args.model}"
+    os.makedirs(outdir, exist_ok=True)
+
+    outfile = open(f"{outdir}/gpus{''.join(args.gpu_ids)}.out.txt", "w")
+
+    print_and_write(outfile, f"Benchmarking {args.model}\n")
+    print_and_write(outfile, f"Request rates: {request_rates}\n")
+    print_and_write(outfile, f"Power limits: {power_limits}\n")
 
     for backend, request_rate, power_limit in product(backends, request_rates, power_limits):
-        subprocess.run(
-            [
+        print_and_write(outfile, f"{backend=}, {request_rate=}, {power_limit=}\n", flush=True)
+        with subprocess.Popen(
+            args=[
                 "python",
                 "scripts/benchmark_one_datapoint.py",
                 "--backend", backend,
@@ -52,9 +66,16 @@ def main(args: argparse.Namespace) -> None:
                 "--huggingface-token", args.huggingface_token,
                 "--gpu-ids", *args.gpu_ids,
                 "--log-level", "INFO",
-            ]
-        )
-
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        ) as proc:
+            if proc.stdout:
+                i = 0
+                for line in proc.stdout:
+                    print_and_write(outfile, line, flush=i % 50 == 0)
+                    i += 1
 
 
 if __name__ == "__main__":
