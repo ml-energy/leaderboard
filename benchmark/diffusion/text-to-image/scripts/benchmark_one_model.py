@@ -31,6 +31,8 @@ def print_and_write(outfile, line: str, flush: bool = False):
 
 
 def main(args: argparse.Namespace) -> None:
+    # hf_token = os.environ["HF_TOKEN"]
+
     outdir = f"{args.result_root}/{args.model}"
     os.makedirs(outdir, exist_ok=True)
 
@@ -56,7 +58,7 @@ def main(args: argparse.Namespace) -> None:
                     "--num-batches", "10",
                     "--power-limit", power_limit,
                     "--model", args.model,
-                    # "--huggingface-token", args.huggingface_token,
+                    # "--huggingface-token", hf_token,
                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -79,7 +81,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, help="ID of the model to benchmark")
     parser.add_argument("--result-root", type=str, help="Root directory to store the results")
-    parser.add_argument("--huggingface-token", type=str, help="Huggingface API token")
     parser.add_argument("--gpu-ids", type=str, nargs="+", help="GPU IDs to use")
     args = parser.parse_args()
     main(args)
