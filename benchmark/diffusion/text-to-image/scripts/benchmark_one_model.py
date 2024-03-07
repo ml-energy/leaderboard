@@ -31,7 +31,7 @@ def print_and_write(outfile, line: str, flush: bool = False):
 
 
 def main(args: argparse.Namespace) -> None:
-    # hf_token = os.environ["HF_TOKEN"]
+    hf_token = os.environ["HF_TOKEN"]
 
     outdir = f"{args.result_root}/{args.model}"
     os.makedirs(outdir, exist_ok=True)
@@ -58,7 +58,7 @@ def main(args: argparse.Namespace) -> None:
                     "--num-batches", "10",
                     "--power-limit", power_limit,
                     "--model", args.model,
-                    # "--huggingface-token", hf_token,
+                    "--huggingface-token", hf_token,
                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,

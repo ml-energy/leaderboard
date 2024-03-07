@@ -36,4 +36,6 @@ docker run \
 
 ### Obtaining all datapoints for a single model
 
+Export your HuggingFace hub token as environment variable `$HF_TOKEN`.
+
 Run `scripts/benchmark_one_model.py`.

@@ -45,6 +45,8 @@ The scripts assume the HuggingFace cache directory will be under `/data/leaderbo
 
 ### Obtaining one datapoint
 
+Export your HuggingFace hub token as environment variable `$HF_TOKEN`.
+
 The script `scripts/benchmark_one_datapoint.py` assumes that it was ran from the directory where `scripts` is, like this:
 ```sh
 python scripts/benchmark_one_datapoint.py --help

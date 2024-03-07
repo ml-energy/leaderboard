@@ -219,7 +219,6 @@ def benchmark(args: argparse.Namespace) -> None:
             generator=rng,
             num_inference_steps=args.num_inference_steps,
             output_type="np",
-            **args.settings,
         ).images
         batch_measurements = zeus_monitor.end_window("batch", sync_cuda=False)
 
@@ -312,7 +311,7 @@ if __name__ == "__main__":
     parser.add_argument("--image-save-every", type=int, default=10, help="Save images to file every N prompts.")
     parser.add_argument("--seed", type=int, default=0, help="The seed to use for the RNG.")
     parser.add_argument("--clip-model", type=str, default="openai/clip-vit-large-patch14", help="The CLIP model to use to calculate the CLIP score.")
-    parser.add_argument("--settings", type=json.loads, default={}, help="Any additional settings to pass to pipeline forward.")
+    parser.add_argument("--huggingface-token", type=str, help="The HuggingFace token to use.")
     args = parser.parse_args()
 
     benchmark(args)
