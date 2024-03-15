@@ -14,7 +14,12 @@ from PIL import Image
 from datasets import load_dataset, Dataset
 from transformers.trainer_utils import set_seed
 from transformers import CLIPModel, CLIPProcessor
-from diffusers import ModelMixin, AutoPipelineForText2Image, DiffusionPipeline  # type: ignore
+from diffusers import (
+    ModelMixin,  # type: ignore
+    AutoPipelineForText2Image,  # type: ignore
+    DiffusionPipeline,  # type: ignore
+    StableCascadeCombinedPipeline,  # type: ignore
+) 
 from zeus.monitor import ZeusMonitor
 
 # Disable torch gradients globally
@@ -70,13 +75,18 @@ def get_pipeline(model_id: str):
     # Add additional args
     kwargs["safety_checker"] = None
     kwargs["revision"] = open(f"models/{model_id}/revision.txt").read().strip()
-    
-    try:
-        pipeline =  AutoPipelineForText2Image.from_pretrained(model_id, **kwargs).to("cuda:0")
-        print("\nInstantiated pipeline via AutoPipelineForText2Image:\n", pipeline)
-    except ValueError:
-        pipeline = DiffusionPipeline.from_pretrained(model_id, **kwargs).to("cuda:0")
-        print("\nInstantiated pipeline via DiffusionPipeline:\n", pipeline)
+
+    # Hack for stable-cascade, which defaults to only a part of the model.
+    if model_id == "stabilityai/stable-cascade":
+        pipeline = StableCascadeCombinedPipeline.from_pretrained(model_id, **kwargs).to("cuda:0")
+        print("\nInstantiated pipeline via StableCascadeCombinedPipeline:\n", pipeline)
+    else:
+        try:
+            pipeline =  AutoPipelineForText2Image.from_pretrained(model_id, **kwargs).to("cuda:0")
+            print("\nInstantiated pipeline via AutoPipelineForText2Image:\n", pipeline)
+        except ValueError:
+            pipeline = DiffusionPipeline.from_pretrained(model_id, **kwargs).to("cuda:0")
+            print("\nInstantiated pipeline via DiffusionPipeline:\n", pipeline)
 
     return pipeline
 
@@ -302,7 +312,7 @@ def benchmark(args: argparse.Namespace) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", type=str, help="The model to benchmark.")
+    parser.add_argument("--model", type=str, required=True, help="The model to benchmark.")
     parser.add_argument("--result-root", type=str, help="The root directory to save results to.")
     parser.add_argument("--batch-size", type=int, default=1, help="The size of each batch of prompts.")
     parser.add_argument("--power-limit", type=int, default=300, help="The power limit to set for the GPU in Watts.")

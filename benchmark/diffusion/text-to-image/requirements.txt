@@ -1,9 +1,9 @@
 torch==2.2.1
-diffusers==0.26.3
+diffusers==0.27.0
 accelerate
 datasets
 sentencepiece  # Required by kandinsky-community/kandinsky-3
 transformers
 pillow
-pynvml
+nvidia-ml-py
 zeus-ml
