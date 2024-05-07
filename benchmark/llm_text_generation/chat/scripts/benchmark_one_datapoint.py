@@ -4,7 +4,6 @@ import os
 import json
 import atexit
 import argparse
-import signal
 import subprocess
 from pathlib import Path
 from typing import Literal
@@ -30,7 +29,7 @@ def start_server(
     huggingface_token: str,
     gpu_ids: list[int],
     log_level: str,
-) -> subprocess.Popen:
+) -> str:
     gpu_str = ",".join(str(gpu_id) for gpu_id in gpu_ids)
     gpu_str = f'"device={gpu_str}"'
     hf_cache_path = "/data/leaderboard/hfcache"
@@ -39,6 +38,7 @@ def start_server(
     tokconf_path = f"{models_dir}/{tokconf_filename}"
     revision_filename = f"{model}/revision.txt"
     revision_path = f"{models_dir}/{revision_filename}"
+    container_name = f"leaderboard-{backend}-{''.join(str(gpu_id) for gpu_id in gpu_ids)}"
 
     assert Path(hf_cache_path).exists(), f"Hugging Face cache not found: {hf_cache_path}"
     assert Path(tokconf_path).exists(), f"Tokenizer config not found: {tokconf_path}"
@@ -49,6 +49,7 @@ def start_server(
             "docker", "run",
             "--gpus", gpu_str,
             "--ipc", "host",
+            "--name", container_name,
             "-e", f"HF_TOKEN={huggingface_token}",
             "-e", f"LOG_LEVEL={log_level}",
             "-p", f"{port}:8000",
@@ -65,6 +66,7 @@ def start_server(
             "docker", "run",
             "--gpus", gpu_str,
             "--ipc", "host",
+            "--name", container_name,
             "-e", f"HUGGING_FACE_HUB_TOKEN={huggingface_token}",
             "-e", f"LOG_LEVEL={log_level}",
             "-p", f"{port}:80",
@@ -83,7 +85,9 @@ def start_server(
         raise ValueError(f"Unknown backend: {backend}")
 
     print("Server:", " ".join(server_cmd))
-    return subprocess.Popen(server_cmd)
+    subprocess.Popen(server_cmd)
+
+    return container_name
 
 
 def start_client(
@@ -113,12 +117,8 @@ def start_client(
     )
 
 
-def terminate_server(server_handle: subprocess.Popen) -> None:
-    server_handle.send_signal(signal.SIGINT)
-    try:
-        server_handle.wait(timeout=10)
-    except subprocess.TimeoutExpired:
-        server_handle.kill()
+def terminate_server(container_name: str) -> None:
+    subprocess.run(["docker", "rm", "-f", container_name])
 
 
 def main(args: argparse.Namespace) -> None:
@@ -129,7 +129,7 @@ def main(args: argparse.Namespace) -> None:
 
     results_dir = Path(args.result_root) / args.model
     benchmark_name = str(
-        results_dir / f"{args.backend}+rate{args.request_rate}+pl{args.power_limit}+gpus{len(args.gpu_ids)}",
+        results_dir / f"{args.backend}+rate{args.request_rate}+pl{args.power_limit}+gpus{''.join(str(i) for i in args.gpu_ids)}",
     )
     results_dir.mkdir(parents=True, exist_ok=True)
 
@@ -144,7 +144,8 @@ def main(args: argparse.Namespace) -> None:
         args.gpu_ids,
         args.log_level,
     )
-    atexit.register(lambda: terminate_server(server_handle))
+    kill_fn = lambda: terminate_server(server_handle)
+    atexit.register(kill_fn)
 
     set_power_limit(args.power_limit, args.gpu_ids)
 
@@ -169,6 +170,7 @@ def main(args: argparse.Namespace) -> None:
         raise RuntimeError(f"Benchmark client exited with code {exit_code}")
 
     terminate_server(server_handle)
+    atexit.unregister(kill_fn)
 
 
 if __name__ == "__main__":

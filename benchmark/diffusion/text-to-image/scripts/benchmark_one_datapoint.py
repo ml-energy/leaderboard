@@ -192,7 +192,7 @@ def benchmark(args: argparse.Namespace) -> None:
     zeus_monitor = ZeusMonitor()
 
     pynvml.nvmlInit()
-    handle = pynvml.nvmlDeviceGetHandleByIndex(zeus_monitor.nvml_gpu_indices[0])
+    handle = pynvml.nvmlDeviceGetHandleByIndex(0)
     gpu_model = pynvml.nvmlDeviceGetName(handle)
     pynvml.nvmlDeviceSetPersistenceMode(handle, pynvml.NVML_FEATURE_ENABLED)
     pynvml.nvmlDeviceSetPowerManagementLimit(handle, args.power_limit * 1000)
@@ -203,8 +203,8 @@ def benchmark(args: argparse.Namespace) -> None:
     pipeline = get_pipeline(args.model)
 
     # Warmup
-    print("Warming up with three batches...")
-    for i in range(3):
+    print("Warming up with two batches...")
+    for i in range(2):
         _ = pipeline(
             batched_prompts[i],
             num_inference_steps=args.num_inference_steps,

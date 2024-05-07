@@ -31,7 +31,8 @@ docker run \
   --batch-size 2 \
   --power-limit 300 \
   --image-save-every 5 \
-  --model stabilityai/stable-diffusion-2-1
+  --model stabilityai/stable-diffusion-2-1 \
+  --huggingface-token $HF_TOKEN
 ```
 
 ### Obtaining all datapoints for a single model

@@ -20,16 +20,16 @@ request_rates: list[str] = [
 ]
 
 power_limits: list[str] = [
+    "400",
     "300",
-    "250",
     "200",
     "100",
 ]
 ######################################
 
 server_image: dict[str, str] = {
-    "vllm": "mlenergy/vllm:v0.3.3-openai",
-    "tgi": "mlenergy/text-generation-inference:v1.4.2",
+    "vllm": "mlenergy/vllm:v0.4.2-openai",
+    "tgi": "mlenergy/tgi:v2.0.2",
 }
 
 

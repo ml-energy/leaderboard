@@ -7,17 +7,16 @@ import subprocess
 
 ########### Parameter space ###########
 batch_sizes: list[str] = [
-    "32",
-    "16",
-    "8",
+    # "32",
+    # "16",
+    # "8",
     "4",
 ]
 
 power_limits: list[str] = [
+    "400",
     "300",
-    "250",
     "200",
-    "150",
     "100",
 ]
 #######################################
@@ -31,9 +30,14 @@ def print_and_write(outfile, line: str, flush: bool = False):
 
 
 def main(args: argparse.Namespace) -> None:
+    assert len(args.gpu_ids) == 1
+
     hf_token = os.environ["HF_TOKEN"]
 
-    outdir = f"{args.result_root}/{args.model}"
+    if args.model.startswith("models/"):
+        outdir = f"{args.result_root}/{args.model[len('models/'):]}"
+    else:
+        outdir = f"{args.result_root}/{args.model}"
     os.makedirs(outdir, exist_ok=True)
 
     outfile = open(f"{outdir}/gpus{''.join(args.gpu_ids)}.out.txt", "w")

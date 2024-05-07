@@ -179,7 +179,7 @@ def run_benchmark(
     zeus_monitor = ZeusMonitor()
 
     pynvml.nvmlInit()
-    handle = pynvml.nvmlDeviceGetHandleByIndex(zeus_monitor.nvml_gpu_indices[0])
+    handle = pynvml.nvmlDeviceGetHandleByIndex(0)
     gpu_model = pynvml.nvmlDeviceGetName(handle)
     pynvml.nvmlShutdown()
 
