@@ -57,6 +57,7 @@ def start_server(
             "--tensor-parallel-size", str(len(gpu_ids)),
             "--gpu-memory-utilization", "0.95",
             "--max-model-len", "4096",
+            "--trust-remote-code",
         ]
     elif backend == "tgi":
         server_cmd = [
@@ -77,6 +78,7 @@ def start_server(
             "--cuda-memory-fraction", "0.95",
             "--max-concurrent-requests", "512",
             "--max-stop-sequences", "7",
+            "--trust-remote-code",
         ]
     else:
         raise ValueError(f"Unknown backend: {backend}")

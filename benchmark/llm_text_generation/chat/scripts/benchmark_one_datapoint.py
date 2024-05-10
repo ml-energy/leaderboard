@@ -60,6 +60,7 @@ def start_server(
             "--chat-template", json.load(open(tokconf_path))["chat_template"],
             "--tensor-parallel-size", str(len(gpu_ids)),
             "--gpu-memory-utilization", "0.90",
+            "--trust-remote-code",
         ]
     elif backend == "tgi":
         server_cmd = [
@@ -80,6 +81,7 @@ def start_server(
             "--cuda-memory-fraction", "0.90",
             "--num-shard", str(len(gpu_ids)),
             "--max-concurrent-requests", "512",
+            "--trust-remote-code",
         ]
     else:
         raise ValueError(f"Unknown backend: {backend}")
