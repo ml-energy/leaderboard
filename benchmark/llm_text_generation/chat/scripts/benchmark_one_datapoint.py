@@ -6,6 +6,7 @@ import atexit
 import argparse
 import subprocess
 from pathlib import Path
+import time
 from typing import Literal
 
 
@@ -29,6 +30,8 @@ def start_server(
     huggingface_token: str,
     gpu_ids: list[int],
     log_level: str,
+    result_root: str,
+    benchmark_name: str,
 ) -> str:
     gpu_str = ",".join(str(gpu_id) for gpu_id in gpu_ids)
     gpu_str = f'"device={gpu_str}"'
@@ -52,8 +55,11 @@ def start_server(
             "--name", container_name,
             "-e", f"HF_TOKEN={huggingface_token}",
             "-e", f"LOG_LEVEL={log_level}",
+            "-e", f"RESULT_FILE_PREFIX=/results/{benchmark_name}",
             "-p", f"{port}:8000",
             "-v", f"{hf_cache_path}:/root/.cache/huggingface",
+            "-v", "/var/run/nvidia-dcgm.sock:/var/run/nvidia-dcgm.sock",
+            "-v", f"{result_root}:/results",
             server_image,
             "--model", model,
             "--revision", open(revision_path).read().strip(),
@@ -70,9 +76,11 @@ def start_server(
             "--name", container_name,
             "-e", f"HUGGING_FACE_HUB_TOKEN={huggingface_token}",
             "-e", f"LOG_LEVEL={log_level}",
+            "-e", f"RESULT_FILE_PREFIX=/results/{benchmark_name}",
             "-p", f"{port}:80",
             "-v", f"{hf_cache_path}:/root/.cache/huggingface",
             "-v", f"{models_dir}:/models",
+            "-v", f"{result_root}:/results",
             server_image,
             "--model-id", model,
             "--revision", open(revision_path).read().strip(),
@@ -120,6 +128,8 @@ def start_client(
 
 
 def terminate_server(container_name: str) -> None:
+    subprocess.run(["docker", "kill", "-s", "INT", container_name])
+    subprocess.run(["timeout", "30", "docker", "wait", container_name])
     subprocess.run(["docker", "rm", "-f", container_name])
 
 
@@ -130,10 +140,8 @@ def main(args: argparse.Namespace) -> None:
         args.model = args.model[:-1]
 
     results_dir = Path(args.result_root) / args.model
-    benchmark_name = str(
-        results_dir / f"{args.backend}+rate{args.request_rate}+pl{args.power_limit}+gpus{''.join(str(i) for i in args.gpu_ids)}",
-    )
     results_dir.mkdir(parents=True, exist_ok=True)
+    benchmark_name = f"{args.backend}+rate{args.request_rate}+pl{args.power_limit}+gpus{''.join(str(i) for i in args.gpu_ids)}"
 
     port = 8000 + args.gpu_ids[0]
 
@@ -145,6 +153,8 @@ def main(args: argparse.Namespace) -> None:
         args.huggingface_token,
         args.gpu_ids,
         args.log_level,
+        str(results_dir.absolute()),
+        benchmark_name,
     )
     kill_fn = lambda: terminate_server(server_handle)
     atexit.register(kill_fn)
@@ -158,7 +168,7 @@ def main(args: argparse.Namespace) -> None:
         args.sharegpt_path,
         args.request_rate,
         args.gpu_ids,
-        benchmark_name,
+        str(results_dir / benchmark_name),
         args.power_limit,
     )
 
