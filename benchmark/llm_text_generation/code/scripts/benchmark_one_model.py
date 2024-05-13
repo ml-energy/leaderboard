@@ -6,33 +6,6 @@ import subprocess
 from itertools import product
 
 
-########### Parameter space ###########
-backends: list[str] = [
-    "vllm",
-    "tgi",
-]
-
-request_rates: list[str] = [
-    "15.00",
-    "10.00",
-    "5.00",
-    "2.50",
-]
-
-power_limits: list[str] = [
-    "300",
-    "250",
-    "200",
-    "100",
-]
-#######################################
-
-server_image: dict[str, str] = {
-    "vllm": "mlenergy/vllm:v0.3.3-api",
-    "tgi": "mlenergy/text-generation-inference:v1.4.2",
-}
-
-
 def print_and_write(outfile, line: str, flush: bool = False):
     print(line, end="", flush=flush)
     outfile.write(line)
@@ -48,18 +21,23 @@ def main(args: argparse.Namespace) -> None:
 
     outfile = open(f"{outdir}/gpus{''.join(args.gpu_ids)}.out.txt", "w")
 
-    print_and_write(outfile, f"Benchmarking {args.model}\n")
-    print_and_write(outfile, f"Request rates: {request_rates}\n")
-    print_and_write(outfile, f"Power limits: {power_limits}\n")
+    assert len(args.backends) == len(args.server_images)
+    server_images = dict(zip(args.backends, args.server_images))
 
-    for backend, request_rate, power_limit in product(backends, request_rates, power_limits):
+    print_and_write(outfile, f"Benchmarking {args.model}\n")
+    print_and_write(outfile, f"Backends: {args.backends}\n")
+    print_and_write(outfile, f"Server images: {args.server_images}\n")
+    print_and_write(outfile, f"Request rates: {args.request_rates}\n")
+    print_and_write(outfile, f"Power limits: {args.power_limits}\n")
+
+    for backend, request_rate, power_limit in product(args.backends, args.request_rates, args.power_limits):
         print_and_write(outfile, f"{backend=}, {request_rate=}, {power_limit=}\n", flush=True)
         with subprocess.Popen(
             args=[
                 "python",
                 "scripts/benchmark_one_datapoint.py",
                 "--backend", backend,
-                "--server-image", server_image[backend],
+                "--server-image", server_images[backend],
                 "--model", args.model,
                 "--dataset", "humaneval",
                 "--request-rate", request_rate,
@@ -85,7 +63,9 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, help="ID of the model to benchmark")
     parser.add_argument("--result-root", type=str, help="Root directory to store the results")
     parser.add_argument("--gpu-ids", type=str, nargs="+", help="GPU IDs to use")
-    parser.add_argument("--request-rates", type=str, nargs="+", help="Request rates to benchmark")
-    parser.add_argument("--power-limits", type=str, nargs="+", help="Power limits to benchmark")
+    parser.add_argument("--backends", type=str, nargs="+", default=["vllm", "tgi"], help="Backends to benchmark")
+    parser.add_argument("--server-images", type=str, nargs="+", default=["mlenergy/vllm:v0.4.2-api", "mlenergy/tgi:v2.0.2"], help="Server images to benchmark")
+    parser.add_argument("--request-rates", type=str, nargs="+", default=["8.00", "4.00", "3.00", "2.00", "1.00"], help="Request rates to benchmark")
+    parser.add_argument("--power-limits", type=str, nargs="+", default=["400", "300", "200"], help="Power limits to benchmark")
     args = parser.parse_args()
     main(args)
