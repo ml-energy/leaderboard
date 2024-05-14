@@ -42,6 +42,7 @@ def start_server(
     revision_filename = f"{model}/revision.txt"
     revision_path = f"{models_dir}/{revision_filename}"
     container_name = f"leaderboard-{backend}-{''.join(str(gpu_id) for gpu_id in gpu_ids)}"
+    dcgm_sock_path = "/var/run/nvidia-dcgm.sock"
 
     assert Path(hf_cache_path).exists(), f"Hugging Face cache not found: {hf_cache_path}"
     assert Path(tokconf_path).exists(), f"Tokenizer config not found: {tokconf_path}"
@@ -58,14 +59,13 @@ def start_server(
             "-e", f"RESULT_FILE_PREFIX=/results/{benchmark_name}",
             "-p", f"{port}:8000",
             "-v", f"{hf_cache_path}:/root/.cache/huggingface",
-            "-v", "/var/run/nvidia-dcgm.sock:/var/run/nvidia-dcgm.sock",
             "-v", f"{result_root}:/results",
             server_image,
             "--model", model,
             "--revision", open(revision_path).read().strip(),
             "--chat-template", json.load(open(tokconf_path))["chat_template"],
             "--tensor-parallel-size", str(len(gpu_ids)),
-            "--gpu-memory-utilization", "0.90",
+            "--gpu-memory-utilization", "0.95",
             "--trust-remote-code",
         ]
     elif backend == "tgi":
@@ -86,13 +86,18 @@ def start_server(
             "--revision", open(revision_path).read().strip(),
             "--huggingface-hub-cache", "/root/.cache/huggingface/hub",
             "--tokenizer-config-path", f"/models/{tokconf_filename}",
-            "--cuda-memory-fraction", "0.90",
+            "--cuda-memory-fraction", "0.95",
             "--num-shard", str(len(gpu_ids)),
             "--max-concurrent-requests", "512",
             "--trust-remote-code",
         ]
     else:
         raise ValueError(f"Unknown backend: {backend}")
+
+    if Path(dcgm_sock_path).exists():
+        # Right after docker run.
+        server_cmd.insert(2, f"{dcgm_sock_path}:{dcgm_sock_path}")
+        server_cmd.insert(2, "-v")
 
     print("Server:", " ".join(server_cmd))
     subprocess.Popen(server_cmd)

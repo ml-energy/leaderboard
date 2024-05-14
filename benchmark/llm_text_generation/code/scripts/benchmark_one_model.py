@@ -19,7 +19,7 @@ def main(args: argparse.Namespace) -> None:
     outdir = f"{args.result_root}/{args.model}"
     os.makedirs(outdir, exist_ok=True)
 
-    outfile = open(f"{outdir}/gpus{''.join(args.gpu_ids)}.out.txt", "w")
+    outfile = open(f"{outdir}/gpus{''.join(args.gpu_ids)}.out.txt", "a")
 
     assert len(args.backends) == len(args.server_images)
     server_images = dict(zip(args.backends, args.server_images))
@@ -46,6 +46,7 @@ def main(args: argparse.Namespace) -> None:
                 "--huggingface-token", hf_token,
                 "--gpu-ids", *args.gpu_ids,
                 "--log-level", "INFO",
+                "--mode", args.mode,
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -67,5 +68,6 @@ if __name__ == "__main__":
     parser.add_argument("--server-images", type=str, nargs="+", default=["mlenergy/vllm:v0.4.2-api", "mlenergy/tgi:v2.0.2"], help="Server images to benchmark")
     parser.add_argument("--request-rates", type=str, nargs="+", default=["8.00", "4.00", "3.00", "2.00", "1.00"], help="Request rates to benchmark")
     parser.add_argument("--power-limits", type=str, nargs="+", default=["400", "300", "200"], help="Power limits to benchmark")
+    parser.add_argument("--mode", type=str, choices=["codegen", "eval"], default="codegen", help="Mode to run the benchmark in")
     args = parser.parse_args()
     main(args)

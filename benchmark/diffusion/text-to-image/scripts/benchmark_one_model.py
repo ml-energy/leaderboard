@@ -5,23 +5,6 @@ import argparse
 import subprocess
 
 
-########### Parameter space ###########
-batch_sizes: list[str] = [
-    # "32",
-    # "16",
-    # "8",
-    "4",
-]
-
-power_limits: list[str] = [
-    "400",
-    "300",
-    "200",
-    "100",
-]
-#######################################
-
-
 def print_and_write(outfile, line: str, flush: bool = False):
     print(line, end="", flush=flush)
     outfile.write(line)
@@ -43,17 +26,19 @@ def main(args: argparse.Namespace) -> None:
     outfile = open(f"{outdir}/gpus{''.join(args.gpu_ids)}.out.txt", "w")
 
     print_and_write(outfile, f"Benchmarking {args.model}\n")
-    print_and_write(outfile, f"Batch sizes: {batch_sizes}\n")
-    print_and_write(outfile, f"Power limits: {power_limits}\n")
+    print_and_write(outfile, f"Batch sizes: {args.batch_sizes}\n")
+    print_and_write(outfile, f"Power limits: {args.power_limits}\n")
 
-    for batch_size in batch_sizes:
-        for power_limit in power_limits:
+    for batch_size in args.batch_sizes:
+        for power_limit in args.power_limits:
             print_and_write(outfile, f"{batch_size=}, {power_limit=}\n", flush=True)
             with subprocess.Popen(
                 args=[
                     "docker", "run",
                     "--gpus", '"device=' + ','.join(args.gpu_ids) + '"',
                     "--cap-add", "SYS_ADMIN",
+                    "--name", f"leaderboard-diffusers-{''.join(args.gpu_ids)}",
+                    "--rm",
                     "-v", "/data/leaderboard/hfcache:/root/.cache/huggingface",
                     "-v", f"{os.getcwd()}:/workspace/text-to-image",
                     "mlenergy/leaderboard:diffusion-benchmark",
@@ -86,5 +71,7 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, help="ID of the model to benchmark")
     parser.add_argument("--result-root", type=str, help="Root directory to store the results")
     parser.add_argument("--gpu-ids", type=str, nargs="+", help="GPU IDs to use")
+    parser.add_argument("--batch-sizes", type=str, nargs="+", default=["8", "4", "2", "1"], help="Batch sizes to benchmark")
+    parser.add_argument("--power-limits", type=str, nargs="+", default=["400", "300", "200"], help="Power limits to benchmark")
     args = parser.parse_args()
     main(args)

@@ -19,7 +19,7 @@ def main(args: argparse.Namespace) -> None:
     outdir = f"{args.result_root}/{args.model}"
     os.makedirs(outdir, exist_ok=True)
 
-    outfile = open(f"{outdir}/gpus{''.join(args.gpu_ids)}.out.txt", "w")
+    outfile = open(f"{outdir}/gpus{''.join(args.gpu_ids)}.out.txt", "a")
 
     assert len(args.backends) == len(args.server_images)
     server_images = dict(zip(args.backends, args.server_images))

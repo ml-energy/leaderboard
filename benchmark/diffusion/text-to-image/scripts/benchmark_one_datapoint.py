@@ -248,7 +248,7 @@ def benchmark(args: argparse.Namespace) -> None:
     # adapted here to calculate the CLIP score for each image and prompt pair.
     clip_model: CLIPModel = CLIPModel.from_pretrained(CLIP).cuda()  # type: ignore
     clip_processor: CLIPProcessor = CLIPProcessor.from_pretrained(CLIP)  # type: ignore
-    clip_score_tensors = []
+    batch_clip_scores = []
     for intermediate in intermediates:
         clip_score = calculate_clip_score(
             clip_model,
@@ -256,15 +256,15 @@ def benchmark(args: argparse.Namespace) -> None:
             intermediate.images,
             intermediate.prompts,
         )
-        clip_score_tensors.append(clip_score)
+        batch_clip_scores.append(clip_score.tolist())
 
     results: list[Result] = []
     ind = 0
-    for intermediate, clip_score_tensor in zip(intermediates, clip_score_tensors, strict=True):
+    for intermediate, batch_clip_score in zip(intermediates, batch_clip_scores, strict=True):
         for image, prompt, clip_score in zip(
             intermediate.images,
             intermediate.prompts,
-            clip_score_tensor.tolist(),
+            batch_clip_score,
             strict=True,
         ):
             if ind % args.image_save_every == 0:
@@ -320,7 +320,6 @@ if __name__ == "__main__":
     parser.add_argument("--num-batches", type=int, default=None, help="The number of batches to use from the dataset.")
     parser.add_argument("--image-save-every", type=int, default=10, help="Save images to file every N prompts.")
     parser.add_argument("--seed", type=int, default=0, help="The seed to use for the RNG.")
-    parser.add_argument("--clip-model", type=str, default="openai/clip-vit-large-patch14", help="The CLIP model to use to calculate the CLIP score.")
     parser.add_argument("--huggingface-token", type=str, help="The HuggingFace token to use.")
     args = parser.parse_args()
 

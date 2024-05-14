@@ -1,0 +1,11 @@
+- command:
+    - "python scripts/benchmark_one_model.py --model {{ model }} --result-root results/leaderboard --gpu-ids {{ gpu }} --backends vllm tgi --server-images mlenergy/vllm:v0.4.2-openai mlenergy/tgi:v2.0.2 --request-rates 4.00 3.00 2.00 1.00 --power-limits 400 300 200"
+  model:
+    - meta-llama/Llama-2-7b-chat-hf
+    - meta-llama/Llama-2-13b-chat-hf
+    - meta-llama/Meta-Llama-3-8B-Instruct
+    - tiiuae/falcon-7b-instruct
+    - mistralai/Mistral-7B-Instruct-v0.2
+    - microsoft/Phi-3-mini-4k-instruct
+    - google/gemma-1.1-2b-it
+    - google/gemma-1.1-7b-it

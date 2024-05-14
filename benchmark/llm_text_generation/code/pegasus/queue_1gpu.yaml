@@ -1,0 +1,11 @@
+- command:
+    - "python scripts/benchmark_one_model.py --model {{ model }} --result-root results/leaderboard --gpu-ids {{ gpu }} --backends tgi vllm --server-images mlenergy/tgi:v2.0.2 mlenergy/vllm:v0.4.2-api --request-rates 8.00 6.00 4.00 2.00 --power-limits 400 300 200"
+  model:
+    - codellama/CodeLlama-7b-hf
+    - codellama/CodeLlama-13b-hf
+    - bigcode/starcoder2-3b
+    - bigcode/starcoder2-7b
+    - bigcode/starcoder2-15b
+    - google/codegemma-1.1-2b
+    - google/codegemma-7b
+    - microsoft/Phi-3-mini-4k-instruct

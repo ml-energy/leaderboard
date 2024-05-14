@@ -1,5 +1,5 @@
-torch==2.2.1
-diffusers==0.27.0
+torch==2.3.0
+diffusers==0.27.2
 accelerate
 datasets
 sentencepiece  # Required by kandinsky-community/kandinsky-3

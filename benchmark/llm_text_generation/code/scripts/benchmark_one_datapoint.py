@@ -161,48 +161,54 @@ def main(args: argparse.Namespace) -> None:
     benchmark_name = str(
         results_dir / f"{args.backend}+rate{args.request_rate}+pl{args.power_limit}+gpus{''.join(str(i) for i in args.gpu_ids)}",
     )
-    results_dir.mkdir(parents=True, exist_ok=True)
 
-    port = 8000 + args.gpu_ids[0]
+    if args.mode == "codegen":
+        results_dir.mkdir(parents=True, exist_ok=True)
 
-    server_handle = start_server(
-        args.backend,
-        args.server_image,
-        port,
-        args.model,
-        args.huggingface_token,
-        args.gpu_ids,
-        args.log_level,
-    )
-    kill_fn = lambda: terminate_server(server_handle)
-    atexit.register(kill_fn)
+        port = 8000 + args.gpu_ids[0]
 
-    set_power_limit(args.power_limit, args.gpu_ids)
+        server_handle = start_server(
+            args.backend,
+            args.server_image,
+            port,
+            args.model,
+            args.huggingface_token,
+            args.gpu_ids,
+            args.log_level,
+        )
+        kill_fn = lambda: terminate_server(server_handle)
+        atexit.register(kill_fn)
 
-    client_handle = start_client(
-        args.backend,
-        port,
-        args.model,
-        args.dataset,
-        args.request_rate,
-        args.gpu_ids,
-        benchmark_name,
-        args.power_limit,
-    )
+        set_power_limit(args.power_limit, args.gpu_ids)
 
-    try:
-        exit_code = client_handle.wait(timeout=2 * 3600)
-    except subprocess.TimeoutExpired:
-        client_handle.terminate()
-        raise RuntimeError("Benchmark client timed out after two hours")
+        client_handle = start_client(
+            args.backend,
+            port,
+            args.model,
+            args.dataset,
+            args.request_rate,
+            args.gpu_ids,
+            benchmark_name,
+            args.power_limit,
+        )
 
-    if exit_code != 0:
-        raise RuntimeError(f"Benchmark client exited with code {exit_code}")
+        try:
+            exit_code = client_handle.wait(timeout=2 * 3600)
+        except subprocess.TimeoutExpired:
+            client_handle.terminate()
+            raise RuntimeError("Benchmark client timed out after two hours")
 
-    terminate_server(server_handle)
-    atexit.unregister(kill_fn)
+        if exit_code != 0:
+            raise RuntimeError(f"Benchmark client exited with code {exit_code}")
 
-    run_evalplus_eval(args.dataset, benchmark_name)
+        terminate_server(server_handle)
+        atexit.unregister(kill_fn)
+
+    elif args.mode == "eval":
+        run_evalplus_eval(args.dataset, benchmark_name)
+
+    else:
+        raise ValueError(f"Unknown mode: {args.mode}")
 
 
 if __name__ == "__main__":
@@ -217,4 +223,5 @@ if __name__ == "__main__":
     parser.add_argument("--huggingface-token", required=True, help="Hugging Face API token.")
     parser.add_argument("--gpu-ids", nargs="+", type=int, required=True, help="GPU IDs to use for the server.")
     parser.add_argument("--log-level", default="INFO", help="Logging level for the server.")
+    parser.add_argument("--mode", required=True, choices=["codegen", "eval"], help="Mode to run the script in.")
     main(parser.parse_args())
