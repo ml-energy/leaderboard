@@ -1,5 +1,5 @@
 - command:
-    - "python scripts/benchmark_one_model.py --model {{ model }} --result-root results/leaderboard --gpu-ids {{ gpu }} --backends vllm tgi --server-images mlenergy/vllm:v0.4.2-openai mlenergy/tgi:v2.0.2 --request-rates 4.00 3.00 2.00 1.00 --power-limits 400 300 200"
+    - "python scripts/benchmark_one_model.py --model {{ model }} --result-root results/leaderboard --gpu-ids {{ gpu }} --backends vllm tgi --server-images mlenergy/vllm:v0.4.2-openai mlenergy/tgi:v2.0.2 --request-rates 6.00 5.00 4.00 3.00 2.00 1.00 --power-limits 400"
   model:
     - tiiuae/falcon-40b-instruct
     - mistralai/Mixtral-8x7B-Instruct-v0.1
