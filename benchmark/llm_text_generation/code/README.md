@@ -4,20 +4,13 @@ This benchmark suite benchmarks vLLM and TGI with the code generation task.
 
 ## Setup
 
-### Building Docker images
+### Docker images
+
+You can pull vLLM and TGI Docker images with:
 
 ```sh
-git clone git@github.com:ml-energy/vllm.git
-cd vllm
-git checkout v0.3.0
-DOCKER_BUILDKIT=1 docker build . --target vllm-openai --tag mlenergy/vllm:v0.3.0-openai --build-arg max_jobs=16 --build-arg nvcc_threads=16
-```
-
-```sh
-git clone git@github.com:ml-energy/text-generation-inference.git
-cd text-generation-inference
-git checkout v1.4.0
-docker build -t mlenergy/tgi:v1.4.0 .
+docker pull mlenergy/vllm:v0.4.2-api
+docker pull mlenergy/tgi:v2.0.2
 ```
 
 ### Installing Benchmark Script Dependencies
@@ -28,7 +21,7 @@ pip install -r requirements.txt
 
 ### Starting the NVML container
 
-Changing the power limit requires the `SYS_ADMIN` linux security capability, which we delegate to a daemon Docker container running a base CUDA image.
+Changing the power limit requires the `SYS_ADMIN` Linux security capability, which we delegate to a daemon Docker container running a base CUDA image.
 
 ```sh
 bash ../../common/start_nvml_container.sh
@@ -47,7 +40,7 @@ The scripts assume the HuggingFace cache directory will be under `/data/leaderbo
 
 Export your HuggingFace hub token as environment variable `$HF_TOKEN`.
 
-The script `scripts/benchmark_one_datapoint.py` assumes that it was ran from the directory where `scripts` is, like this:
+The script `scripts/benchmark_one_datapoint.py` assumes that it was run from the directory where `scripts` is, like this:
 ```sh
 python scripts/benchmark_one_datapoint.py --help
 ```
@@ -55,3 +48,8 @@ python scripts/benchmark_one_datapoint.py --help
 ### Obtaining all datapoints for a single model
 
 Run `scripts/benchmark_one_model.py`.
+
+### Running the entire suite with Pegasus
+
+You can use [`pegasus`](https://github.com/jaywonchung/pegasus) to run the entire benchmark suite.
+Queue and host files are in [`./pegasus`](./pegasus).

@@ -4,7 +4,7 @@ This benchmark suite benchmarks diffusion models with the text-to-image task.
 
 ## Setup
 
-### Building Docker images
+### Docker images
 
 ```sh
 docker build -t mlenergy/leaderboard:diffusion-benchmark .
@@ -40,3 +40,8 @@ docker run \
 Export your HuggingFace hub token as environment variable `$HF_TOKEN`.
 
 Run `scripts/benchmark_one_model.py`.
+
+### Running the entire suite with Pegasus
+
+You can use [`pegasus`](https://github.com/jaywonchung/pegasus) to run the entire benchmark suite.
+Queue and host files are in [`./pegasus`](./pegasus).

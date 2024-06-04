@@ -26,7 +26,19 @@ COLOSSEUM_UP = True
 COLOSSEUM_DOWN_MESSAGE = f"<br/><h2 style='text-align: center'>The Colosseum is currently down for maintenance.</h2>"
 
 
-class TableManager:
+class LLMTableManager:
+    """Manages the data for the leaderboard tables for LLM tasks."""
+    def __init__(self, data_dir: str, task_name: str) -> None:
+        """Load leaderboard data from files in data_dir.
+
+        Expected directory structure: data_dir/task_name/gpu_model.
+        Inside the innermost (GPU model) directory, there should be:
+        - `models.json`: a JSON file that maps huggingface model IDs to
+            the model's `url`, `nickname`, and `params`.
+        - `model_id/*+results.json`: JSON files containing the benchmark results.
+        """
+
+class LegacyTableManager:
     def __init__(self, data_dir: str) -> None:
         """Load leaderboard data from CSV files in data_dir.
 
@@ -229,7 +241,7 @@ class TableManager:
 # is mutated while handling user sessions, the change will be reflected
 # in every user session. Instead, the instance provided by gr.State should
 # be used.
-global_tbm = TableManager("data")
+global_ltbm = LegacyTableManager("data/legacy")
 
 # Fetch the latest update date of the leaderboard repository.
 resp = requests.get("https://api.github.com/repos/ml-energy/leaderboard/commits/master")
@@ -253,7 +265,7 @@ else:
 dataframe_update_js = f"""
 function format_model_link() {{
     // Iterate over the cells of the first column of the leaderboard table.
-    for (let index = 1; index <= {len(global_tbm.full_df)}; index++) {{
+    for (let index = 1; index <= {len(global_ltbm.full_df)}; index++) {{
         // Get the cell.
         var cell = document.querySelector(
             `#tab-leaderboard > div > div > div > table > tbody > tr:nth-child(${{index}}) > td:nth-child(1) > div > span`
@@ -423,7 +435,7 @@ def consumed_more_energy_message(energy_a, energy_b):
 # Colosseum event handlers
 def on_load():
     """Intialize the dataframe, shuffle the model preference dropdown choices."""
-    dataframe = global_tbm.set_filter_get_df()
+    dataframe = global_ltbm.set_filter_get_df()
     available_models = copy.deepcopy(global_available_models)
     random.shuffle(available_models)
     available_models.insert(0, RANDOM_MODEL_NAME)
@@ -540,7 +552,7 @@ function() {
 """
 
 with gr.Blocks(css=custom_css) as block:
-    tbm = gr.State(global_tbm)  # type: ignore
+    tbm = gr.State(global_ltbm)  # type: ignore
     with gr.Box():
         gr.HTML("<h1><a href='https://ml.energy' class='text-logo'>ML.ENERGY</a> Leaderboard</h1>")
 
@@ -672,7 +684,7 @@ with gr.Blocks(css=custom_css) as block:
                 with gr.Box():
                     gr.Markdown("### Benchmark results to show")
                     checkboxes: list[gr.CheckboxGroup] = []
-                    for key, choices in global_tbm.schema.items():
+                    for key, choices in global_ltbm.schema.items():
                         # Specifying `value` makes everything checked by default.
                         checkboxes.append(gr.CheckboxGroup(choices=choices, value=choices[:1], label=key))
 
@@ -683,7 +695,7 @@ with gr.Blocks(css=custom_css) as block:
             dataframe.change(None, None, None, _js=dataframe_update_js, queue=False)
             # Table automatically updates when users check or uncheck any checkbox.
             for checkbox in checkboxes:
-                checkbox.change(TableManager.set_filter_get_df, inputs=[tbm, *checkboxes], outputs=dataframe, queue=False)
+                checkbox.change(LegacyTableManager.set_filter_get_df, inputs=[tbm, *checkboxes], outputs=dataframe, queue=False)
 
             # Block: Allow users to add new columns.
             with gr.Box():
@@ -709,19 +721,19 @@ with gr.Blocks(css=custom_css) as block:
                     inputs=[colname_input, formula_input],
                 )
                 colname_input.submit(
-                    TableManager.add_column,
+                    LegacyTableManager.add_column,
                     inputs=[tbm, colname_input, formula_input],
                     outputs=[dataframe, add_col_message],
                     queue=False,
                 )
                 formula_input.submit(
-                    TableManager.add_column,
+                    LegacyTableManager.add_column,
                     inputs=[tbm, colname_input, formula_input],
                     outputs=[dataframe, add_col_message],
                     queue=False,
                 )
                 add_col_btn.click(
-                    TableManager.add_column,
+                    LegacyTableManager.add_column,
                     inputs=[tbm, colname_input, formula_input],
                     outputs=[dataframe, add_col_message],
                     queue=False,
@@ -740,7 +752,7 @@ with gr.Blocks(css=custom_css) as block:
                     with gr.Column(scale=3):
                         with gr.Row():
                             # Initialize the dropdown choices with the global TableManager with just the original columns.
-                            axis_dropdowns = global_tbm.get_dropdown()
+                            axis_dropdowns = global_ltbm.get_dropdown()
                     with gr.Column(scale=1):
                         with gr.Row():
                             plot_btn = gr.Button("Plot", elem_classes=["btn-submit"])
@@ -751,7 +763,7 @@ with gr.Blocks(css=custom_css) as block:
                         plot_width_input = gr.Textbox("600", lines=1, label="Width (px)")
                         plot_height_input = gr.Textbox("600", lines=1, label="Height (px)")
                 with gr.Row():
-                    plot = gr.Plot(value=global_tbm.plot_scatter(
+                    plot = gr.Plot(value=global_ltbm.plot_scatter(
                         plot_width_input.value,
                         plot_height_input.value,
                         x=axis_dropdowns[0].value,
@@ -760,21 +772,21 @@ with gr.Blocks(css=custom_css) as block:
                     )[0])  # type: ignore
                 with gr.Row():
                     plot_message = gr.HTML("")
-                add_col_btn.click(TableManager.update_dropdown, inputs=tbm, outputs=axis_dropdowns, queue=False)  # type: ignore
+                add_col_btn.click(LegacyTableManager.update_dropdown, inputs=tbm, outputs=axis_dropdowns, queue=False)  # type: ignore
                 plot_width_input.submit(
-                    TableManager.plot_scatter,
+                    LegacyTableManager.plot_scatter,
                     inputs=[tbm, plot_width_input, plot_height_input, *axis_dropdowns],
                     outputs=[plot, plot_width_input, plot_height_input, plot_message],
                     queue=False,
                 )
                 plot_height_input.submit(
-                    TableManager.plot_scatter,
+                    LegacyTableManager.plot_scatter,
                     inputs=[tbm, plot_width_input, plot_height_input, *axis_dropdowns],
                     outputs=[plot, plot_width_input, plot_height_input, plot_message],
                     queue=False,
                 )
                 plot_btn.click(
-                    TableManager.plot_scatter,
+                    LegacyTableManager.plot_scatter,
                     inputs=[tbm, plot_width_input, plot_height_input, *axis_dropdowns],
                     outputs=[plot, plot_width_input, plot_height_input, plot_message],
                     queue=False,

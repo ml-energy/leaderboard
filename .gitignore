@@ -14,6 +14,7 @@ pyrightconfig.json
 **/__pycache__
 **/.ipynb_checkpoints
 build/
+**.ipynb
 
 # Data files
 *.log
