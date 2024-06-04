@@ -20,6 +20,18 @@ How much energy do GenAI models like LLMs and Diffusion models consume?
 This README focuses on explaining how to run the benchmark yourself.
 The actual leaderboard is here: https://ml.energy/leaderboard.
 
+## Repository Organization
+
+```
+ leaderboard/
+├──  benchmark/      # Benchmark scripts & instructions
+├──  data/           # Benchmark results
+├──  deployment/     # Colosseum deployment files
+├──  spitfight/      # Python package for the Colosseum
+├──  app.py          # Leaderboard Gradio app definition
+└──  index.html      # Embeds the leaderboard HuggingFace Space
+```
+
 ## Colosseum
 
 We instrumented [Hugging Face TGI](https://github.com/huggingface/text-generation-inference) so that it measures and returns GPU energy consumption.
