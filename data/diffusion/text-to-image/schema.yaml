@@ -1,2 +1,2 @@
 "GPU model": ["A100-SXM4-40GB"]
-"Number of inference steps": ["30", "40", "50"]
+"Inference steps": ["30", "40", "50"]

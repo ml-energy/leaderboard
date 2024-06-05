@@ -136,7 +136,7 @@ class LLMTableManager(TableManager):
         columns = cols_to_order + [col for col in columns if col not in cols_to_order]
         res_df = res_df[columns]
 
-        # Order rows: Model > GPU model > Backend > Request rate
+        # Order rows
         res_df = res_df.sort_values(by=["Model", *self.schema.keys(), "Request rate"])
         res_df.pop("Request rate")
 
@@ -273,6 +273,8 @@ class DiffusionTableManager(TableManager):
                             model_df[key] = val
                         # Format the model name as an HTML anchor.
                         model_df["Model"] = self._wrap_model_name(model_info["url"], model_info["nickname"])
+                        model_df["Total params"] = model_info["total_params"]
+                        model_df["UNet params"] = model_info["unet_params"]
                         res_df = pd.concat([res_df, model_df])
 
         if res_df.empty:
@@ -280,12 +282,12 @@ class DiffusionTableManager(TableManager):
 
         # Order columns
         columns = res_df.columns.to_list()
-        cols_to_order = ["Model"]
+        cols_to_order = ["Model", "Total params", "UNet params"]
         cols_to_order.extend(self.schema.keys())
         columns = cols_to_order + [col for col in columns if col not in cols_to_order]
         res_df = res_df[columns]
 
-        # Order rows: Model > GPU model > Backend > Request rate
+        # Order rows
         res_df = res_df.sort_values(by=["Model", *self.schema.keys(), "Batch size"])
 
         self.cur_df = self.full_df = res_df.round(2)
@@ -343,8 +345,8 @@ class DiffusionTableManager(TableManager):
         fig = go.Figure()
         for model in models:
             model_df = df[df["Model"].apply(self._unwrap_model_name) == model]
-            for steps in model_df["Number of inference steps"].unique():
-                steps_df = model_df[model_df["Number of inference steps"] == steps]
+            for steps in model_df["Inference steps"].unique():
+                steps_df = model_df[model_df["Inference steps"] == steps]
                 fig.add_trace(
                     go.Scatter(
                         x=steps_df["Batch size"],
@@ -366,8 +368,8 @@ class DiffusionTableManager(TableManager):
         fig = go.Figure()
         for model in models:
             model_df = df[df["Model"].apply(self._unwrap_model_name) == model]
-            for steps in model_df["Number of inference steps"].unique():
-                steps_df = model_df[model_df["Number of inference steps"] == steps]
+            for steps in model_df["Inference steps"].unique():
+                steps_df = model_df[model_df["Inference steps"] == steps]
                 fig.add_trace(
                     go.Scatter(
                         x=steps_df["Batch size"],
@@ -594,16 +596,6 @@ class LegacyTableManager:
 global_ltbm = LegacyTableManager("data/legacy")
 global_tbms = [LLMTableManager("data/llm/chat", "Chat"), LLMTableManager("data/llm/code", "Code"), DiffusionTableManager("data/diffusion/text-to-image", "Text to image")]
 
-# Fetch the latest update date of the leaderboard repository.
-resp = requests.get("https://api.github.com/repos/ml-energy/leaderboard/commits/master")
-if resp.status_code != 200:
-    current_date = "[Failed to fetch]"
-    print("Failed to fetch the latest release date of the leaderboard repository.")
-    print(resp.json())
-else:
-    current_datetime = parser.parse(resp.json()["commit"]["author"]["date"])
-    current_date = current_datetime.astimezone(tz.gettz("US/Eastern")).strftime("%Y-%m-%d")
-
 # Custom JS.
 # XXX: This is a hack to make the model names clickable.
 #      Ideally, we should set `datatype` in the constructor of `gr.DataFrame` to
@@ -746,9 +738,22 @@ Every benchmark is limited in some sense -- Before you interpret the results, pl
 controller_addr = os.environ.get("COLOSSEUM_CONTROLLER_ADDR")
 if controller_addr is None:
     COLOSSEUM_UP = False
-    COLOSSEUM_DOWN_MESSAGE = "<br/><h2 style='text-align: center'>Disabled Colosseum for local testing.</h2>"
+    COLOSSEUM_DOWN_MESSAGE = "<br/><h2 style='text-align: center'>Local testing mode. Colosseum disabled.</h2>"
     controller_addr = "localhost"
 global_controller_client = ControllerClient(controller_addr=controller_addr, timeout=15)
+
+# Fetch the latest update date of the leaderboard repository.
+if COLOSSEUM_UP:
+    resp = requests.get("https://api.github.com/repos/ml-energy/leaderboard/commits/master")
+    if resp.status_code != 200:
+        current_date = "[Failed to fetch]"
+        print("Failed to fetch the latest release date of the leaderboard repository.")
+        print(resp.json())
+    else:
+        current_datetime = parser.parse(resp.json()["commit"]["author"]["date"])
+        current_date = current_datetime.astimezone(tz.gettz("US/Eastern")).strftime("%Y-%m-%d")
+else:
+    current_date = "Local testing mode"
 
 # Load the list of models. To reload, the app should be restarted.
 RANDOM_MODEL_NAME = "Random"
@@ -1059,6 +1064,31 @@ with gr.Blocks(css=custom_css) as block:
                             # Check the first element by default.
                             checkboxes.append(gr.CheckboxGroup(choices=choices, value=choices[:1], label=key))
 
+                # Block: Plots
+                with gr.Box():
+                    gr.Markdown("### Plots")
+                    with gr.Row():
+                        # with gr.Column(scale=3):
+                        model_dropdown = gr.Dropdown(
+                            choices=global_tbm.get_all_models(),
+                            value=global_tbm.get_all_models(),
+                            multiselect=True,
+                            label="Models to plot",
+                        )
+                    with gr.Row():
+                        # with gr.Column(scale=1):
+                        plot_btn = gr.Button("Plot", elem_classes=["btn-submit"])
+                    with gr.Box():
+                        with gr.Row():
+                            plots = [gr.Plot(value=None) for _ in range(global_tbm.num_plots())]
+
+                    plot_btn.click(
+                        global_tbm.__class__.plot_models,
+                        inputs=[local_tbm, model_dropdown],
+                        outputs=plots,
+                        queue=False,
+                    )
+
                 # Block: Leaderboard table.
                 with gr.Row():
                     dataframe = gr.Dataframe(type="pandas", elem_classes=["tab-leaderboard"], interactive=False)
@@ -1074,30 +1104,6 @@ with gr.Blocks(css=custom_css) as block:
                             outputs=dataframe,
                             queue=False,
                         )
-
-                # Block: Plots
-                # Allow the user to choose which models to include in the plot.
-                with gr.Box():
-                    gr.Markdown("### Plots")
-                    with gr.Row():
-                        with gr.Column(scale=3):
-                            model_dropdown = gr.Dropdown(
-                                choices=global_tbm.get_all_models(),
-                                value=global_tbm.get_all_models(),
-                                multiselect=True,
-                                label="Models to plot",
-                            )
-                        with gr.Column(scale=1):
-                            plot_btn = gr.Button("Plot", elem_classes=["btn-submit"])
-                    with gr.Row():
-                        plots = [gr.Plot(value=None) for _ in range(global_tbm.num_plots())]
-
-                    plot_btn.click(
-                        global_tbm.__class__.plot_models,
-                        inputs=[local_tbm, model_dropdown],
-                        outputs=plots,
-                        queue=False,
-                    )
 
                 # Block: Leaderboard date.
                 with gr.Row():

@@ -2,8 +2,7 @@
   "Model": "stabilityai/stable-diffusion-2-1",
   "GPU model": "NVIDIA A100-SXM4-40GB",
   "Batch size": 1,
-  "Number of inference steps": 40,
+  "Inference steps": 40,
   "Batch latency (s)": 1.8518396615982056,
-  "Batch energy (J)": 696.8291999999434,
   "Energy per image (J)": 696.8291999999434
 }

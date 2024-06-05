@@ -2,8 +2,7 @@
   "Model": "kandinsky-community/kandinsky-2-2-decoder",
   "GPU model": "NVIDIA A100-SXM4-40GB",
   "Batch size": 8,
-  "Number of inference steps": 40,
+  "Inference steps": 40,
   "Batch latency (s)": 6.097760343551636,
-  "Batch energy (J)": 2327.207600000035,
   "Energy per image (J)": 290.9009500000044
 }

@@ -2,8 +2,7 @@
   "Model": "stabilityai/sdxl-turbo",
   "GPU model": "NVIDIA A100-SXM4-40GB",
   "Batch size": 2,
-  "Number of inference steps": 50,
+  "Inference steps": 50,
   "Batch latency (s)": 4.0444917440414425,
-  "Batch energy (J)": 1221.494700000016,
   "Energy per image (J)": 610.747350000008
 }

@@ -10,9 +10,9 @@ FIELDS = {
     "model": "Model",
     "gpu_model": "GPU model",
     "batch_size": "Batch size",
-    "num_inference_steps": "Number of inference steps",
+    "num_inference_steps": "Inference steps",
     "average_batch_latency": "Batch latency (s)",
-    "average_batch_energy": "Batch energy (J)",
+    "energy_per_image": "Energy per image (J)",
 }
 
 def main(result_dir: Path, output_dir: Path) -> None:
@@ -35,11 +35,11 @@ def main(result_dir: Path, output_dir: Path) -> None:
             target_path = output_dir / pieces[1][-2:] / model_name / f"{pieces[0]}.json"
             print(f"    {target_path}")
             raw_data = json.load(open(file))
+            raw_data["energy_per_image"] = raw_data["average_batch_energy"] / raw_data["batch_size"]
             data = {}
             for field1, field2 in FIELDS.items():
                 with suppress(KeyError):
                     data[field2] = raw_data.pop(field1)
-            data["Energy per image (J)"] = data["Batch energy (J)"] / data["Batch size"]
             json.dump(data, open(target_path, "w"), indent=2)
         params = {name: f"{p / 1e6:.2f}M" for name, p in raw_data["num_parameters"].items()}
         print(f"      {params}, total={sum(raw_data['num_parameters'].values()) / 1e6:.2f}M")

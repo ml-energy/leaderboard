@@ -2,8 +2,7 @@
   "Model": "prompthero/openjourney-v4",
   "GPU model": "NVIDIA A100-SXM4-40GB",
   "Batch size": 8,
-  "Number of inference steps": 40,
+  "Inference steps": 40,
   "Batch latency (s)": 5.508346271514893,
-  "Batch energy (J)": 2120.9730000000445,
   "Energy per image (J)": 265.12162500000557
 }
