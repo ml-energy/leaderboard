@@ -1,0 +1,10 @@
+{
+  "Model": "bigcode/starcoder2-7b",
+  "Backend": "vllm",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "#GPUs": 1,
+  "Request rate": 4.0,
+  "Requests per second": 3.6044144536407425,
+  "Latency per request (s)": 2.3376041634998574,
+  "Energy per request (J)": 58.46967682926689
+}

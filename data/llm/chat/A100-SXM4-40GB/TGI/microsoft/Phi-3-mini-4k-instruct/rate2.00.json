@@ -1,0 +1,10 @@
+{
+  "Model": "microsoft/Phi-3-mini-4k-instruct",
+  "Backend": "tgi",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "#GPUs": 1,
+  "Request rate": 2.0,
+  "Requests per second": 1.8363845347947927,
+  "Latency per request (s)": 15.681340801943959,
+  "Energy per request (J)": 91.02177000000049
+}

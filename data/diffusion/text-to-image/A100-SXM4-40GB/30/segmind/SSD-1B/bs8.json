@@ -1,0 +1,9 @@
+{
+  "Model": "segmind/SSD-1B",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "Batch size": 8,
+  "Number of inference steps": 30,
+  "Batch latency (s)": 18.065237832069396,
+  "Batch energy (J)": 6877.956999999983,
+  "Energy per image (J)": 859.7446249999979
+}

@@ -1,0 +1,10 @@
+{
+  "Model": "microsoft/Phi-3-mini-4k-instruct",
+  "Backend": "vllm",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "#GPUs": 1,
+  "Request rate": 12.0,
+  "Requests per second": 9.83760898224147,
+  "Latency per request (s)": 2.1381513828905,
+  "Energy per request (J)": 19.946384146343917
+}

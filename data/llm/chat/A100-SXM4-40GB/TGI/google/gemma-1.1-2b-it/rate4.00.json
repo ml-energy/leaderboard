@@ -1,0 +1,10 @@
+{
+  "Model": "google/gemma-1.1-2b-it",
+  "Backend": "tgi",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "#GPUs": 1,
+  "Request rate": 4.0,
+  "Requests per second": 3.676434979187636,
+  "Latency per request (s)": 10.070588777928089,
+  "Energy per request (J)": 38.54080599999987
+}

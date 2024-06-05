@@ -10,7 +10,7 @@ You can pull vLLM and TGI Docker images with:
 
 ```sh
 docker pull mlenergy/vllm:v0.4.2-openai
-docker pull mlenergy/tgi:v2.0.
+docker pull mlenergy/tgi:v2.0.2
 ```
 
 ### Installing Benchmark Script Dependencies

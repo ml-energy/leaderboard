@@ -1,0 +1,10 @@
+{
+  "Model": "bigcode/starcoder2-15b",
+  "Backend": "tgi",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "#GPUs": 1,
+  "Request rate": 8.0,
+  "Requests per second": 4.287633172711457,
+  "Latency per request (s)": 3.064043370268137,
+  "Energy per request (J)": 68.0001402439027
+}

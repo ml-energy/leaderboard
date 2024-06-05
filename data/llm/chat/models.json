@@ -1,0 +1,70 @@
+{
+  "databricks/dbrx-instruct": {
+    "url": "https://huggingface.co/databricks/dbrx-instruct",
+    "nickname": "DBRX Instruct"
+  },
+  "google/gemma-1.1-2b-it": {
+    "url": "https://huggingface.co/google/gemma-1.1-2b-it",
+    "nickname": "Gemma 2B Instruct"
+  },
+  "google/gemma-1.1-7b-it": {
+    "url": "https://huggingface.co/google/gemma-1.1-7b-it",
+    "nickname": "Gemma 7B Instruct"
+  },
+  "google/gemma-2b-it": {
+    "url": "https://huggingface.co/google/gemma-2b-it",
+    "nickname": "Gemma 1.0 2B Instruct"
+  },
+  "google/gemma-7b-it": {
+    "url": "https://huggingface.co/google/gemma-7b-it",
+    "nickname": "Gemma 1.0 7B Instruct"
+  },
+  "meta-llama/Llama-2-13b-chat-hf": {
+    "url": "https://huggingface.co/meta-llama/Llama-2-13b-chat-hf",
+    "nickname": "Llama 2 13B Chat"
+  },
+  "meta-llama/Llama-2-70b-chat-hf": {
+    "url": "https://huggingface.co/meta-llama/Llama-2-70b-chat-hf",
+    "nickname": "Llama 2 70B Chat"
+  },
+  "meta-llama/Llama-2-7b-chat-hf": {
+    "url": "https://huggingface.co/meta-llama/Llama-2-7b-chat-hf",
+    "nickname": "Llama 2 7B Chat"
+  },
+  "meta-llama/Meta-Llama-3-70B-Instruct": {
+    "url": "https://huggingface.co/meta-llama/Meta-Llama-3-70B-Instruct",
+    "nickname": "Llama 3 70B Instruct"
+  },
+  "meta-llama/Meta-Llama-3-8B-Instruct": {
+    "url": "https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct",
+    "nickname": "Llama 3 8B Instruct"
+  },
+  "microsoft/Phi-3-mini-4k-instruct": {
+    "url": "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct",
+    "nickname": "Phi 3"
+  },
+  "microsoft/phi-2": {
+    "url": "https://huggingface.co/microsoft/phi-2",
+    "nickname": "Phi 2"
+  },
+  "mistralai/Mistral-7B-Instruct-v0.2": {
+    "url": "https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2",
+    "nickname": "Mistral 7B Instruct"
+  },
+  "mistralai/Mixtral-8x22B-Instruct-v0.1": {
+    "url": "https://huggingface.co/mistralai/Mixtral-8x22B-Instruct-v0.1",
+    "nickname": "Mixtral 8x22B Instruct"
+  },
+  "mistralai/Mixtral-8x7B-Instruct-v0.1": {
+    "url": "https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1",
+    "nickname": "Mixtral 8x7B Instruct"
+  },
+  "tiiuae/falcon-40b-instruct": {
+    "url": "https://huggingface.co/tiiuae/falcon-40b-instruct",
+    "nickname": "Falcon 40B Instruct"
+  },
+  "tiiuae/falcon-7b-instruct": {
+    "url": "https://huggingface.co/tiiuae/falcon-7b-instruct",
+    "nickname": "Falcon 7B Instruct"
+  }
+}

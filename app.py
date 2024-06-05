@@ -1,5 +1,12 @@
+"""Gradio app for the ML.ENERGY leaderboard.
+
+Everything is in a single file. Search for `gr.Blocks` to find the place
+where UI elements are actually defined.
+"""
+
 from __future__ import annotations
 
+from abc import abstractmethod
 import copy
 import json
 import random
@@ -9,12 +16,14 @@ import itertools
 import contextlib
 import argparse
 import os
-from typing import Literal
+from pathlib import Path
+from typing import Literal, Any
 from dateutil import parser, tz
 
 import numpy as np
 import gradio as gr
 import pandas as pd
+import plotly.graph_objects as go
 import plotly.io as pio
 import plotly.express as px
 from pandas.api.types import is_numeric_dtype, is_float_dtype
@@ -26,17 +35,358 @@ COLOSSEUM_UP = True
 COLOSSEUM_DOWN_MESSAGE = f"<br/><h2 style='text-align: center'>The Colosseum is currently down for maintenance.</h2>"
 
 
-class LLMTableManager:
+class TableManager:
     """Manages the data for the leaderboard tables for LLM tasks."""
-    def __init__(self, data_dir: str, task_name: str) -> None:
-        """Load leaderboard data from files in data_dir.
 
-        Expected directory structure: data_dir/task_name/gpu_model.
+    def __init__(self, data_dir: str) -> None:
+        """Load leaderboard data from files in `data_dir`.
+
+        Expected directory structure: `data_dir/gpu_model`.
         Inside the innermost (GPU model) directory, there should be:
-        - `models.json`: a JSON file that maps huggingface model IDs to
-            the model's `url`, `nickname`, and `params`.
-        - `model_id/*+results.json`: JSON files containing the benchmark results.
+        - `models.json`: JSON file that maps huggingface model IDs to model info.
+              Some models listed in this file may not have benchmark results.
+        - `model_org/model_name/*.json`: JSON files containing the benchmark results.
         """
+        self.data_dir = Path(data_dir)
+
+    def __str__(self) -> str:
+        return f"{self.__class__}(data_dir={self.data_dir})"
+
+    def _wrap_model_name(self, url: str, model_name: str) -> str:
+        """Wrap the model name in an HTML anchor."""
+        return f'<a style="text-decoration: underline; text-decoration-style: dotted" target="_blank" href="{url}">{model_name}</a>'
+
+    def _unwrap_model_name(self, model_name: str) -> str:
+        """Unwrap the model name from an HTML anchor."""
+        return model_name.split(">")[1].split("<")[0]
+
+    @abstractmethod
+    def get_tab_name(self) -> str:
+        """Return the name of the leaderboard."""
+
+    @abstractmethod
+    def get_intro_text(self) -> tuple[str, str]:
+        """Return the type of the introduction text and the introduction text."""
+
+    @abstractmethod
+    def get_benchmark_checkboxes(self) -> dict[str, list[str]]:
+        """Return data for the benchmark selection checkboxes."""
+
+    @abstractmethod
+    def get_all_models(self) -> list[str]:
+        """Return all available models."""
+
+    @abstractmethod
+    def set_filter_get_df(self, *filters) -> pd.DataFrame:
+        """Set the current set of filters and return the filtered DataFrame."""
+
+    @abstractmethod
+    def num_plots(self) -> int:
+        """Return the number of plots that will be displayed."""
+
+    @abstractmethod
+    def plot_models(self, models: list[str]) -> list[go.Figure]:
+        """Plot the models."""
+
+
+class LLMTableManager(TableManager):
+    def __init__(self, data_dir: str, task_name: str) -> None:
+        """Load leaderboard data from files in `data_dir`.
+
+        Under `data_dir`, there should be:
+        - `models.json`: JSON file that maps huggingface model IDs to model info.
+              Some models listed in this file may not have benchmark results.
+        - `schema.yaml`: YAML file containing the schema of the benchmark.
+
+        Then, benchmark data files are nested under `data_dir` according to the schema.
+        One directory hierarchy for each choice in the schema and then two more -- the
+        model's HuggingFace hub organization and the model name.
+        """
+        super().__init__(data_dir)
+
+        self.task_name = task_name
+
+        # Read in the data into a Pandas DataFrame.
+        # Important: The ordering `self.schema` determines the directory structure.
+        self.schema = yaml.safe_load(open(self.data_dir / "schema.yaml"))
+        models: dict[str, dict[str, Any]] = json.load(open(self.data_dir / "models.json"))
+        res_df = pd.DataFrame()
+        for choice in itertools.product(*self.schema.values()):
+            result_dir = self.data_dir / "/".join(choice)
+            with contextlib.suppress(FileNotFoundError):
+                for model_id, model_info in models.items():
+                    for file in (result_dir / model_id).glob("*.json"):
+                        model_df = pd.DataFrame([json.load(open(file))])
+                        # Sanity checks and standardization of schema values.
+                        assert model_df["Model"].iloc[0] == model_id
+                        for key, val in zip(self.schema.keys(), choice):
+                            assert str(val).lower() in str(model_df[key].iloc[0]).lower()
+                            model_df[key] = val
+                        # Format the model name as an HTML anchor.
+                        model_df["Model"] = self._wrap_model_name(model_info["url"], model_info["nickname"])
+                        res_df = pd.concat([res_df, model_df])
+
+        if res_df.empty:
+            raise ValueError(f"No benchmark JSON files were read from {self.data_dir=}.")
+
+        # Order columns
+        columns = res_df.columns.to_list()
+        cols_to_order = ["Model"]
+        cols_to_order.extend(self.schema.keys())
+        columns = cols_to_order + [col for col in columns if col not in cols_to_order]
+        res_df = res_df[columns]
+
+        # Order rows: Model > GPU model > Backend > Request rate
+        res_df = res_df.sort_values(by=["Model", *self.schema.keys(), "Request rate"])
+        res_df.pop("Request rate")
+
+        self.cur_df = self.full_df = res_df.round(2)
+
+        # We need to set the default view separately when `gr.State` is forked.
+        self.set_filter_get_df()
+
+    def get_tab_name(self) -> str:
+        return f"Leaderboard (LLM {self.task_name})"
+
+    def get_intro_text(self) -> tuple[str, str]:
+        return "html", f'<h2>LLM text generation ({self.task_name} completion)</h2></br><p style="font-size: 16px">This leaderboard contains the results of the ML.ENERGY benchmark for Large Language Models (LLMs).</p>'
+
+    def get_benchmark_checkboxes(self) -> dict[str, list[str]]:
+        return self.schema
+
+    def get_all_models(self) -> list[str]:
+        return (
+            self.full_df["Model"]
+                .apply(self._unwrap_model_name)
+                .unique()
+                .tolist()
+        )
+
+    def set_filter_get_df(self, *filters) -> pd.DataFrame:
+        """Set the current set of filters and return the filtered DataFrame."""
+        # If the filter is empty, we default to the first choice for each key.
+        if not filters:
+            filters = [choices[:1] for choices in self.schema.values()]
+
+        index = np.full(len(self.full_df), True)
+        for setup, choice in zip(self.schema, filters):
+            index = index & self.full_df[setup].isin(choice)
+        self.cur_df = self.full_df.loc[index]
+        return self.cur_df
+
+    def num_plots(self) -> int:
+        return 2
+
+    def plot_models(self, models: list[str]) -> list[go.Figure]:
+        figs = []
+        df = self.cur_df[self.cur_df["Model"].apply(self._unwrap_model_name).isin(models)]
+
+        # Pre-sample colors from plotly's default color palette.
+        model_colors = {
+            model: px.colors.qualitative.Plotly[i % len(px.colors.qualitative.Plotly)]
+            for i, model in enumerate(models)
+        }
+        dashes = {"vLLM": "solid", "TGI": "dash"}
+
+        # One line plot for each model. Lines for vLLM are solid and for TGI are dashed.
+        # 1. Request throughput vs. Latency per request plot.
+        fig = go.Figure()
+        for model in models:
+            model_df = df[df["Model"].apply(self._unwrap_model_name) == model]
+            for backend in model_df["Backend"].unique():
+                backend_df = model_df[model_df["Backend"] == backend]
+                fig.add_trace(
+                    go.Scatter(
+                        x=backend_df["Requests per second"],
+                        y=backend_df["Latency per request (s)"],
+                        mode="lines+markers",
+                        name=f"{model} ({backend})",
+                        line=dict(dash=dashes[backend], color=model_colors[model]),
+                    )
+                )
+        fig.update_layout(
+            xaxis_title="Request throughput (req/s)",
+            yaxis_title="Latency per request (s)",
+            title="Request throughput vs. Latency per request",
+        )
+        fig.update_yaxes(rangemode="tozero")
+        figs.append(fig)
+
+        # 2. Request throughput vs. Energy per request plot.
+        fig = go.Figure()
+        for model in models:
+            model_df = df[df["Model"].apply(self._unwrap_model_name) == model]
+            for backend in model_df["Backend"].unique():
+                backend_df = model_df[model_df["Backend"] == backend]
+                fig.add_trace(
+                    go.Scatter(
+                        x=backend_df["Requests per second"],
+                        y=backend_df["Energy per request (J)"],
+                        mode="lines+markers",
+                        name=f"{model} ({backend})",
+                        line=dict(dash=dashes[backend], color=model_colors[model]),
+                    )
+                )
+        fig.update_layout(
+            xaxis_title="Request throughput (req/s)",
+            yaxis_title="Energy per request (J)",
+            title="Request throughput vs. Energy per request",
+        )
+        fig.update_yaxes(rangemode="tozero")
+        figs.append(fig)
+
+        return figs
+
+
+class DiffusionTableManager(TableManager):
+    def __init__(self, data_dir: str, task_name: str) -> None:
+        """Load leaderboard data from files in `data_dir`.
+
+        Under `data_dir`, there should be:
+        - `models.json`: JSON file that maps huggingface model IDs to model info.
+              Some models listed in this file may not have benchmark results.
+        - `schema.yaml`: YAML file containing the schema of the benchmark.
+
+        Then, benchmark data files are nested under `data_dir` according to the schema.
+        One directory hierarchy for each choice in the schema and then two more -- the
+        model's HuggingFace hub organization and the model name.
+        """
+        super().__init__(data_dir)
+
+        self.task_name = task_name
+
+        # Read in the data into a Pandas DataFrame.
+        # Important: The ordering `self.schema` determines the directory structure.
+        self.schema = yaml.safe_load(open(self.data_dir / "schema.yaml"))
+        models: dict[str, dict[str, Any]] = json.load(open(self.data_dir / "models.json"))
+        res_df = pd.DataFrame()
+        for choice in itertools.product(*self.schema.values()):
+            result_dir = self.data_dir / "/".join(choice)
+            with contextlib.suppress(FileNotFoundError):
+                for model_id, model_info in models.items():
+                    for file in (result_dir / model_id).glob("*.json"):
+                        model_df = pd.DataFrame([json.load(open(file))])
+                        # Sanity checks and standardization of schema values.
+                        assert model_df["Model"].iloc[0] == model_id
+                        for key, val in zip(self.schema.keys(), choice):
+                            assert str(val).lower() in str(model_df[key].iloc[0]).lower()
+                            model_df[key] = val
+                        # Format the model name as an HTML anchor.
+                        model_df["Model"] = self._wrap_model_name(model_info["url"], model_info["nickname"])
+                        res_df = pd.concat([res_df, model_df])
+
+        if res_df.empty:
+            raise ValueError(f"No benchmark JSON files were read from {self.data_dir=}.")
+
+        # Order columns
+        columns = res_df.columns.to_list()
+        cols_to_order = ["Model"]
+        cols_to_order.extend(self.schema.keys())
+        columns = cols_to_order + [col for col in columns if col not in cols_to_order]
+        res_df = res_df[columns]
+
+        # Order rows: Model > GPU model > Backend > Request rate
+        res_df = res_df.sort_values(by=["Model", *self.schema.keys(), "Batch size"])
+
+        self.cur_df = self.full_df = res_df.round(2)
+
+        # We need to set the default view separately when `gr.State` is forked.
+        self.set_filter_get_df()
+
+    def get_tab_name(self) -> str:
+        return f"Leaderboard (Diffusion {self.task_name})"
+
+    def get_intro_text(self) -> tuple[str, str]:
+        return "html", f'<h2>Diffusion models ({self.task_name})</h2></br><p style="font-size: 16px">This leaderboard contains the results of the ML.ENERGY benchmark for Diffusion models.</p>'
+
+    def get_benchmark_checkboxes(self) -> dict[str, list[str]]:
+        return self.schema
+
+    def get_all_models(self) -> list[str]:
+        return (
+            self.full_df["Model"]
+                .apply(self._unwrap_model_name)
+                .unique()
+                .tolist()
+        )
+
+    def set_filter_get_df(self, *filters) -> pd.DataFrame:
+        """Set the current set of filters and return the filtered DataFrame."""
+        # If the filter is empty, we default to the first choice for each key.
+        if not filters:
+            filters = [choices[:1] for choices in self.schema.values()]
+
+        index = np.full(len(self.full_df), True)
+        for setup, choice in zip(self.schema, filters):
+            index = index & self.full_df[setup].isin(choice)
+        self.cur_df = self.full_df.loc[index]
+        return self.cur_df
+
+    def num_plots(self) -> int:
+        return 2
+
+    def plot_models(self, models: list[str]) -> list[go.Figure]:
+        figs = []
+        df = self.cur_df[self.cur_df["Model"].apply(self._unwrap_model_name).isin(models)]
+
+        # Pre-sample colors from plotly's default color palette.
+        model_colors = {
+            model: px.colors.qualitative.Plotly[i % len(px.colors.qualitative.Plotly)]
+            for i, model in enumerate(models)
+        }
+        dashes = {"30": "solid", "40": "dash", "50": "dot"}
+
+        # One line plot for each model & number of inference steps.
+        # Different line dashes for each number of inference steps (30, 40, 50).
+        # Lines of the same model have the same color.
+        # 1. Batch size vs. Latency per batch plot.
+        fig = go.Figure()
+        for model in models:
+            model_df = df[df["Model"].apply(self._unwrap_model_name) == model]
+            for steps in model_df["Number of inference steps"].unique():
+                steps_df = model_df[model_df["Number of inference steps"] == steps]
+                fig.add_trace(
+                    go.Scatter(
+                        x=steps_df["Batch size"],
+                        y=steps_df["Batch latency (s)"],
+                        mode="lines+markers",
+                        name=f"{model} ({steps} steps)",
+                        line=dict(dash=dashes[steps], color=model_colors[model]),
+                    )
+                )
+        fig.update_layout(
+            xaxis_title="Batch size",
+            yaxis_title="Batch latency (s)",
+            title="Batch size vs. Latency per batch",
+        )
+        fig.update_yaxes(rangemode="tozero")
+        figs.append(fig)
+
+        # 2. Batch size vs. Energy per image plot.
+        fig = go.Figure()
+        for model in models:
+            model_df = df[df["Model"].apply(self._unwrap_model_name) == model]
+            for steps in model_df["Number of inference steps"].unique():
+                steps_df = model_df[model_df["Number of inference steps"] == steps]
+                fig.add_trace(
+                    go.Scatter(
+                        x=steps_df["Batch size"],
+                        y=steps_df["Energy per image (J)"],
+                        mode="lines+markers",
+                        name=f"{model} ({steps} steps)",
+                        line=dict(dash=dashes[steps], color=model_colors[model]),
+                    )
+                )
+        fig.update_layout(
+            xaxis_title="Batch size",
+            yaxis_title="Energy per image (J)",
+            title="Batch size vs. Energy per image",
+        )
+        fig.update_yaxes(rangemode="tozero")
+        figs.append(fig)
+
+        return figs
+
 
 class LegacyTableManager:
     def __init__(self, data_dir: str) -> None:
@@ -151,7 +501,7 @@ class LegacyTableManager:
             col = self.full_df.eval(
                 formula,
                 local_dict={"sum": sum, "len": len, "max": max, "min": min},
-                global_dict={"global_tbm": None},
+                global_dict={"global_ltbm": None, "global_tmbs": None, "global_controller_client": None},
             )
         except Exception as exc:
             return self.cur_df, self._format_msg(f"Invalid formula: {exc}")
@@ -242,6 +592,7 @@ class LegacyTableManager:
 # in every user session. Instead, the instance provided by gr.State should
 # be used.
 global_ltbm = LegacyTableManager("data/legacy")
+global_tbms = [LLMTableManager("data/llm/chat", "Chat"), LLMTableManager("data/llm/code", "Code"), DiffusionTableManager("data/diffusion/text-to-image", "Text to image")]
 
 # Fetch the latest update date of the leaderboard repository.
 resp = requests.get("https://api.github.com/repos/ml-energy/leaderboard/commits/master")
@@ -265,11 +616,14 @@ else:
 dataframe_update_js = f"""
 function format_model_link() {{
     // Iterate over the cells of the first column of the leaderboard table.
-    for (let index = 1; index <= {len(global_ltbm.full_df)}; index++) {{
-        // Get the cell.
-        var cell = document.querySelector(
-            `#tab-leaderboard > div > div > div > table > tbody > tr:nth-child(${{index}}) > td:nth-child(1) > div > span`
-        );
+    var table_element = document.querySelectorAll(".tab-leaderboard");
+    for (var table of table_element) {{
+    for (let index = 1; index <= {len(global_ltbm.full_df) + sum(len(tbm.full_df) for tbm in global_tbms)}; index++) {{
+        // Get the cell from `table`.
+        var cell = table.querySelector(`div > div > div > table > tbody > tr:nth-child(${{index}}) > td:nth-child(1) > div > span`);
+        // var cell = document.querySelector(
+        //     `.tab-leaderboard > div > div > div > table > tbody > tr:nth-child(${{index}}) > td:nth-child(1) > div > span`
+        // );
 
         // If nothing was found, it likely means that now the visible table has less rows
         // than the full table. This happens when the user filters the table. In this case,
@@ -292,6 +646,7 @@ function format_model_link() {{
 
         // Replace the innerHTML of the cell with the interpreted HTML.
         cell.replaceChildren(model_anchor);
+    }}
     }}
 
     // Return all arguments as is.
@@ -404,11 +759,15 @@ model_name_to_user_pref[RANDOM_MODEL_NAME] = RANDOM_USER_PREFERENCE
 user_pref_to_model_name = {v: k for k, v in model_name_to_user_pref.items()}
 
 # Colosseum helper functions.
-def enable_interact():
-    return [gr.update(interactive=True)] * 2
+def enable_interact(num: int):
+    def inner():
+        return [gr.update(interactive=True)] * num
+    return inner
 
-def disable_interact():
-    return [gr.update(interactive=False)] * 2
+def disable_interact(num: int):
+    def inner():
+        return [gr.update(interactive=False)] * num
+    return inner
 
 def consumed_less_energy_message(energy_a, energy_b):
     """Return a message that indicates that the user chose the model that consumed less energy.
@@ -436,10 +795,11 @@ def consumed_more_energy_message(energy_a, energy_b):
 def on_load():
     """Intialize the dataframe, shuffle the model preference dropdown choices."""
     dataframe = global_ltbm.set_filter_get_df()
+    dataframes = [global_tbm.set_filter_get_df() for global_tbm in global_tbms]
     available_models = copy.deepcopy(global_available_models)
     random.shuffle(available_models)
     available_models.insert(0, RANDOM_MODEL_NAME)
-    return dataframe, gr.Dropdown.update(choices=[model_name_to_user_pref[model] for model in available_models])
+    return dataframe, *dataframes, gr.Dropdown.update(choices=[model_name_to_user_pref[model] for model in available_models])
 
 def add_prompt_disable_submit(prompt, history_a, history_b):
     """Add the user's prompt to the two model's history and disable further submission."""
@@ -553,12 +913,14 @@ function() {
 
 with gr.Blocks(css=custom_css) as block:
     tbm = gr.State(global_ltbm)  # type: ignore
+    local_tbms: list[TableManager] = [gr.State(global_tbm) for global_tbm in global_tbms]  # type: ignore
+
     with gr.Box():
         gr.HTML("<h1><a href='https://ml.energy' class='text-logo'>ML.ENERGY</a> Leaderboard</h1>")
 
     with gr.Tabs():
         # Tab: Colosseum.
-        with gr.TabItem("Colosseum ⚔️️"):
+        with gr.Tab("Colosseum ⚔️️"):
             if COLOSSEUM_UP:
                 gr.Markdown(open("docs/colosseum_top.md").read())
             else:
@@ -632,11 +994,11 @@ with gr.Blocks(css=custom_css) as block:
             (prompt_input
                 .submit(add_prompt_disable_submit, [prompt_input, *chatbots], [prompt_input, prompt_submit_btn, model_preference_dropdown, *chatbots, controller_client], queue=False)
                 .then(generate_responses, [controller_client, model_preference_dropdown, *chatbots], [*chatbots], queue=True, show_progress="hidden")
-                .then(enable_interact, None, resp_vote_btn_list, queue=False))
+                .then(enable_interact(2), None, resp_vote_btn_list, queue=False))
             (prompt_submit_btn
                 .click(add_prompt_disable_submit, [prompt_input, *chatbots], [prompt_input, prompt_submit_btn, model_preference_dropdown, *chatbots, controller_client], queue=False)
                 .then(generate_responses, [controller_client, model_preference_dropdown, *chatbots], [*chatbots], queue=True, show_progress="hidden")
-                .then(enable_interact, None, resp_vote_btn_list, queue=False))
+                .then(enable_interact(2), None, resp_vote_btn_list, queue=False))
 
             left_resp_vote_btn.click(
                 make_resp_vote_func(victory_index=0),
@@ -674,8 +1036,76 @@ with gr.Blocks(css=custom_css) as block:
                 .then(None, _js=focus_prompt_input_js, queue=False))
 
 
-        # Tab: Leaderboard.
-        with gr.Tab("Leaderboard"):
+        # Tab: Leaderboards.
+        dataframes = []
+        for global_tbm, local_tbm in zip(global_tbms, local_tbms):
+            with gr.Tab(global_tbm.get_tab_name()):
+                # Box: Introduction text.
+                with gr.Box():
+                    text_type, intro_text = global_tbm.get_intro_text()
+                    if text_type not in ["markdown", "html"]:
+                        raise ValueError(f"Invalid text type '{text_type}' from {local_tbm}")
+                    if text_type == "markdown":
+                        gr.Markdown(intro_text)
+                    else:
+                        gr.HTML(intro_text)
+
+                # Block: Checkboxes to select benchmarking parameters.
+                with gr.Row():
+                    with gr.Box():
+                        gr.Markdown("### Benchmark results to show")
+                        checkboxes: list[gr.CheckboxGroup] = []
+                        for key, choices in global_tbm.get_benchmark_checkboxes().items():
+                            # Check the first element by default.
+                            checkboxes.append(gr.CheckboxGroup(choices=choices, value=choices[:1], label=key))
+
+                # Block: Leaderboard table.
+                with gr.Row():
+                    dataframe = gr.Dataframe(type="pandas", elem_classes=["tab-leaderboard"], interactive=False)
+                    dataframes.append(dataframe)
+
+                    # Make sure the models have clickable links.
+                    dataframe.change(None, None, None, _js=dataframe_update_js, queue=False)
+                    # Table automatically updates when users check or uncheck any checkbox.
+                    for checkbox in checkboxes:
+                        checkbox.change(
+                            global_tbm.__class__.set_filter_get_df,
+                            inputs=[local_tbm, *checkboxes],
+                            outputs=dataframe,
+                            queue=False,
+                        )
+
+                # Block: Plots
+                # Allow the user to choose which models to include in the plot.
+                with gr.Box():
+                    gr.Markdown("### Plots")
+                    with gr.Row():
+                        with gr.Column(scale=3):
+                            model_dropdown = gr.Dropdown(
+                                choices=global_tbm.get_all_models(),
+                                value=global_tbm.get_all_models(),
+                                multiselect=True,
+                                label="Models to plot",
+                            )
+                        with gr.Column(scale=1):
+                            plot_btn = gr.Button("Plot", elem_classes=["btn-submit"])
+                    with gr.Row():
+                        plots = [gr.Plot(value=None) for _ in range(global_tbm.num_plots())]
+
+                    plot_btn.click(
+                        global_tbm.__class__.plot_models,
+                        inputs=[local_tbm, model_dropdown],
+                        outputs=plots,
+                        queue=False,
+                    )
+
+                # Block: Leaderboard date.
+                with gr.Row():
+                    gr.HTML(f"<h3 style='color: gray'>Last updated: {current_date}</h3>")
+
+
+        # Tab: Legacy leaderboard.
+        with gr.Tab("LLM Leaderboard (legacy)"):
             with gr.Box():
                 gr.HTML(intro_text)
 
@@ -690,7 +1120,7 @@ with gr.Blocks(css=custom_css) as block:
 
             # Block: Leaderboard table.
             with gr.Row():
-                dataframe = gr.Dataframe(type="pandas", elem_id="tab-leaderboard", interactive=False)
+                dataframe = gr.Dataframe(type="pandas", elem_classes=["tab-leaderboard"], interactive=False)
             # Make sure the models have clickable links.
             dataframe.change(None, None, None, _js=dataframe_update_js, queue=False)
             # Table automatically updates when users check or uncheck any checkbox.
@@ -819,7 +1249,7 @@ with gr.Blocks(css=custom_css) as block:
         )
 
     # Load the table on page load.
-    block.load(on_load, outputs=[dataframe, model_preference_dropdown], queue=False)
+    block.load(on_load, outputs=[dataframe, *dataframes, model_preference_dropdown], queue=False)
 
 
 if __name__ == "__main__":

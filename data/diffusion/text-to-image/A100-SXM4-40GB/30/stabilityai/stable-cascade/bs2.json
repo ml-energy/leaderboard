@@ -1,0 +1,9 @@
+{
+  "Model": "stabilityai/stable-cascade",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "Batch size": 2,
+  "Number of inference steps": 30,
+  "Batch latency (s)": 9.369385981559754,
+  "Batch energy (J)": 1557.9476999999956,
+  "Energy per image (J)": 778.9738499999978
+}

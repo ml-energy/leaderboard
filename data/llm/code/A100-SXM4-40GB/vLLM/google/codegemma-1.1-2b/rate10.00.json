@@ -1,0 +1,10 @@
+{
+  "Model": "google/codegemma-1.1-2b",
+  "Backend": "vllm",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "#GPUs": 1,
+  "Request rate": 10.0,
+  "Requests per second": 5.644457094068082,
+  "Latency per request (s)": 7.511471142957417,
+  "Energy per request (J)": 27.634689024391175
+}

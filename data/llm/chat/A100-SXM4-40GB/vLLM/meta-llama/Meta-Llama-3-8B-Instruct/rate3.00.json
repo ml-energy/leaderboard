@@ -1,0 +1,10 @@
+{
+  "Model": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "Backend": "vllm",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "#GPUs": 1,
+  "Request rate": 3.0,
+  "Requests per second": 2.648309272493436,
+  "Latency per request (s)": 20.240484099039882,
+  "Energy per request (J)": 78.00105999999958
+}

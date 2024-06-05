@@ -1,0 +1,2 @@
+"GPU model": ["A100-SXM4-40GB"]
+"Backend": ["vLLM", "TGI"]

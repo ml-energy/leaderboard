@@ -1,0 +1,10 @@
+{
+  "Model": "codellama/CodeLlama-70b-hf",
+  "Backend": "tgi",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "#GPUs": 8,
+  "Request rate": 8.0,
+  "Requests per second": 4.0136566091307655,
+  "Latency per request (s)": 4.900423391371954,
+  "Energy per request (J)": 379.83041463414685
+}

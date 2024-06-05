@@ -1,0 +1,9 @@
+{
+  "Model": "SimianLuo/LCM_Dreamshaper_v7",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "Batch size": 8,
+  "Number of inference steps": 40,
+  "Batch latency (s)": 7.702377438545227,
+  "Batch energy (J)": 2767.9375,
+  "Energy per image (J)": 345.9921875
+}

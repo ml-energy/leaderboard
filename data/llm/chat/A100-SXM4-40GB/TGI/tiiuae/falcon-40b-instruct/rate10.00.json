@@ -1,0 +1,10 @@
+{
+  "Model": "tiiuae/falcon-40b-instruct",
+  "Backend": "tgi",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "#GPUs": 4,
+  "Request rate": 10.0,
+  "Requests per second": 5.594914271930124,
+  "Latency per request (s)": 10.02712753998005,
+  "Energy per request (J)": 154.87957199999877
+}

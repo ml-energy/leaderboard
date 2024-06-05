@@ -1,0 +1,10 @@
+{
+  "Model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+  "Backend": "vllm",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "#GPUs": 4,
+  "Request rate": 10.0,
+  "Requests per second": 2.90076999874778,
+  "Latency per request (s)": 69.43107237434621,
+  "Energy per request (J)": 168.6178660000004
+}

@@ -1,0 +1,10 @@
+{
+  "Model": "meta-llama/Meta-Llama-3-70B-Instruct",
+  "Backend": "tgi",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "#GPUs": 8,
+  "Request rate": 10.0,
+  "Requests per second": 2.976916113228469,
+  "Latency per request (s)": 75.06404103950005,
+  "Energy per request (J)": 557.6971240000017
+}

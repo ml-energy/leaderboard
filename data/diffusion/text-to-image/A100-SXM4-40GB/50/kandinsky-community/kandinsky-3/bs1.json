@@ -1,0 +1,9 @@
+{
+  "Model": "kandinsky-community/kandinsky-3",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "Batch size": 1,
+  "Number of inference steps": 50,
+  "Batch latency (s)": 5.449464249610901,
+  "Batch energy (J)": 1714.2188000000083,
+  "Energy per image (J)": 1714.2188000000083
+}

@@ -1,0 +1,10 @@
+{
+  "Model": "tiiuae/falcon-40b-instruct",
+  "Backend": "vllm",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "#GPUs": 4,
+  "Request rate": 2.0,
+  "Requests per second": 1.8321631780185121,
+  "Latency per request (s)": 9.845547362445883,
+  "Energy per request (J)": 357.89006200000085
+}

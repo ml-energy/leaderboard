@@ -1,0 +1,10 @@
+{
+  "Model": "meta-llama/Llama-2-70b-chat-hf",
+  "Backend": "vllm",
+  "GPU model": "NVIDIA A100-SXM4-40GB",
+  "#GPUs": 8,
+  "Request rate": 1.0,
+  "Requests per second": 0.8357068860032645,
+  "Latency per request (s)": 53.290674044794066,
+  "Energy per request (J)": 1089.572891999999
+}
