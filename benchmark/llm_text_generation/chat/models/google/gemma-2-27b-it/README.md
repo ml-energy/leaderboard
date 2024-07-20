@@ -1,16 +1,16 @@
-- Added `chat_template` that uses the chat format recommended by phi-2's HuggingFace hub README.
+- Modified `chat_template` so that it supports the `system` role.
 
 ### Chat template
 
 ```jinja
+{{ bos_token }}
 {% if messages[0]['role'] == 'system' %}
     {% set loop_messages = messages[1:] %}
-    {% set system_message = messages[0]['content']  + ' ' %}
+    {% set system_message = messages[0]['content'] + ' ' %}
 {% else %}
     {% set loop_messages = messages %}
     {% set system_message = '' %}
 {% endif %}
-{{ bos_token }}
 {% for message in loop_messages %}
     {% if (message['role'] == 'user') != (loop.index0 % 2 == 0) %}
         {{ raise_exception('Conversation roles must alternate user/assistant/user/assistant/...') }}
@@ -20,10 +20,14 @@
     {% else %}
         {% set content = message['content'] %}
     {% endif %}
-    {% if (message['role'] == 'user') %}
-        {{'<|user|>' + '\n' + content + '<|end|>' + '\n' + '<|assistant|>' + '\n'}}
-    {% elif (message['role'] == 'assistant') %}
-        {{content + '<|end|>' + '\n'}}
+    {% if (message['role'] == 'assistant') %}
+        {% set role = 'model' %}
+    {% else %}
+        {% set role = message['role'] %}
     {% endif %}
+    {{ '<start_of_turn>' + role + '\n' + (content | trim) + '<end_of_turn>\n' }}
 {% endfor %}
+{% if add_generation_prompt %}
+    {{'<start_of_turn>model\n'}}
+{% endif %}
 ```
