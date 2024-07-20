@@ -49,6 +49,10 @@ def start_server(
     assert Path(revision_path).exists(), f"Revision file not found: {revision_path}"
 
     if backend == "vllm":
+        extra_docker_args = []
+        if "google/gemma-2-" in model:
+            extra_docker_args.extend(["-e", "VLLM_ATTENTION_BACKEND=FLASHINFER"])
+
         server_cmd = [
             "docker", "run",
             "--gpus", gpu_str,
@@ -60,6 +64,7 @@ def start_server(
             "-p", f"{port}:8000",
             "-v", f"{hf_cache_path}:/root/.cache/huggingface",
             "-v", f"{result_root}:/results",
+            *extra_docker_args,
             server_image,
             "--model", model,
             "--revision", open(revision_path).read().strip(),
@@ -68,6 +73,7 @@ def start_server(
             "--gpu-memory-utilization", "0.95",
             "--trust-remote-code",
         ]
+
     elif backend == "tgi":
         server_cmd = [
             "docker", "run",

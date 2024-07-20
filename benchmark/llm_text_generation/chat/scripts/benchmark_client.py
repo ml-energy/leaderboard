@@ -245,6 +245,8 @@ def run_benchmark(
     print(f"Request rate: {results.request_rate} requests/s")
     print()
     print(f"Total benchmark runtime: {results.total_runtime:.2f} s")
+    print(f"Total number of requests: {results.num_requests}")
+    print(f"Number of failed requests: {results.num_failures}")
     print(f"Requests per second: {results.requests_per_second:.2f} requests/s")
     print(f"Average latency per request: {results.latency_per_request:.2f} s")
     print(f"Average latency per output token: {results.latency_per_output_token:.2f} s")
