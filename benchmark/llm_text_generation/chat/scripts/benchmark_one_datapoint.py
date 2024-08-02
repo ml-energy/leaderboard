@@ -96,6 +96,7 @@ def start_server(
             "--num-shard", str(len(gpu_ids)),
             "--max-concurrent-requests", "512",
             "--trust-remote-code",
+            "--enable-chunked-prefill", "false",
         ]
     else:
         raise ValueError(f"Unknown backend: {backend}")

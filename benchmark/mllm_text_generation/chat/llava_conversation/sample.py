@@ -21,7 +21,7 @@ def main() -> None:
         # 1. The image should exist.
         # 2. Even index messages in the conversation should be from the human.
         # 3. The first message should contain at most one "<image>" substring, which will be removed.
-        # 5. Even index messages will be concatenated to form the prompt.
+        # 4. Even index messages will be concatenated to form the prompt.
         image_path = "train2017/" + sample["image"]
         conversation = []
         for conv in sample["conversations"][::2]:

@@ -76,6 +76,7 @@ def start_server(
             "--tensor-parallel-size", str(len(gpu_ids)),
             "--gpu-memory-utilization", "0.95",
             "--trust-remote-code",
+            "--enable-chunked-prefill", "false",
             *extra_vllm_args,
         ]
 

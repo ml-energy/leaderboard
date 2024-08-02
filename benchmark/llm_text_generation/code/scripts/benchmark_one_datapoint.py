@@ -58,6 +58,8 @@ def start_server(
             "--gpu-memory-utilization", "0.95",
             "--max-model-len", "4096",
             "--trust-remote-code",
+            "--enable-chunked-prefill", "false",
+
         ]
     elif backend == "tgi":
         server_cmd = [
