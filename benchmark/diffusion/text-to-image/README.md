@@ -27,7 +27,7 @@ docker run \
   -v /data/leaderboard/hfcache:/root/.cache/huggingface 
   -v $(pwd):/workspace/text-to-image \
   mlenergy/leaderboard:diffusion-benchmark \
-  --results-root results \
+  --result-root results \
   --batch-size 2 \
   --power-limit 300 \
   --image-save-every 5 \
