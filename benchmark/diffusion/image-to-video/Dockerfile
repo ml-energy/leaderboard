@@ -12,8 +12,8 @@ RUN apt-get update -qq \
 ENV HF_HOME=/root/.cache/huggingface
 
 # Copy over benchmark suite and install dependencies
-ADD . /workspace/text-to-video
-WORKDIR /workspace/text-to-video
+ADD . /workspace/image-to-video
+WORKDIR /workspace/image-to-video
 RUN pip install -r requirements.txt
 
 # Benchmark script to run
