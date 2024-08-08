@@ -72,6 +72,9 @@ def start_server(
             "--tensor-parallel-size", str(len(gpu_ids)),
             "--gpu-memory-utilization", "0.95",
             "--trust-remote-code",
+            "--enable-chunked-prefill", "False",
+            "--max-model-len", "4096",
+            "--disable-frontend-multiprocessing",
         ]
 
     elif backend == "tgi":
