@@ -195,6 +195,7 @@ def start_client(
     gpu_ids: list[int],
     benchmark_name: str,
     power_limit: int,
+    nnodes: int,
 ) -> subprocess.Popen:
     client_cmd = [
         "python", "scripts/benchmark_client.py",
@@ -205,6 +206,7 @@ def start_client(
         "--request-rate", request_rate,
         "--benchmark-name", benchmark_name,
         "--power-limit", str(power_limit),
+        "--nnodes", str(nnodes),
     ]
     print("Client:", " ".join(client_cmd))
     return subprocess.Popen(
@@ -261,6 +263,7 @@ def main(args: argparse.Namespace) -> None:
             args.gpu_ids,
             str(results_dir / benchmark_name),
             args.power_limit,
+            args.nnodes,
         )
 
         try:
