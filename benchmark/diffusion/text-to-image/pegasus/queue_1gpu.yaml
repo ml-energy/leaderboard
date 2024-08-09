@@ -4,7 +4,7 @@
     - stabilityai/stable-diffusion-2-1
     - stabilityai/stable-diffusion-xl-base-1.0
     - stabilityai/sdxl-turbo
-    - stabilityai/stable-diffusion-3-medium
+    - stabilityai/stable-diffusion-3-medium-diffusers
     - segmind/SSD-1B
     - prompthero/openjourney-v4
     - kandinsky-community/kandinsky-2-2-decoder
