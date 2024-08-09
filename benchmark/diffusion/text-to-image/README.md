@@ -7,7 +7,7 @@ This benchmark suite benchmarks diffusion models with the text-to-image task.
 ### Docker images
 
 ```sh
-docker build -t mlenergy/leaderboard:diffusion-benchmark .
+docker build -t mlenergy/leaderboard:diffusion-t2i .
 ```
 
 ### HuggingFace cache directory
@@ -26,11 +26,12 @@ docker run \
   --cap-add SYS_ADMIN \
   -v /data/leaderboard/hfcache:/root/.cache/huggingface 
   -v $(pwd):/workspace/text-to-image \
-  mlenergy/leaderboard:diffusion-benchmark \
+  mlenergy/leaderboard:diffusion-t2i \
   --result-root results \
   --batch-size 2 \
   --power-limit 300 \
   --image-save-every 5 \
+  --num-inference-steps 25 \
   --model stabilityai/stable-diffusion-2-1 \
   --huggingface-token $HF_TOKEN
 ```

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import json
 import argparse
 from pprint import pprint
@@ -170,6 +171,8 @@ def count_parameters(pipeline) -> dict[str, int]:
 
 
 def benchmark(args: argparse.Namespace) -> None:
+    os.environ["HF_TOKEN"] = args.huggingface_token
+
     if args.model.startswith("models/"):
         args.model = args.model[len("models/") :]
     if args.model.endswith("/"):

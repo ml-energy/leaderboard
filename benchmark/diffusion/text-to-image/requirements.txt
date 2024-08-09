@@ -1,5 +1,6 @@
 torch
 diffusers==0.29.2
+protobuf  # Required by stabilityai/stable-diffusion-3-medium-diffusers
 accelerate
 datasets
 sentencepiece  # Required by kandinsky-community/kandinsky-3
