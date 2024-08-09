@@ -282,6 +282,7 @@ def main(args: argparse.Namespace) -> None:
         while True:
             try:
                 requests.get(f"http://{args.head_node_address}:{port}/health")
+                time.sleep(3)
             except requests.exceptions.ConnectionError:
                 break
 
