@@ -271,7 +271,7 @@ def main(args: argparse.Namespace) -> None:
     else:
         # If this ever executes, it means that it's a multi-node benchmark.
         # We want to wait until the server is terminated.
-        time.sleep(30)
+        time.sleep(300)
         while True:
             try:
                 requests.get(f"http://{args.head_node_address}:{port}/health")
