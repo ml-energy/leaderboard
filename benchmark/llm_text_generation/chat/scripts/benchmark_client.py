@@ -27,6 +27,7 @@ class Results:
     gpu_model: str
     num_gpus: int
     num_nodes: int
+    num_max_seqs: int
     power_limit: int
     request_rate: float
     num_requests: int
@@ -178,6 +179,7 @@ def run_benchmark(
     out_filename: str,
 ):
     zeus_monitor = ZeusMonitor()
+    args.num_gpus = len(zeus_monitor.gpu_indices)
 
     pynvml.nvmlInit()
     handle = pynvml.nvmlDeviceGetHandleByIndex(0)
@@ -188,8 +190,9 @@ def run_benchmark(
         model=args.model,
         backend=args.backend,
         gpu_model=gpu_model,
-        num_gpus=len(zeus_monitor.gpu_indices),
+        num_gpus=args.num_gpus,
         num_nodes=args.nnodes,
+        num_max_seqs=args.num_max_seqs,
         power_limit=args.power_limit,
         request_rate=args.request_rate,
         num_requests=len(input_requests),
@@ -319,5 +322,6 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--power-limit", type=int, required=True, help="Not used but passed in in order to save to results file.")
     parser.add_argument("--nnodes", type=int, required=True, help="Not used but passed in in order to save to results file.")
+    parser.add_argument("--num-max-seqs", type=int, required=True, help="Not used but passed in in order to save to results file.")
     args = parser.parse_args()
     main(args)

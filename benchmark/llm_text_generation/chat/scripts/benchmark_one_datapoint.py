@@ -56,6 +56,10 @@ def start_server(
     assert Path(revision_path).exists(), f"Revision file not found: {revision_path}"
 
     if backend == "vllm":
+        extra_docker_args = []
+        if "google/gemma-2-" in model:
+            extra_docker_args = ["-e", "VLLM_ATTENTION_BACKEND=FLASHINFER"]
+
         # Single node benchmark, not much to worry about.
         if nnodes == 1:
             server_cmd = [
@@ -65,12 +69,12 @@ def start_server(
                 "--net", "host",
                 "--name", container_name,
                 "--privileged",
-                "-e", "VLLM_ATTENTION_BACKEND=FLASHINFER",
                 "-e", f"HF_TOKEN={huggingface_token}",
                 "-e", f"LOG_LEVEL={log_level}",
                 "-e", f"RESULT_FILE_PREFIX=/results/{benchmark_name}",
                 "-v", f"{hf_cache_path}:/root/.cache/huggingface",
                 "-v", f"{result_root}:/results",
+                *extra_docker_args,
                 server_image,
                 "--port", str(port),
                 "--model", model,
@@ -116,7 +120,6 @@ def start_server(
                     "--entrypoint", "/bin/bash",
                     "-e", "NCCL_SOCKET_IFNAME=ib0",
                     "-e", "NCCL_DEBUG=Info",
-                    "-e", "VLLM_ATTENTION_BACKEND=FLASHINFER",
                     "-e", f"HF_TOKEN={huggingface_token}",
                     "-e", f"LOG_LEVEL={log_level}",
                     "-e", f"RESULT_FILE_PREFIX=/results/{benchmark_name}",
@@ -138,7 +141,6 @@ def start_server(
                     "--entrypoint", "/bin/bash",
                     "-e", "NCCL_SOCKET_IFNAME=ib0",
                     "-e", "NCCL_DEBUG=Info",
-                    "-e", "VLLM_ATTENTION_BACKEND=FLASHINFER",
                     "-e", f"HF_TOKEN={huggingface_token}",
                     "-e", f"LOG_LEVEL={log_level}",
                     "-e", f"RESULT_FILE_PREFIX=/results/{benchmark_name}",
@@ -196,6 +198,7 @@ def start_client(
     benchmark_name: str,
     power_limit: int,
     nnodes: int,
+    num_max_seqs: int,
 ) -> subprocess.Popen:
     client_cmd = [
         "python", "scripts/benchmark_client.py",
@@ -207,6 +210,7 @@ def start_client(
         "--benchmark-name", benchmark_name,
         "--power-limit", str(power_limit),
         "--nnodes", str(nnodes),
+        "--num-max-seqs", str(num_max_seqs),
     ]
     print("Client:", " ".join(client_cmd))
     return subprocess.Popen(
@@ -264,6 +268,7 @@ def main(args: argparse.Namespace) -> None:
             str(results_dir / benchmark_name),
             args.power_limit,
             args.nnodes,
+            args.num_max_seqs,
         )
 
         try:
