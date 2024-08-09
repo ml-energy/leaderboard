@@ -95,6 +95,7 @@ def start_server(
                 time.sleep(3)  # Wait for the worker nodes to start.
                 cmd = " ".join([
                     "ray", "start", "--head", "--port=6379", "&&",
+                    "sleep", "5", "&&",
                     "python3", "-m", "vllm.entrypoints.openai.api_server",
                     "--model", model,
                     "--revision", open(revision_path).read().strip(),
