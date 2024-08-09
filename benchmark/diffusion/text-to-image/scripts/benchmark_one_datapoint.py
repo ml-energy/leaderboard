@@ -206,8 +206,8 @@ def benchmark(args: argparse.Namespace) -> None:
     pipeline = get_pipeline(args.model)
 
     # Warmup
-    print("Warming up with two batches...")
-    for i in range(2):
+    print("Warming up with five batches...")
+    for i in range(5):
         _ = pipeline(
             batched_prompts[i],
             num_inference_steps=args.num_inference_steps,
