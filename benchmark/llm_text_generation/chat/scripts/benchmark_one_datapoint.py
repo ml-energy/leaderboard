@@ -32,6 +32,7 @@ def start_server(
     model: str,
     huggingface_token: str,
     gpu_ids: list[int],
+    max_num_seqs: int,
     nnodes: int,
     node_id: int,
     head_node_address: str,
@@ -81,6 +82,7 @@ def start_server(
                 "--enable-chunked-prefill", "False",
                 "--max-model-len", "4096",
                 "--disable-frontend-multiprocessing",
+                "--max-num-seqs", str(max_num_seqs),
             ]
 
         # Multi-node benchmark, need to distinguish Ray head and worker nodes.
@@ -101,6 +103,7 @@ def start_server(
                     "--enable-chunked-prefill", "False",
                     "--max-model-len", "4096",
                     "--disable-frontend-multiprocessing",
+                    "--max-num-seqs", str(max_num_seqs),
                 ])
                 server_cmd = [
                     "docker", "run",
@@ -235,6 +238,7 @@ def main(args: argparse.Namespace) -> None:
         args.model,
         args.huggingface_token,
         args.gpu_ids,
+        args.max_num_seqs,
         args.nnodes,
         args.node_id,
         args.head_node_address,
@@ -289,6 +293,7 @@ if __name__ == "__main__":
     parser.add_argument("--model", required=True, help="Model to benchmark, e.g., meta-llama/Llama-2-7b-chat-hf.")
     parser.add_argument("--sharegpt-path", required=True, help="Path to the ShareGPT dataset to feed to the server.")
     parser.add_argument("--request-rate", required=True, help="Poisson process rate for request arrival times.")
+    parser.add_argument("--max-num-seqs", type=int, default=256, help="Maximum number of sequences to run in each vLLM iteration.")
     parser.add_argument("--power-limit", type=int, required=True, help="GPU power limit in Watts.")
     parser.add_argument("--result-root", default="results", help="Root directory to save results.")
     parser.add_argument("--huggingface-token", required=True, help="Hugging Face API token.")
