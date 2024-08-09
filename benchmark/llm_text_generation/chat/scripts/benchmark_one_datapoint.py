@@ -109,8 +109,10 @@ def start_server(
                     "--net", "host",
                     "--name", container_name,
                     "--privileged",
+                    "--device", "/dev/infiniband",
                     "--entrypoint", "/bin/bash",
-                    "-e", "NCCL_SOCKET_IFNAME=if0",
+                    "-e", "NCCL_SOCKET_IFNAME=ib0",
+                    "-e", "NCCL_DEBUG=Info",
                     "-e", "VLLM_ATTENTION_BACKEND=FLASHINFER",
                     "-e", f"HF_TOKEN={huggingface_token}",
                     "-e", f"LOG_LEVEL={log_level}",
@@ -118,7 +120,7 @@ def start_server(
                     "-v", f"{hf_cache_path}:/root/.cache/huggingface",
                     "-v", f"{result_root}:/results",
                     server_image,
-                    "-c", f"'{cmd}'",
+                    "-c", cmd,
                 ]
             else:
                 cmd = " ".join(["ray", "start", "--block", f"--address={head_node_address}:6379"])
@@ -129,8 +131,10 @@ def start_server(
                     "--net", "host",
                     "--name", container_name,
                     "--privileged",
+                    "--device", "/dev/infiniband",
                     "--entrypoint", "/bin/bash",
-                    "-e", "NCCL_SOCKET_IFNAME=if0",
+                    "-e", "NCCL_SOCKET_IFNAME=ib0",
+                    "-e", "NCCL_DEBUG=Info",
                     "-e", "VLLM_ATTENTION_BACKEND=FLASHINFER",
                     "-e", f"HF_TOKEN={huggingface_token}",
                     "-e", f"LOG_LEVEL={log_level}",
