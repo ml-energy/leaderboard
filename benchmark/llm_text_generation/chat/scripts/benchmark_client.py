@@ -27,7 +27,7 @@ class Results:
     gpu_model: str
     num_gpus: int
     num_nodes: int
-    num_max_seqs: int
+    max_num_seqs: int
     power_limit: int
     request_rate: float
     num_requests: int
@@ -192,7 +192,7 @@ def run_benchmark(
         gpu_model=gpu_model,
         num_gpus=args.num_gpus,
         num_nodes=args.nnodes,
-        num_max_seqs=args.num_max_seqs,
+        max_num_seqs=args.max_num_seqs,
         power_limit=args.power_limit,
         request_rate=args.request_rate,
         num_requests=len(input_requests),
@@ -322,6 +322,6 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--power-limit", type=int, required=True, help="Not used but passed in in order to save to results file.")
     parser.add_argument("--nnodes", type=int, required=True, help="Not used but passed in in order to save to results file.")
-    parser.add_argument("--num-max-seqs", type=int, required=True, help="Not used but passed in in order to save to results file.")
+    parser.add_argument("--max-num-seqs", type=int, required=True, help="Not used but passed in in order to save to results file.")
     args = parser.parse_args()
     main(args)
