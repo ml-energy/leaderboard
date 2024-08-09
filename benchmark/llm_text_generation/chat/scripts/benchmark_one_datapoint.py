@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import json
+import shlex
 import atexit
 import argparse
 import subprocess
@@ -29,6 +30,9 @@ def start_server(
     model: str,
     huggingface_token: str,
     gpu_ids: list[int],
+    nnodes: int,
+    node_id: int,
+    head_node_address: str,
     log_level: str,
     result_root: str,
     benchmark_name: str,
@@ -49,33 +53,91 @@ def start_server(
     assert Path(revision_path).exists(), f"Revision file not found: {revision_path}"
 
     if backend == "vllm":
-        extra_docker_args = []
-        if "google/gemma-2-" in model:
-            extra_docker_args.extend(["-e", "VLLM_ATTENTION_BACKEND=FLASHINFER"])
+        # Single node benchmark, not much to worry about.
+        if nnodes == 1:
+            server_cmd = [
+                "docker", "run",
+                "--gpus", gpu_str,
+                "--ipc", "host",
+                "--net", "host",
+                "--name", container_name,
+                "--privileged",
+                "-e", "VLLM_ATTENTION_BACKEND=FLASHINFER",
+                "-e", f"HF_TOKEN={huggingface_token}",
+                "-e", f"LOG_LEVEL={log_level}",
+                "-e", f"RESULT_FILE_PREFIX=/results/{benchmark_name}",
+                "-v", f"{hf_cache_path}:/root/.cache/huggingface",
+                "-v", f"{result_root}:/results",
+                server_image,
+                "--port", str(port),
+                "--model", model,
+                "--revision", open(revision_path).read().strip(),
+                "--chat-template", json.load(open(tokconf_path))["chat_template"],
+                "--tensor-parallel-size", str(len(gpu_ids)),
+                "--gpu-memory-utilization", "0.95",
+                "--trust-remote-code",
+                "--enable-chunked-prefill", "False",
+                "--max-model-len", "4096",
+                "--disable-frontend-multiprocessing",
+            ]
 
-        server_cmd = [
-            "docker", "run",
-            "--gpus", gpu_str,
-            "--ipc", "host",
-            "--name", container_name,
-            "-e", f"HF_TOKEN={huggingface_token}",
-            "-e", f"LOG_LEVEL={log_level}",
-            "-e", f"RESULT_FILE_PREFIX=/results/{benchmark_name}",
-            "-p", f"{port}:8000",
-            "-v", f"{hf_cache_path}:/root/.cache/huggingface",
-            "-v", f"{result_root}:/results",
-            *extra_docker_args,
-            server_image,
-            "--model", model,
-            "--revision", open(revision_path).read().strip(),
-            "--chat-template", json.load(open(tokconf_path))["chat_template"],
-            "--tensor-parallel-size", str(len(gpu_ids)),
-            "--gpu-memory-utilization", "0.95",
-            "--trust-remote-code",
-            "--enable-chunked-prefill", "False",
-            "--max-model-len", "4096",
-            "--disable-frontend-multiprocessing",
-        ]
+        # Multi-node benchmark, need to distinguish Ray head and worker nodes.
+        else:
+            # Script is running on the head node.
+            if node_id == 0:
+                time.sleep(3)  # Wait for the worker nodes to start.
+                cmd = " ".join([
+                    "ray", "start", "--head", "--port=6379", "&&",
+                    "python3", "-m", "vllm.entrypoints.openai.api_server",
+                    "--model", model,
+                    "--revision", open(revision_path).read().strip(),
+                    "--chat-template", shlex.quote(json.load(open(tokconf_path))["chat_template"]),
+                    "--tensor-parallel-size", str(len(gpu_ids)),
+                    "--pipeline-parallel-size", str(nnodes),
+                    "--gpu-memory-utilization", "0.95",
+                    "--trust-remote-code",
+                    "--enable-chunked-prefill", "False",
+                    "--max-model-len", "4096",
+                    "--disable-frontend-multiprocessing",
+                ])
+                server_cmd = [
+                    "docker", "run",
+                    "--gpus", gpu_str,
+                    "--ipc", "host",
+                    "--net", "host",
+                    "--name", container_name,
+                    "--privileged",
+                    "--entrypoint", "/bin/bash",
+                    "-e", "NCCL_SOCKET_IFNAME=if0",
+                    "-e", "VLLM_ATTENTION_BACKEND=FLASHINFER",
+                    "-e", f"HF_TOKEN={huggingface_token}",
+                    "-e", f"LOG_LEVEL={log_level}",
+                    "-e", f"RESULT_FILE_PREFIX=/results/{benchmark_name}",
+                    "-v", f"{hf_cache_path}:/root/.cache/huggingface",
+                    "-v", f"{result_root}:/results",
+                    server_image,
+                    "-c", cmd,
+                ]
+            else:
+                cmd = " ".join(["ray", "start", "--block", f"--address={head_node_address}:6379"])
+                server_cmd = [
+                    "docker", "run",
+                    "--gpus", gpu_str,
+                    "--ipc", "host",
+                    "--net", "host",
+                    "--name", container_name,
+                    "--privileged",
+                    "--entrypoint", "/bin/bash",
+                    "-e", "NCCL_SOCKET_IFNAME=if0",
+                    "-e", "VLLM_ATTENTION_BACKEND=FLASHINFER",
+                    "-e", f"HF_TOKEN={huggingface_token}",
+                    "-e", f"LOG_LEVEL={log_level}",
+                    "-e", f"RESULT_FILE_PREFIX=/results/{benchmark_name}",
+                    "-v", f"{hf_cache_path}:/root/.cache/huggingface",
+                    "-v", f"{result_root}:/results",
+                    server_image,
+                    "-c", cmd,
+                ]
 
     elif backend == "tgi":
         server_cmd = [
@@ -167,6 +229,9 @@ def main(args: argparse.Namespace) -> None:
         args.model,
         args.huggingface_token,
         args.gpu_ids,
+        args.nnodes,
+        args.node_id,
+        args.head_node_address,
         args.log_level,
         str(results_dir.absolute()),
         benchmark_name,
@@ -211,5 +276,8 @@ if __name__ == "__main__":
     parser.add_argument("--result-root", default="results", help="Root directory to save results.")
     parser.add_argument("--huggingface-token", required=True, help="Hugging Face API token.")
     parser.add_argument("--gpu-ids", nargs="+", type=int, required=True, help="GPU IDs to use for the server.")
+    parser.add_argument("--nnodes", type=int, default=1, help="Number of nodes in the cluster.")
+    parser.add_argument("--node-id", type=int, default=0, help="ID of the node the script was launched on.")
+    parser.add_argument("--head-node-address", help="Address of the Ray head node.")
     parser.add_argument("--log-level", default="INFO", help="Logging level for the server.")
     main(parser.parse_args())
