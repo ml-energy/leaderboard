@@ -10,6 +10,8 @@ from pathlib import Path
 import time
 from typing import Literal
 
+import requests
+
 
 def set_power_limit(power_limit: int, gpu_ids: list[int]) -> None:
     for gpu_id in gpu_ids:
@@ -116,7 +118,7 @@ def start_server(
                     "-v", f"{hf_cache_path}:/root/.cache/huggingface",
                     "-v", f"{result_root}:/results",
                     server_image,
-                    "-c", cmd,
+                    "-c", f"'{cmd}'",
                 ]
             else:
                 cmd = " ".join(["ray", "start", "--block", f"--address={head_node_address}:6379"])
@@ -241,25 +243,36 @@ def main(args: argparse.Namespace) -> None:
 
     set_power_limit(args.power_limit, args.gpu_ids)
 
-    client_handle = start_client(
-        args.backend,
-        port,
-        args.model,
-        args.sharegpt_path,
-        args.request_rate,
-        args.gpu_ids,
-        str(results_dir / benchmark_name),
-        args.power_limit,
-    )
+    if args.node_id == 0:
+        client_handle = start_client(
+            args.backend,
+            port,
+            args.model,
+            args.sharegpt_path,
+            args.request_rate,
+            args.gpu_ids,
+            str(results_dir / benchmark_name),
+            args.power_limit,
+        )
 
-    try:
-        exit_code = client_handle.wait(timeout=2 * 3600)
-    except subprocess.TimeoutExpired:
-        client_handle.terminate()
-        raise RuntimeError("Benchmark client timed out after two hours")
+        try:
+            exit_code = client_handle.wait(timeout=2 * 3600)
+        except subprocess.TimeoutExpired:
+            client_handle.terminate()
+            raise RuntimeError("Benchmark client timed out after two hours")
 
-    if exit_code != 0:
-        raise RuntimeError(f"Benchmark client exited with code {exit_code}")
+        if exit_code != 0:
+            raise RuntimeError(f"Benchmark client exited with code {exit_code}")
+
+    else:
+        # If this ever executes, it means that it's a multi-node benchmark.
+        # We want to wait until the server is terminated.
+        time.sleep(30)
+        while True:
+            try:
+                requests.get(f"http://{args.head_node_address}:{port}/health")
+            except requests.exceptions.ConnectionError:
+                break
 
     terminate_server(server_handle)
     atexit.unregister(kill_fn)
