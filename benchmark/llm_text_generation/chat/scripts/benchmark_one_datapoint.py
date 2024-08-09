@@ -68,7 +68,6 @@ def start_server(
                 "--ipc", "host",
                 "--net", "host",
                 "--name", container_name,
-                "--privileged",
                 "-e", f"HF_TOKEN={huggingface_token}",
                 "-e", f"LOG_LEVEL={log_level}",
                 "-e", f"RESULT_FILE_PREFIX=/results/{benchmark_name}",
