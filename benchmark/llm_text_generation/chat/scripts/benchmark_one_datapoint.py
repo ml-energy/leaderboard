@@ -198,7 +198,7 @@ def start_client(
     benchmark_name: str,
     power_limit: int,
     nnodes: int,
-    num_max_seqs: int,
+    max_num_seqs: int,
 ) -> subprocess.Popen:
     client_cmd = [
         "python", "scripts/benchmark_client.py",
@@ -210,7 +210,7 @@ def start_client(
         "--benchmark-name", benchmark_name,
         "--power-limit", str(power_limit),
         "--nnodes", str(nnodes),
-        "--num-max-seqs", str(num_max_seqs),
+        "--max-num-seqs", str(max_num_seqs),
     ]
     print("Client:", " ".join(client_cmd))
     return subprocess.Popen(
@@ -268,7 +268,7 @@ def main(args: argparse.Namespace) -> None:
             str(results_dir / benchmark_name),
             args.power_limit,
             args.nnodes,
-            args.num_max_seqs,
+            args.max_num_seqs,
         )
 
         try:
