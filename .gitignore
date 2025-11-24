@@ -1,0 +1,22 @@
+# Leaderboard generated data
+public/data/
+
+# Dependencies
+node_modules/
+.venv/
+
+# Production
+dist/
+build/
+
+# Misc
+.DS_Store
+*.log
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor
+.vscode/
+.idea/
