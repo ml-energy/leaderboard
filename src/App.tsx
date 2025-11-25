@@ -2,11 +2,14 @@ import { useEffect, useState, useMemo } from 'react';
 import { IndexData, TaskData, Configuration } from './types';
 import { loadIndexData, loadTaskData } from './utils/dataLoader';
 import { DEFAULT_COLUMNS, ADVANCED_COLUMNS } from './config/columns';
+import { getTaskConfig, sortTasks } from './config/tasks';
 import TaskTabs from './components/TaskTabs';
 import Sidebar from './components/Sidebar';
 import LeaderboardTable from './components/LeaderboardTable';
 import { ModelDetailModal } from './components/ModelDetailModal';
 import { AboutPage } from './components/AboutPage';
+import { TaskAboutModal } from './components/TaskAboutModal';
+import { TimeEnergyTradeoffChart, ITLPercentile } from './components/TimeEnergyTradeoffChart';
 
 function App() {
   const [indexData, setIndexData] = useState<IndexData | null>(null);
@@ -17,11 +20,28 @@ function App() {
 
   const [activeTask, setActiveTask] = useState<string>('');
   const [latencyDeadline, setLatencyDeadline] = useState<number>(500);
+  const [energyBudget, setEnergyBudget] = useState<number | null>(null);
   const [selectedGPUs, setSelectedGPUs] = useState<Set<string>>(new Set());
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
   const [selectedConfig, setSelectedConfig] = useState<Configuration | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [taskAboutOpen, setTaskAboutOpen] = useState(false);
+  const [selectedPercentile, setSelectedPercentile] = useState<ITLPercentile>('p50');
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    const stored = localStorage.getItem('darkMode');
+    if (stored !== null) return stored === 'true';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', String(darkMode));
+  }, [darkMode]);
 
   useEffect(() => {
     loadIndexData()
@@ -53,6 +73,13 @@ function App() {
       });
   }, [activeTask]);
 
+  useEffect(() => {
+    if (!activeTask) return;
+    const config = getTaskConfig(activeTask);
+    setLatencyDeadline(config.defaultItlDeadlineMs);
+    setEnergyBudget(config.defaultEnergyBudgetJ);
+  }, [activeTask]);
+
   const availableGPUs = useMemo(() => {
     if (!taskData) return [];
     const gpuSet = new Set<string>();
@@ -62,15 +89,41 @@ function App() {
     return Array.from(gpuSet).sort();
   }, [taskData]);
 
+  const maxEnergyBudget = useMemo(() => {
+    if (!taskData || taskData.configurations.length === 0) return 0.1;
+    return Math.max(...taskData.configurations.map((c) => c.energy_per_token_joules));
+  }, [taskData]);
+
+  const maxLatencyDeadline = useMemo(() => {
+    if (!taskData || taskData.configurations.length === 0) return 500;
+    const maxITL = Math.max(...taskData.configurations.map((c) => c.median_itl_ms));
+    // Smallest multiple of 100 larger than maxITL
+    return Math.ceil(maxITL / 100) * 100;
+  }, [taskData]);
+
+  // Clamp latencyDeadline to maxLatencyDeadline when it changes
+  useEffect(() => {
+    if (latencyDeadline > maxLatencyDeadline) {
+      setLatencyDeadline(maxLatencyDeadline);
+    }
+  }, [maxLatencyDeadline]);
+
   useEffect(() => {
     if (availableGPUs.length > 0 && selectedGPUs.size === 0) {
       setSelectedGPUs(new Set(availableGPUs));
     }
   }, [availableGPUs]);
 
+  useEffect(() => {
+    if (maxEnergyBudget > 0 && energyBudget === null) {
+      setEnergyBudget(maxEnergyBudget);
+    }
+  }, [maxEnergyBudget]);
+
   const getBestConfigPerModel = (
     configs: Configuration[],
     deadline: number,
+    budget: number,
     gpus: Set<string>
   ): Configuration[] => {
     const byModel = new Map<string, Configuration[]>();
@@ -78,6 +131,7 @@ function App() {
     configs.forEach((config) => {
       if (!gpus.has(config.gpu_model)) return;
       if (config.median_itl_ms > deadline) return;
+      if (config.energy_per_token_joules > budget) return;
 
       if (!byModel.has(config.model_id)) {
         byModel.set(config.model_id, []);
@@ -98,14 +152,28 @@ function App() {
     );
   };
 
+  const effectiveEnergyBudget = energyBudget ?? maxEnergyBudget;
+
   const filteredConfigs = useMemo(() => {
     if (!taskData) return [];
     return getBestConfigPerModel(
       taskData.configurations,
       latencyDeadline,
+      effectiveEnergyBudget,
       selectedGPUs
     );
-  }, [taskData, latencyDeadline, selectedGPUs]);
+  }, [taskData, latencyDeadline, effectiveEnergyBudget, selectedGPUs]);
+
+  // All configs for the chart view (filtered by GPU, latency deadline, and energy budget, not by best-per-model)
+  const allFilteredConfigs = useMemo(() => {
+    if (!taskData) return [];
+    return taskData.configurations.filter(
+      (config) =>
+        selectedGPUs.has(config.gpu_model) &&
+        config.median_itl_ms <= latencyDeadline &&
+        config.energy_per_token_joules <= effectiveEnergyBudget
+    );
+  }, [taskData, selectedGPUs, latencyDeadline, effectiveEnergyBudget]);
 
   const columns = useMemo(() => {
     return showAdvanced ? [...DEFAULT_COLUMNS, ...ADVANCED_COLUMNS] : DEFAULT_COLUMNS;
@@ -155,12 +223,29 @@ function App() {
               Benchmarking energy efficiency of LLMs and MLLMs
             </p>
           </div>
-          <button
-            onClick={() => setAboutOpen(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            About
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {darkMode ? (
+                <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+              )}
+            </button>
+            <button
+              onClick={() => setAboutOpen(true)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              About
+            </button>
+          </div>
         </div>
       </header>
 
@@ -168,7 +253,7 @@ function App() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6">
           <div className="px-6 pt-6">
             <TaskTabs
-              tasks={indexData?.tasks || []}
+              tasks={sortTasks(indexData?.tasks || [])}
               activeTask={activeTask}
               onTaskChange={setActiveTask}
             />
@@ -185,33 +270,84 @@ function App() {
                 <Sidebar
                   latencyDeadline={latencyDeadline}
                   onLatencyDeadlineChange={setLatencyDeadline}
+                  defaultLatencyDeadline={getTaskConfig(activeTask).defaultItlDeadlineMs}
+                  maxLatencyDeadline={maxLatencyDeadline}
+                  energyBudget={effectiveEnergyBudget}
+                  onEnergyBudgetChange={setEnergyBudget}
+                  maxEnergyBudget={maxEnergyBudget}
                   selectedGPUs={selectedGPUs}
                   onGPUToggle={handleGPUToggle}
                   availableGPUs={availableGPUs}
-                  showAdvanced={showAdvanced}
-                  onShowAdvancedChange={setShowAdvanced}
                 />
 
                 <div>
-                  <div className="mb-4 flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {taskData?.task_display_name || activeTask}
-                      </h2>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        Showing {filteredConfigs.length} models meeting criteria
-                      </p>
+                  <div className="mb-4 flex items-center gap-2">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      {getTaskConfig(activeTask).displayName}
+                    </h2>
+                    <button
+                      onClick={() => setTaskAboutOpen(true)}
+                      className="flex items-center gap-1 px-2 py-1 rounded-md text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>About</span>
+                    </button>
+                  </div>
+
+                  {/* Time-Energy Tradeoff Chart */}
+                  <div className="mb-8">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
+                      Time-Energy Tradeoff
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      {allFilteredConfigs.length} configurations
+                    </p>
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+                      <TimeEnergyTradeoffChart
+                        configurations={allFilteredConfigs}
+                        selectedPercentile={selectedPercentile}
+                        onPercentileChange={setSelectedPercentile}
+                        onHoverConfig={() => {}}
+                        colorByModel={true}
+                      />
                     </div>
                   </div>
 
-                  <LeaderboardTable
-                    configurations={filteredConfigs}
-                    columns={columns}
-                    onRowClick={(config) => {
-                      setSelectedConfig(config);
-                      setModalOpen(true);
-                    }}
-                  />
+                  {/* Leaderboard Table */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                          Model Rankings
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {filteredConfigs.length} models satisfy the given constraints.
+                          Each row shows the minimum energy configuration per model (click row for model details).
+                        </p>
+                      </div>
+                      <label className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 px-3 py-1.5 rounded-md">
+                        <input
+                          type="checkbox"
+                          checked={showAdvanced}
+                          onChange={(e) => setShowAdvanced(e.target.checked)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
+                        />
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Advanced columns
+                        </span>
+                      </label>
+                    </div>
+                    <LeaderboardTable
+                      configurations={filteredConfigs}
+                      columns={columns}
+                      onRowClick={(config) => {
+                        setSelectedConfig(config);
+                        setModalOpen(true);
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -245,6 +381,13 @@ function App() {
       )}
 
       {aboutOpen && <AboutPage onClose={() => setAboutOpen(false)} />}
+
+      {taskAboutOpen && (
+        <TaskAboutModal
+          taskId={activeTask}
+          onClose={() => setTaskAboutOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -3,6 +3,8 @@ export interface ColumnDef {
   label: string;
   sortable: boolean;
   format?: (value: any) => string;
+  /** For computed columns: extract value from config object */
+  getValue?: (config: any) => any;
 }
 
 export const DEFAULT_COLUMNS: ColumnDef[] = [

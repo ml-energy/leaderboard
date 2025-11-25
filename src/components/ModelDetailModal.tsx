@@ -1,14 +1,7 @@
-import { useEffect, useState } from 'react';
-import { ModelDetail, ConfigWithTimelines } from '../types';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { useEffect, useState, useMemo } from 'react';
+import { ModelDetail, ModelConfiguration } from '../types';
+import { TimeEnergyTradeoffChart, ITLPercentile } from './TimeEnergyTradeoffChart';
+import { EnergyPerResponseChart } from './EnergyPerResponseChart';
 
 interface ModelDetailModalProps {
   modelId: string;
@@ -38,6 +31,8 @@ export function ModelDetailModal({
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [selectedGPUs, setSelectedGPUs] = useState<Set<string>>(new Set());
   const [selectedNumGPUs, setSelectedNumGPUs] = useState<Set<number>>(new Set());
+  const [displayedConfig, setDisplayedConfig] = useState<ModelConfiguration | null>(null);
+  const [selectedPercentile, setSelectedPercentile] = useState<ITLPercentile>('p50');
 
   useEffect(() => {
     if (!isOpen || !modelId || !task) return;
@@ -71,6 +66,14 @@ export function ModelDetailModal({
       const numGPUs = new Set(modelDetail.configurations.map(c => c.num_gpus));
       setSelectedGPUs(gpuModels);
       setSelectedNumGPUs(numGPUs);
+
+      // Initialize displayed config to highest energy/token
+      if (modelDetail.configurations.length > 0) {
+        const highestEnergyConfig = modelDetail.configurations.reduce((max, c) =>
+          c.energy_per_token_joules > max.energy_per_token_joules ? c : max
+        );
+        setDisplayedConfig(highestEnergyConfig);
+      }
     }
   }, [modelDetail]);
 
@@ -137,6 +140,19 @@ export function ModelDetailModal({
           selectedGPUs.has(config.gpu_model) && selectedNumGPUs.has(config.num_gpus)
       )
     : [];
+
+  // Calculate energy per token statistics for X-axis scaling
+  const { defaultEnergyPerToken, maxEnergyPerToken } = useMemo(() => {
+    if (filteredConfigs.length === 0) return { defaultEnergyPerToken: 0, maxEnergyPerToken: 0 };
+    const energies = filteredConfigs.map(c => c.energy_per_token_joules).sort((a, b) => a - b);
+    const max = energies[energies.length - 1];
+    // Use median as the default X-axis range
+    const medianIdx = Math.floor(energies.length / 2);
+    const median = energies.length % 2 === 0
+      ? (energies[medianIdx - 1] + energies[medianIdx]) / 2
+      : energies[medianIdx];
+    return { defaultEnergyPerToken: median, maxEnergyPerToken: max };
+  }, [filteredConfigs]);
 
   const sortedConfigs = [...filteredConfigs].sort((a, b) => {
     if (!sortKey || !sortDirection) return 0;
@@ -227,6 +243,49 @@ export function ModelDetailModal({
                   <p className="text-lg font-semibold text-gray-900 dark:text-white">
                     {modelDetail.weight_precision}
                   </p>
+                </div>
+              </div>
+
+              {/* Time-Energy Tradeoff and Energy/Response Distribution */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Time-Energy Tradeoff
+                </h3>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Tradeoff Chart */}
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                    <TimeEnergyTradeoffChart
+                      configurations={filteredConfigs}
+                      selectedPercentile={selectedPercentile}
+                      onPercentileChange={setSelectedPercentile}
+                      onHoverConfig={(config) => {
+                        // Only update when hovering a config, not when hover ends
+                        if (config) {
+                          setDisplayedConfig(config as ModelConfiguration);
+                        }
+                      }}
+                    />
+                  </div>
+
+                  {/* Energy/Response Distribution */}
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                    <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
+                      Energy per Response Distribution
+                    </h4>
+                    <EnergyPerResponseChart
+                      outputLengthDistribution={
+                        displayedConfig?.output_length_distribution || modelDetail.output_length_distribution
+                      }
+                      energyPerToken={displayedConfig?.energy_per_token_joules || null}
+                      defaultEnergyPerToken={defaultEnergyPerToken}
+                      maxEnergyPerToken={maxEnergyPerToken}
+                      configLabel={
+                        displayedConfig
+                          ? `Config: ${displayedConfig.num_gpus} × ${displayedConfig.gpu_model}${displayedConfig.max_num_seqs ? `, batch ${displayedConfig.max_num_seqs}` : ''}`
+                          : undefined
+                      }
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -356,17 +415,21 @@ export function ModelDetailModal({
                           config.num_gpus === currentConfig.num_gpus &&
                           config.max_num_seqs === currentConfig.max_num_seqs;
 
-                        const parallelization = [];
-                        if (config.parallelization.tensor_parallel > 1) {
-                          parallelization.push(`TP${config.parallelization.tensor_parallel}`);
+                        let parallelStr = 'N/A';
+                        if (config.num_gpus > 1) {
+                          const parallelization = [];
+                          if (config.parallelization.tensor_parallel > 1) {
+                            parallelization.push(`TP${config.parallelization.tensor_parallel}`);
+                          }
+                          if (config.parallelization.expert_parallel > 1) {
+                            parallelization.push(`EP${config.parallelization.expert_parallel}`);
+                          }
+                          if (config.parallelization.data_parallel > 1) {
+                            parallelization.push(`DP${config.parallelization.data_parallel}`);
+                          }
+                          // Default to TP{num_gpus} if no parallelization detected for multi-GPU
+                          parallelStr = parallelization.length > 0 ? parallelization.join('+') : `TP${config.num_gpus}`;
                         }
-                        if (config.parallelization.expert_parallel > 0) {
-                          parallelization.push(`EP${config.parallelization.expert_parallel}`);
-                        }
-                        if (config.parallelization.data_parallel > 0) {
-                          parallelization.push(`DP${config.parallelization.data_parallel}`);
-                        }
-                        const parallelStr = parallelization.length > 0 ? parallelization.join('+') : 'None';
 
                         return (
                           <tr
@@ -386,36 +449,6 @@ export function ModelDetailModal({
                     </tbody>
                   </table>
                 </div>
-              </div>
-
-              {/* Output Length Distribution */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Output Length Distribution
-                </h3>
-                <ResponsiveContainer width="100%" height={350}>
-                  <BarChart
-                    data={modelDetail.output_length_distribution.bins.slice(0, -1).map((bin, idx) => ({
-                      range: `${bin.toFixed(0)}-${modelDetail.output_length_distribution.bins[idx + 1].toFixed(0)}`,
-                      binStart: bin,
-                      count: modelDetail.output_length_distribution.counts[idx],
-                    }))}
-                    margin={{ bottom: 60, left: 10, right: 10, top: 10 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="range"
-                      angle={-45}
-                      textAnchor="end"
-                      height={100}
-                      interval={4}
-                      tick={{ fontSize: 10 }}
-                    />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#3b82f6" />
-                  </BarChart>
-                </ResponsiveContainer>
               </div>
 
             </div>

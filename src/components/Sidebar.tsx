@@ -1,36 +1,57 @@
 interface SidebarProps {
   latencyDeadline: number;
   onLatencyDeadlineChange: (value: number) => void;
+  defaultLatencyDeadline: number;
+  maxLatencyDeadline: number;
+  energyBudget: number;
+  onEnergyBudgetChange: (value: number) => void;
+  maxEnergyBudget: number;
   selectedGPUs: Set<string>;
   onGPUToggle: (gpu: string) => void;
   availableGPUs: string[];
-  showAdvanced: boolean;
-  onShowAdvancedChange: (value: boolean) => void;
 }
 
 export default function Sidebar({
   latencyDeadline,
   onLatencyDeadlineChange,
+  defaultLatencyDeadline,
+  maxLatencyDeadline,
+  energyBudget,
+  onEnergyBudgetChange,
+  maxEnergyBudget,
   selectedGPUs,
   onGPUToggle,
   availableGPUs,
-  showAdvanced,
-  onShowAdvancedChange,
 }: SidebarProps) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
       <div className="flex flex-wrap items-center gap-6">
-        <div className="flex-1 min-w-[300px]">
+        <div className="flex-1 min-w-[250px]">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Median ITL Deadline: <span className="font-mono text-blue-600 dark:text-blue-400">{latencyDeadline} ms</span>
+            Median ITL deadline: <span className="font-mono text-blue-600 dark:text-blue-400">{latencyDeadline}</span> ms
           </label>
           <input
             type="range"
             min="0"
-            max="500"
+            max={maxLatencyDeadline}
             step="10"
             value={latencyDeadline}
             onChange={(e) => onLatencyDeadlineChange(Number(e.target.value))}
+            className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+          />
+        </div>
+
+        <div className="flex-1 min-w-[250px]">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Per token energy budget: <span className="font-mono text-blue-600 dark:text-blue-400">{energyBudget.toFixed(3)}</span> J
+          </label>
+          <input
+            type="range"
+            min="0"
+            max={maxEnergyBudget}
+            step={maxEnergyBudget / 100}
+            value={energyBudget}
+            onChange={(e) => onEnergyBudgetChange(Number(e.target.value))}
             className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
           />
         </div>
@@ -58,21 +79,10 @@ export default function Sidebar({
         </div>
 
         <div className="flex items-center gap-4">
-          <label className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 px-3 py-1.5 rounded-md">
-            <input
-              type="checkbox"
-              checked={showAdvanced}
-              onChange={(e) => onShowAdvancedChange(e.target.checked)}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
-            />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Advanced
-            </span>
-          </label>
-
           <button
             onClick={() => {
-              onLatencyDeadlineChange(500);
+              onLatencyDeadlineChange(defaultLatencyDeadline);
+              onEnergyBudgetChange(maxEnergyBudget);
               availableGPUs.forEach((gpu) => {
                 if (!selectedGPUs.has(gpu)) {
                   onGPUToggle(gpu);

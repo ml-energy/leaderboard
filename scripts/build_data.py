@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Build leaderboard data from benchmark results.
 
 This script scans the results directory, extracts metrics, compresses timelines,
@@ -14,114 +13,10 @@ import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import numpy as np
 import yaml
-
-
-# ============================================================================
-# RDP Timeline Compression
-# ============================================================================
-
-
-def perpendicular_distance(
-    point: Tuple[float, float],
-    line_start: Tuple[float, float],
-    line_end: Tuple[float, float],
-) -> float:
-    """Calculate perpendicular distance from point to line segment.
-
-    Args:
-        point: (x, y) point to measure distance from
-        line_start: (x, y) start of line segment
-        line_end: (x, y) end of line segment
-
-    Returns:
-        Perpendicular distance in Y-axis units (e.g., Watts for power)
-    """
-    x0, y0 = point
-    x1, y1 = line_start
-    x2, y2 = line_end
-
-    if x2 == x1:
-        return abs(x0 - x1)
-
-    numerator = abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1)
-    denominator = np.sqrt((y2 - y1) ** 2 + (x2 - x1) ** 2)
-
-    return numerator / denominator if denominator > 0 else 0
-
-
-def rdp_compress(
-    timestamps: List[float],
-    values: List[float],
-    epsilon: float = 0.5,
-) -> Tuple[List[float], List[float]]:
-    """Compress timeline using Ramer-Douglas-Peucker algorithm.
-
-    Recursively removes points that are within epsilon distance from the
-    line connecting their neighbors. Preserves start and end points.
-
-    Args:
-        timestamps: List of timestamps (X-axis)
-        values: List of values (Y-axis, e.g., power in Watts)
-        epsilon: Maximum perpendicular distance threshold
-                 For power: 0.5W gives ~95% compression with no visual difference
-                 For batch size: 1.0 (step function, compresses extremely well)
-
-    Returns:
-        (compressed_timestamps, compressed_values)
-    """
-    if len(timestamps) <= 2:
-        return timestamps, values
-
-    points = list(zip(timestamps, values))
-    line_start = points[0]
-    line_end = points[-1]
-
-    max_distance = 0
-    max_index = 0
-
-    for i in range(1, len(points) - 1):
-        distance = perpendicular_distance(points[i], line_start, line_end)
-        if distance > max_distance:
-            max_distance = distance
-            max_index = i
-
-    if max_distance > epsilon:
-        left_t, left_v = rdp_compress(
-            timestamps[: max_index + 1],
-            values[: max_index + 1],
-            epsilon,
-        )
-        right_t, right_v = rdp_compress(
-            timestamps[max_index:],
-            values[max_index:],
-            epsilon,
-        )
-
-        return left_t + right_t[1:], left_v + right_v[1:]
-    else:
-        return [timestamps[0], timestamps[-1]], [values[0], values[-1]]
-
-
-def compress_timeline(timeline_data: dict, epsilon: float = 0.5) -> dict:
-    """Compress a timeline dict with timestamps and values.
-
-    Args:
-        timeline_data: Dict with 'timestamps' and 'values' keys
-        epsilon: RDP epsilon parameter
-
-    Returns:
-        Compressed timeline dict with same structure
-    """
-    timestamps = timeline_data["timestamps"]
-    values = timeline_data["values"]
-
-    compressed_t, compressed_v = rdp_compress(timestamps, values, epsilon)
-
-    return {"timestamps": compressed_t, "values": compressed_v}
 
 
 # ============================================================================
@@ -282,6 +177,71 @@ def scan_results_directory(results_dir: str) -> List[BenchmarkRun]:
 # ============================================================================
 
 
+def filter_leading_zeros(itl_list: List[float]) -> List[float]:
+    """Filter out leading zeros from an ITL list.
+
+    When tokens arrive in bunches (token bunching), the benchmark records
+    the full latency for the first token in the bunch and zeros for the rest.
+    This can happen at the start of generation, resulting in leading zeros
+    that would skew ITL statistics to be artificially low.
+
+    Args:
+        itl_list: List of inter-token latencies in seconds
+
+    Returns:
+        ITL list with leading zeros removed
+    """
+    first_nonzero_idx = 0
+    for i, val in enumerate(itl_list):
+        if val > 0:
+            first_nonzero_idx = i
+            break
+    else:
+        return []
+    return itl_list[first_nonzero_idx:]
+
+
+def extract_client_itl_percentiles(results: Dict) -> Dict[str, float]:
+    """Extract ITL percentiles from client-side measurements.
+
+    Client-side ITL is more accurate than Prometheus histogram buckets
+    which have coarse granularity (~50ms minimum bucket).
+
+    For each request, we filter out leading zeros (caused by token bunching
+    at the start of generation) before aggregating.
+
+    Args:
+        results: Loaded results.json dict
+
+    Returns:
+        Dict with p50_itl_ms, p90_itl_ms, p95_itl_ms, p99_itl_ms
+    """
+    all_itl_values = []
+
+    for req in results.get("results", []):
+        if not req.get("success", False):
+            continue
+
+        itl_list = req.get("itl", [])
+        if not itl_list:
+            continue
+
+        filtered_itl = filter_leading_zeros(itl_list)
+        all_itl_values.extend(filtered_itl)
+
+    if not all_itl_values:
+        raise ValueError("No valid ITL values found in results")
+
+    itl_array = np.array(all_itl_values)
+
+    return {
+        "p50_itl_ms": float(np.percentile(itl_array, 50)) * 1000,
+        "p90_itl_ms": float(np.percentile(itl_array, 90)) * 1000,
+        "p95_itl_ms": float(np.percentile(itl_array, 95)) * 1000,
+        "p99_itl_ms": float(np.percentile(itl_array, 99)) * 1000,
+    }
+
+
 def extract_metrics(run: BenchmarkRun) -> Dict:
     """Extract all metrics from a benchmark run.
 
@@ -323,7 +283,12 @@ def extract_metrics(run: BenchmarkRun) -> Dict:
         metrics["energy_per_token_joules"] * metrics["avg_output_len"]
     )
 
-    # Validate Prometheus data exists (critical for ITL and batch metrics)
+    # Extract ITL percentiles from client-side measurements (more accurate than Prometheus)
+    itl_metrics = extract_client_itl_percentiles(results)
+    metrics.update(itl_metrics)
+    metrics["median_itl_ms"] = metrics["p50_itl_ms"]
+
+    # Validate Prometheus data exists (needed for batch size metric)
     if "steady_state_stats" not in prometheus:
         raise ValueError(
             f"Missing 'steady_state_stats' in prometheus.json for {run.results_path}\n"
@@ -331,20 +296,6 @@ def extract_metrics(run: BenchmarkRun) -> Dict:
         )
 
     prom_stats = prometheus["steady_state_stats"]
-
-    # Extract ITL percentiles - these are CRITICAL metrics
-    required_itl_percentiles = [50, 90, 95, 99]
-    for p in required_itl_percentiles:
-        key = f"vllm:inter_token_latency_seconds_p{p}"
-        if key not in prom_stats:
-            raise ValueError(
-                f"Missing required metric '{key}' in prometheus steady_state_stats\n"
-                f"File: {run.prometheus_path}\n"
-                f"This indicates incomplete vLLM metrics. Re-run this benchmark."
-            )
-        metrics[f"p{p}_itl_ms"] = prom_stats[key] * 1000
-
-    metrics["median_itl_ms"] = metrics["p50_itl_ms"]
 
     # Validate batch size metric exists (critical for detecting unstable runs)
     if "vllm:num_requests_running" not in prom_stats:
@@ -444,187 +395,6 @@ def generate_cdf_points(histogram_data: Dict, num_points: int = 100) -> List[Lis
 
 
 # ============================================================================
-# Timeline Extraction
-# ============================================================================
-
-
-def aggregate_device_timelines(
-    device_data: Dict[str, List],
-    start_time: float,
-    end_time: float,
-) -> Dict[str, List]:
-    """Aggregate timelines across multiple devices and filter to steady state.
-
-    Args:
-        device_data: Dict mapping device_id to [[timestamp, value], ...]
-        start_time: Steady state start timestamp
-        end_time: Steady state end timestamp
-
-    Returns:
-        Dict with 'timestamps' and 'values' (relative to start_time, summed across devices)
-    """
-    all_points = []
-    for device_id, points in device_data.items():
-        for timestamp, value in points:
-            if start_time <= timestamp <= end_time:
-                all_points.append((timestamp, value))
-
-    if not all_points:
-        return {"timestamps": [], "values": []}
-
-    all_points.sort(key=lambda x: x[0])
-
-    timestamps = [t - start_time for t, v in all_points]
-    values = [v for t, v in all_points]
-
-    return {"timestamps": timestamps, "values": values}
-
-
-def parse_prometheus_gauge(metrics_text: str, metric_name: str) -> Optional[float]:
-    """Parse single gauge value from Prometheus text.
-
-    Returns the first matching value, or None if not found.
-    """
-    pattern = rf"^{re.escape(metric_name)}\{{[^}}]*\}}\s+([\d.eE+-]+)"
-    match = re.search(pattern, metrics_text, re.MULTILINE)
-
-    if match:
-        return float(match.group(1))
-    return None
-
-
-def extract_batch_size_timeline(
-    prometheus: Dict,
-    start_time: float,
-    end_time: float,
-) -> Dict[str, List]:
-    """Extract batch size timeline from Prometheus metrics.
-
-    Batch size is vllm:num_requests_running gauge metric.
-
-    Args:
-        prometheus: Prometheus JSON data
-        start_time: Steady state start
-        end_time: Steady state end
-
-    Returns:
-        Timeline dict with timestamps and values
-    """
-    timeline = prometheus.get("timeline", [])
-
-    timestamps = []
-    values = []
-
-    for snapshot in timeline:
-        timestamp = snapshot["timestamp"]
-        if not (start_time <= timestamp <= end_time):
-            continue
-
-        metrics_text = snapshot["metrics"]
-
-        batch_size = parse_prometheus_gauge(metrics_text, "vllm:num_requests_running")
-
-        if batch_size is not None:
-            timestamps.append(timestamp - start_time)
-            values.append(batch_size)
-
-    return {"timestamps": timestamps, "values": values}
-
-
-def extract_timelines(run: BenchmarkRun) -> Dict[str, Dict]:
-    """Extract all timelines from results.
-
-    Args:
-        run: BenchmarkRun object
-
-    Returns:
-        Dict with 'power_instant', 'power_average', 'temperature', 'batch_size'
-        Each timeline is a dict with 'timestamps' and 'values' (compressed with RDP)
-    """
-    results = load_json_cached(run.results_path)
-    prometheus = load_json_cached(run.prometheus_path)
-
-    # Validate timeline structure exists
-    if "timeline" not in results:
-        raise ValueError(
-            f"Missing 'timeline' in results.json for {run.results_path}\n"
-            f"This indicates incomplete benchmark data. Re-run this benchmark."
-        )
-
-    timeline_data = results["timeline"]
-
-    # Validate steady state timestamps exist
-    if "steady_state_start_time" not in timeline_data:
-        raise ValueError(
-            f"Missing 'steady_state_start_time' in timeline for {run.results_path}\n"
-            f"This indicates incomplete benchmark data. Re-run this benchmark."
-        )
-    if "steady_state_end_time" not in timeline_data:
-        raise ValueError(
-            f"Missing 'steady_state_end_time' in timeline for {run.results_path}\n"
-            f"This indicates incomplete benchmark data. Re-run this benchmark."
-        )
-
-    steady_start = timeline_data["steady_state_start_time"]
-    steady_end = timeline_data["steady_state_end_time"]
-
-    timelines = {}
-
-    # Validate power data exists (critical for energy measurements)
-    if "power" not in timeline_data:
-        raise ValueError(
-            f"Missing 'power' data in timeline for {run.results_path}\n"
-            f"This indicates Zeus monitoring failed. Re-run this benchmark."
-        )
-
-    power_data = timeline_data["power"]
-
-    # At least one of device_instant or device_average must exist
-    if "device_instant" not in power_data and "device_average" not in power_data:
-        raise ValueError(
-            f"Missing both 'device_instant' and 'device_average' in power timeline\n"
-            f"File: {run.results_path}\n"
-            f"This indicates Zeus monitoring failed. Re-run this benchmark."
-        )
-
-    if "device_instant" in power_data:
-        device_instant = power_data["device_instant"]
-        aggregated = aggregate_device_timelines(device_instant, steady_start, steady_end)
-        if not aggregated["timestamps"]:
-            raise ValueError(
-                f"Empty power_instant timeline after filtering to steady state\n"
-                f"File: {run.results_path}\n"
-                f"Steady state: {steady_start} to {steady_end}\n"
-                f"This indicates timing/monitoring issues. Re-run this benchmark."
-            )
-        timelines["power_instant"] = compress_timeline(aggregated, epsilon=0.5)
-
-    if "device_average" in power_data:
-        device_average = power_data["device_average"]
-        aggregated = aggregate_device_timelines(device_average, steady_start, steady_end)
-        if not aggregated["timestamps"]:
-            raise ValueError(
-                f"Empty power_average timeline after filtering to steady state\n"
-                f"File: {run.results_path}\n"
-                f"Steady state: {steady_start} to {steady_end}\n"
-                f"This indicates timing/monitoring issues. Re-run this benchmark."
-            )
-        timelines["power_average"] = compress_timeline(aggregated, epsilon=0.5)
-
-    # Validate batch size timeline exists (critical for understanding behavior)
-    batch_size_timeline = extract_batch_size_timeline(prometheus, steady_start, steady_end)
-    if not batch_size_timeline or not batch_size_timeline["timestamps"]:
-        raise ValueError(
-            f"Empty or missing batch_size timeline from Prometheus\n"
-            f"File: {run.prometheus_path}\n"
-            f"This indicates vLLM metrics were not collected. Re-run this benchmark."
-        )
-    timelines["batch_size"] = compress_timeline(batch_size_timeline, epsilon=1.0)
-
-    return timelines
-
-
-# ============================================================================
 # Parallelization Config Parsing
 # ============================================================================
 
@@ -705,17 +475,18 @@ def infer_weight_precision(model_id: str, model_info: dict) -> str:
     return "bfloat16"
 
 
-def get_model_params(model_id: str, task: str) -> Dict[str, float]:
+def get_model_params(model_id: str, task: str, config_dir: Path) -> Dict[str, float]:
     """Get total and activated parameters for a model from model_info.json.
 
     Args:
         model_id: Model identifier like "Qwen/Qwen3-8B"
         task: Task name like "lm-arena-chat"
+        config_dir: Base configuration directory (e.g., "configs/vllm")
 
     Returns:
         Dict with total_params_billions, activated_params_billions, is_moe, and weight_precision
     """
-    model_info_path = Path("configs/vllm") / task / model_id / "model_info.json"
+    model_info_path = config_dir / task / model_id / "model_info.json"
 
     if model_info_path.exists():
         try:
@@ -743,33 +514,26 @@ def get_model_params(model_id: str, task: str) -> Dict[str, float]:
         active_params = model_info.get("active_parameters_billion", total_params)
         weight_precision = infer_weight_precision(model_id, model_info)
 
+        # Use nickname from model_info if available, otherwise derive from model_id
+        nickname = model_info.get("nickname", model_id.split("/")[-1])
+
         return {
+            "nickname": nickname,
             "total_params_billions": float(total_params),
             "activated_params_billions": float(active_params),
             "is_moe": total_params != active_params,
             "weight_precision": weight_precision,
         }
 
-    match = re.search(r"(\d+)B", model_id)
-    if match:
-        params = float(match.group(1))
-        weight_precision = infer_weight_precision(model_id, {})
-        print(f"Warning: model_info.json not found for {model_id}, inferred {params}B from name")
-        return {
-            "total_params_billions": params,
-            "activated_params_billions": params,
-            "is_moe": False,
-            "weight_precision": weight_precision,
-        }
-
-    weight_precision = infer_weight_precision(model_id, {})
-    print(f"Warning: Could not determine parameters for {model_id}")
-    return {
-        "total_params_billions": 0,
-        "activated_params_billions": 0,
-        "is_moe": False,
-        "weight_precision": weight_precision,
-    }
+    # If model_info.json is not found, error out
+    raise ValueError(
+        f"model_info.json not found for {model_id} in task {task}\n"
+        f"Looked in: {model_info_path}\n"
+        f"Please create the model_info.json file with the following fields:\n"
+        f"  - total_parameters_billion: Total parameter count in billions\n"
+        f"  - active_parameters_billion: Active parameter count (optional, defaults to total)\n"
+        f"  - weight_precision: Weight precision (optional, will be inferred if not provided)\n"
+    )
 
 
 # ============================================================================
@@ -777,37 +541,54 @@ def get_model_params(model_id: str, task: str) -> Dict[str, float]:
 # ============================================================================
 
 
+def get_output_lengths_from_run(run: BenchmarkRun) -> List[int]:
+    """Extract output lengths from a single benchmark run."""
+    results = load_json_cached(run.results_path)
+
+    # Validate results structure
+    if "results" not in results:
+        raise ValueError(
+            f"Missing 'results' field in results.json\n"
+            f"File: {run.results_path}\n"
+            f"This indicates incomplete benchmark data. Re-run this benchmark."
+        )
+
+    lengths = []
+    for req in results["results"]:
+        # Validate required fields in each request result
+        if "success" not in req:
+            raise ValueError(
+                f"Missing 'success' field in request result\n"
+                f"File: {run.results_path}\n"
+                f"This indicates malformed results. Re-run this benchmark."
+            )
+        if req["success"]:
+            if "output_len" not in req:
+                raise ValueError(
+                    f"Missing 'output_len' in successful request result\n"
+                    f"File: {run.results_path}\n"
+                    f"This indicates incomplete results. Re-run this benchmark."
+                )
+            lengths.append(req["output_len"])
+
+    return lengths
+
+
+def compute_output_length_distribution(
+    lengths: List[int],
+    bin_edges: np.ndarray,
+) -> Dict:
+    """Compute histogram of output lengths using fixed bin edges."""
+    counts, _ = np.histogram(lengths, bins=bin_edges)
+    return {"bins": bin_edges.tolist(), "counts": counts.tolist()}
+
+
 def aggregate_output_length_distributions(runs: List[BenchmarkRun]) -> Dict:
     """Aggregate output length across all runs."""
     all_lengths = []
 
     for run in runs:
-        results = load_json_cached(run.results_path)
-
-        # Validate results structure
-        if "results" not in results:
-            raise ValueError(
-                f"Missing 'results' field in results.json\n"
-                f"File: {run.results_path}\n"
-                f"This indicates incomplete benchmark data. Re-run this benchmark."
-            )
-
-        for req in results["results"]:
-            # Validate required fields in each request result
-            if "success" not in req:
-                raise ValueError(
-                    f"Missing 'success' field in request result\n"
-                    f"File: {run.results_path}\n"
-                    f"This indicates malformed results. Re-run this benchmark."
-                )
-            if req["success"]:
-                if "output_len" not in req:
-                    raise ValueError(
-                        f"Missing 'output_len' in successful request result\n"
-                        f"File: {run.results_path}\n"
-                        f"This indicates incomplete results. Re-run this benchmark."
-                    )
-                all_lengths.append(req["output_len"])
+        all_lengths.extend(get_output_lengths_from_run(run))
 
     if not all_lengths:
         raise ValueError(
@@ -822,8 +603,8 @@ def aggregate_output_length_distributions(runs: List[BenchmarkRun]) -> Dict:
 
 def is_unstable_run(
     run: BenchmarkRun,
-    min_steady_duration: float = 10.0,
-    batch_utilization_threshold: float = 0.9,
+    min_steady_duration: float = 20.0,
+    batch_utilization_threshold: float = 0.85,
 ) -> tuple[bool, str]:
     """Check if a benchmark run is unstable (OOM or server issues).
 
@@ -865,6 +646,12 @@ def is_unstable_run(
         return (True, f"Failed to load results: {e}")
 
 
+def _check_unstable_worker(run: BenchmarkRun) -> tuple[BenchmarkRun, bool, str]:
+    """Worker function for parallel unstable run checking."""
+    is_unstable, reason = is_unstable_run(run)
+    return (run, is_unstable, reason)
+
+
 def filter_unstable_runs(runs: List[BenchmarkRun]) -> List[BenchmarkRun]:
     """Filter out unstable runs and cascade exclusions.
 
@@ -877,6 +664,18 @@ def filter_unstable_runs(runs: List[BenchmarkRun]) -> List[BenchmarkRun]:
     Returns:
         Filtered list with unstable runs removed
     """
+    # Check all runs in parallel and cache results
+    print(f"  Checking {len(runs)} runs for stability...", flush=True)
+    num_workers = min(multiprocessing.cpu_count(), len(runs))
+
+    with multiprocessing.Pool(processes=num_workers) as pool:
+        check_results = pool.map(_check_unstable_worker, runs)
+
+    # Build lookup dict for stability results
+    stability_cache: Dict[Path, tuple[bool, str]] = {}
+    for run, is_unstable, reason in check_results:
+        stability_cache[run.results_path] = (is_unstable, reason)
+
     # Group by (model_id, task, gpu_model, num_gpus)
     grouped = defaultdict(list)
     for run in runs:
@@ -891,19 +690,16 @@ def filter_unstable_runs(runs: List[BenchmarkRun]) -> List[BenchmarkRun]:
 
         # Find the minimum unstable max_num_seqs
         min_unstable_seqs = float('inf')
-        unstable_reasons = []
 
         for run in group_runs:
-            is_unstable, reason = is_unstable_run(run)
-            if is_unstable:
-                unstable_reasons.append((run, reason))
-                if run.max_num_seqs is not None:
-                    min_unstable_seqs = min(min_unstable_seqs, run.max_num_seqs)
+            is_unstable, reason = stability_cache[run.results_path]
+            if is_unstable and run.max_num_seqs is not None:
+                min_unstable_seqs = min(min_unstable_seqs, run.max_num_seqs)
 
         # Filter runs
         for run in group_runs:
-            # Exclude if this run is unstable
-            is_unstable, reason = is_unstable_run(run)
+            is_unstable, reason = stability_cache[run.results_path]
+
             if is_unstable:
                 print(f"  Excluding unstable run: {model_id}/{task}/{gpu_model} max_num_seqs={run.max_num_seqs}")
                 print(f"    Reason: {reason}", flush=True)
@@ -945,7 +741,7 @@ def group_runs_by_model_task(runs: List[BenchmarkRun]) -> Dict[tuple, List[Bench
 # ============================================================================
 
 
-def generate_index_json(runs: List[BenchmarkRun], output_dir: Path) -> None:
+def generate_index_json(runs: List[BenchmarkRun], output_dir: Path, config_dir: Path) -> None:
     """Generate index.json with task list and model metadata."""
     from datetime import datetime
 
@@ -954,10 +750,9 @@ def generate_index_json(runs: List[BenchmarkRun], output_dir: Path) -> None:
     models = {}
     for run in runs:
         if run.model_id not in models:
-            params = get_model_params(run.model_id, run.task)
-            nickname = run.model_id.split("/")[-1]
+            params = get_model_params(run.model_id, run.task, config_dir)
             models[run.model_id] = {
-                "nickname": nickname,
+                "nickname": params["nickname"],
                 "total_params_billions": params["total_params_billions"],
                 "activated_params_billions": params["activated_params_billions"],
                 "is_moe": params["is_moe"],
@@ -977,7 +772,7 @@ def generate_index_json(runs: List[BenchmarkRun], output_dir: Path) -> None:
     print(f"Generated {output_path}")
 
 
-def generate_task_json(task: str, runs: List[BenchmarkRun], output_dir: Path) -> None:
+def generate_task_json(task: str, runs: List[BenchmarkRun], output_dir: Path, config_dir: Path) -> None:
     """Generate task-specific JSON with all configurations."""
     task_runs = [run for run in runs if run.task == task]
 
@@ -996,11 +791,11 @@ def generate_task_json(task: str, runs: List[BenchmarkRun], output_dir: Path) ->
     configurations = []
     for run in task_runs:
         metrics = extract_metrics(run)
-        params = get_model_params(run.model_id, task)
+        params = get_model_params(run.model_id, task, config_dir)
 
         config = {
             "model_id": run.model_id,
-            "nickname": run.model_id.split("/")[-1],
+            "nickname": params["nickname"],
             "gpu_model": run.gpu_model,
             "num_gpus": run.num_gpus,
             "total_params_billions": params["total_params_billions"],
@@ -1012,7 +807,9 @@ def generate_task_json(task: str, runs: List[BenchmarkRun], output_dir: Path) ->
             "median_itl_ms": metrics["median_itl_ms"],
             "output_throughput_tokens_per_sec": metrics["output_throughput_tokens_per_sec"],
             # These fields are now guaranteed to exist due to strict validation in extract_metrics()
+            "p90_itl_ms": metrics["p90_itl_ms"],
             "p95_itl_ms": metrics["p95_itl_ms"],
+            "p99_itl_ms": metrics["p99_itl_ms"],
             "avg_batch_size": metrics["avg_batch_size"],
         }
 
@@ -1037,17 +834,40 @@ def generate_model_json(
     task: str,
     runs: List[BenchmarkRun],
     output_dir: Path,
-) -> None:
+    config_dir: Path,
+) -> Path:
     """Generate model detail JSON with aggregated distributions and all configs."""
-    params = get_model_params(model_id, task)
+    params = get_model_params(model_id, task, config_dir)
 
-    output_length_dist = aggregate_output_length_distributions(runs)
+    # First pass: collect all output lengths to determine fixed bin edges
+    all_lengths = []
+    run_lengths: Dict[Path, List[int]] = {}
+    for run in runs:
+        lengths = get_output_lengths_from_run(run)
+        run_lengths[run.results_path] = lengths
+        all_lengths.extend(lengths)
+
+    if not all_lengths:
+        raise ValueError(
+            f"No successful requests found across all runs for {model_id}\n"
+            f"This indicates all benchmarks failed. Re-run benchmarks."
+        )
+
+    # Compute fixed bin edges from all data (50 bins)
+    _, bin_edges = np.histogram(all_lengths, bins=50)
+
+    # Aggregate distribution (for backwards compatibility)
+    agg_counts, _ = np.histogram(all_lengths, bins=bin_edges)
+    output_length_dist = {"bins": bin_edges.tolist(), "counts": agg_counts.tolist()}
 
     configurations = []
     for run in runs:
         metrics = extract_metrics(run)
-        timelines = extract_timelines(run)
         parallelization = parse_parallelization(run)
+
+        # Per-config output length distribution using fixed bin edges
+        config_lengths = run_lengths[run.results_path]
+        config_output_dist = compute_output_length_distribution(config_lengths, bin_edges)
 
         config = {
             "gpu_model": run.gpu_model,
@@ -1058,11 +878,12 @@ def generate_model_json(
             "energy_per_token_joules": metrics["energy_per_token_joules"],
             "energy_per_request_joules": metrics["energy_per_request_joules"],
             "median_itl_ms": metrics["median_itl_ms"],
-            # These fields are now guaranteed to exist due to strict validation in extract_metrics()
+            "p90_itl_ms": metrics["p90_itl_ms"],
             "p95_itl_ms": metrics["p95_itl_ms"],
+            "p99_itl_ms": metrics["p99_itl_ms"],
             "output_throughput_tokens_per_sec": metrics["output_throughput_tokens_per_sec"],
             "avg_batch_size": metrics["avg_batch_size"],
-            "timelines": timelines,
+            "output_length_distribution": config_output_dist,
         }
 
         configurations.append(config)
@@ -1083,7 +904,7 @@ def generate_model_json(
     with open(output_path, "w") as f:
         json.dump(model_data, f, indent=2)
 
-    print(f"Generated {output_path}")
+    return output_path
 
 
 def validate_size(output_dir: Path, max_size_mb: int = 900) -> None:
@@ -1109,9 +930,10 @@ def validate_size(output_dir: Path, max_size_mb: int = 900) -> None:
 
 def _generate_model_json_worker(args):
     """Wrapper for generate_model_json to use with multiprocessing.Pool."""
-    model_id, task, runs, output_dir, idx, total = args
+    model_id, task, runs, output_dir, config_dir, idx, total = args
     print(f"  [{idx}/{total}] Generating {model_id} / {task}...", flush=True)
-    generate_model_json(model_id, task, runs, output_dir)
+    path = generate_model_json(model_id, task, runs, output_dir, config_dir)
+    print(f"  [{idx}/{total}] Generated {path}", flush=True)
     return model_id, task
 
 
@@ -1138,6 +960,12 @@ def main():
         default=900,
         help="Maximum allowed size in MB",
     )
+    parser.add_argument(
+        "--config-dir",
+        type=str,
+        default="configs/vllm",
+        help="Path to vLLM config directory (default: configs/vllm)",
+    )
 
     args = parser.parse_args()
 
@@ -1147,6 +975,8 @@ def main():
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    config_dir = Path(args.config_dir)
 
     print(f"Scanning {len(args.results_dirs)} results directories...", flush=True)
     all_runs = []
@@ -1172,13 +1002,13 @@ def main():
         sys.exit(1)
 
     print("\nGenerating index.json...", flush=True)
-    generate_index_json(runs, output_dir)
+    generate_index_json(runs, output_dir, config_dir)
 
     print("\nGenerating task JSONs...", flush=True)
     tasks = sorted(set(run.task for run in runs))
     for task in tasks:
         print(f"  Generating {task}...", flush=True)
-        generate_task_json(task, runs, output_dir)
+        generate_task_json(task, runs, output_dir, config_dir)
 
     print("\nGenerating model detail JSONs...")
     grouped = group_runs_by_model_task(runs)
@@ -1186,7 +1016,7 @@ def main():
 
     # Prepare arguments for multiprocessing
     pool_args = [
-        (model_id, task, model_runs, output_dir, idx, total_models)
+        (model_id, task, model_runs, output_dir, config_dir, idx, total_models)
         for idx, ((model_id, task), model_runs) in enumerate(grouped.items(), 1)
     ]
 
@@ -1200,7 +1030,7 @@ def main():
     print("\nValidating data size...", flush=True)
     validate_size(output_dir, args.max_size_mb)
 
-    print("\n✅ Data generation complete!", flush=True)
+    print("\nData generation complete!", flush=True)
 
 
 if __name__ == "__main__":

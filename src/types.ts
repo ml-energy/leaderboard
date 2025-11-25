@@ -27,7 +27,9 @@ export interface Configuration {
   median_itl_ms: number;
   output_throughput_tokens_per_sec: number;
 
+  p90_itl_ms: number;
   p95_itl_ms: number;
+  p99_itl_ms: number;
   avg_batch_size: number;
 }
 
@@ -37,11 +39,6 @@ export interface TaskData {
   configurations: Configuration[];
 }
 
-export interface Timeline {
-  timestamps: number[];
-  values: number[];
-}
-
 export interface Parallelization {
   tensor_parallel: number;
   expert_parallel: number;
@@ -49,7 +46,7 @@ export interface Parallelization {
   notes: string;
 }
 
-export interface ConfigWithTimelines {
+export interface ModelConfiguration {
   gpu_model: string;
   num_gpus: number;
   max_num_seqs: number | null;
@@ -59,15 +56,13 @@ export interface ConfigWithTimelines {
   energy_per_token_joules: number;
   energy_per_request_joules: number;
   median_itl_ms: number;
+  p90_itl_ms: number;
   p95_itl_ms: number;
+  p99_itl_ms: number;
   output_throughput_tokens_per_sec: number;
   avg_batch_size: number;
 
-  timelines: {
-    power_instant?: Timeline;
-    power_average?: Timeline;
-    batch_size?: Timeline;
-  };
+  output_length_distribution: Distribution;
 }
 
 export interface Distribution {
@@ -85,5 +80,5 @@ export interface ModelDetail {
 
   output_length_distribution: Distribution;
 
-  configurations: ConfigWithTimelines[];
+  configurations: ModelConfiguration[];
 }

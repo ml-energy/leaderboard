@@ -1,21 +1,14 @@
+import { getTaskConfig } from '../config/tasks';
+
 interface TaskTabsProps {
   tasks: string[];
   activeTask: string;
   onTaskChange: (task: string) => void;
 }
 
-const TASK_DISPLAY_NAMES: Record<string, string> = {
-  'lm-arena-chat': 'LLM Chat',
-  'gpqa': 'GPQA',
-  'sourcegraph-fim': 'Code Completion',
-  'image-chat': 'Image Chat',
-  'video-chat': 'Video Chat',
-  'audio-chat': 'Audio Chat',
-};
-
 export default function TaskTabs({ tasks, activeTask, onTaskChange }: TaskTabsProps) {
-  const getDisplayName = (task: string) => {
-    return TASK_DISPLAY_NAMES[task] || task;
+  const getTabLabel = (task: string) => {
+    return getTaskConfig(task).tabLabel;
   };
 
   return (
@@ -35,7 +28,7 @@ export default function TaskTabs({ tasks, activeTask, onTaskChange }: TaskTabsPr
             `}
             aria-current={activeTask === task ? 'page' : undefined}
           >
-            {getDisplayName(task)}
+            {getTabLabel(task)}
           </button>
         ))}
       </nav>

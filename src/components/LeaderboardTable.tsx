@@ -37,8 +37,9 @@ export default function LeaderboardTable({
   const sortedConfigs = [...configurations].sort((a, b) => {
     if (!sortKey || !sortDirection) return 0;
 
-    const aVal = (a as any)[sortKey];
-    const bVal = (b as any)[sortKey];
+    const col = columns.find(c => c.key === sortKey);
+    const aVal = col?.getValue ? col.getValue(a) : (a as any)[sortKey];
+    const bVal = col?.getValue ? col.getValue(b) : (b as any)[sortKey];
 
     if (aVal === null || aVal === undefined) return 1;
     if (bVal === null || bVal === undefined) return -1;
@@ -69,7 +70,7 @@ export default function LeaderboardTable({
   };
 
   const getCellValue = (config: Configuration, col: ColumnDef) => {
-    const value = (config as any)[col.key];
+    const value = col.getValue ? col.getValue(config) : (config as any)[col.key];
 
     if (value === null || value === undefined) {
       return '-';
@@ -109,13 +110,15 @@ export default function LeaderboardTable({
               key={`${config.model_id}-${config.gpu_model}-${config.num_gpus}-${config.max_num_seqs}`}
               onClick={() => onRowClick?.(config)}
               className={`${
-                onRowClick ? 'cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-800' : ''
+                onRowClick
+                  ? 'cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors'
+                  : ''
               }`}
             >
               {columns.map((col) => (
                 <td
                   key={col.key}
-                  className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"
+                  className="px-3 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100"
                 >
                   {getCellValue(config, col)}
                 </td>
