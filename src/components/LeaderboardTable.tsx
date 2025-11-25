@@ -2,10 +2,24 @@ import { useState } from 'react';
 import { Configuration } from '../types';
 import { ColumnDef } from '../config/columns';
 
+// Color palette for comparison highlighting
+const MODEL_COLORS = [
+  'bg-blue-100 dark:bg-blue-900/40',
+  'bg-emerald-100 dark:bg-emerald-900/40',
+  'bg-amber-100 dark:bg-amber-900/40',
+  'bg-red-100 dark:bg-red-900/40',
+  'bg-violet-100 dark:bg-violet-900/40',
+  'bg-pink-100 dark:bg-pink-900/40',
+  'bg-teal-100 dark:bg-teal-900/40',
+  'bg-orange-100 dark:bg-orange-900/40',
+];
+
 interface LeaderboardTableProps {
   configurations: Configuration[];
   columns: ColumnDef[];
   onRowClick?: (config: Configuration) => void;
+  comparisonModels?: string[];
+  selectingForComparison?: boolean;
 }
 
 type SortDirection = 'asc' | 'desc' | null;
@@ -13,7 +27,9 @@ type SortDirection = 'asc' | 'desc' | null;
 export default function LeaderboardTable({
   configurations,
   columns,
-  onRowClick
+  onRowClick,
+  comparisonModels = [],
+  selectingForComparison = false,
 }: LeaderboardTableProps) {
   const [sortKey, setSortKey] = useState<string | null>('energy_per_token_joules');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -105,15 +121,25 @@ export default function LeaderboardTable({
           </tr>
         </thead>
         <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-          {sortedConfigs.map((config) => (
+          {sortedConfigs.map((config) => {
+            const comparisonIndex = comparisonModels.indexOf(config.model_id);
+            const isSelectedForComparison = comparisonIndex !== -1;
+            const highlightColor = isSelectedForComparison && selectingForComparison
+              ? MODEL_COLORS[comparisonIndex % MODEL_COLORS.length]
+              : '';
+            const isAlreadySelected = isSelectedForComparison && selectingForComparison;
+
+            return (
             <tr
               key={`${config.model_id}-${config.gpu_model}-${config.num_gpus}-${config.max_num_seqs}`}
               onClick={() => onRowClick?.(config)}
               className={`${
-                onRowClick
+                onRowClick && !isAlreadySelected
                   ? 'cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors'
+                  : isAlreadySelected
+                  ? 'cursor-not-allowed'
                   : ''
-              }`}
+              } ${highlightColor}`}
             >
               {columns.map((col) => (
                 <td
@@ -124,7 +150,8 @@ export default function LeaderboardTable({
                 </td>
               ))}
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
       {sortedConfigs.length === 0 && (

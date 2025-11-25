@@ -1,6 +1,5 @@
 import { useMemo, useEffect, useRef, useState } from 'react';
 import {
-  ScatterChart,
   Scatter,
   XAxis,
   YAxis,
@@ -23,7 +22,7 @@ interface TimeEnergyTradeoffChartProps {
   colorByModel?: boolean;
 }
 
-// Model colors for multi-model view
+// Model colors for multi-model view (synced with ComparisonModal)
 const MODEL_COLORS = [
   '#3b82f6', // blue
   '#10b981', // emerald
@@ -31,10 +30,8 @@ const MODEL_COLORS = [
   '#ef4444', // red
   '#8b5cf6', // violet
   '#ec4899', // pink
-  '#06b6d4', // cyan
-  '#84cc16', // lime
+  '#14b8a6', // teal
   '#f97316', // orange
-  '#6366f1', // indigo
 ];
 
 function getITL(config: Configuration | ModelConfiguration, percentile: ITLPercentile): number | null {
@@ -171,19 +168,36 @@ export function TimeEnergyTradeoffChart({
     return MODEL_COLORS[index % MODEL_COLORS.length];
   };
 
-  // Calculate Pareto frontier
+  // Calculate Pareto frontier - either global or per-model
   const paretoConfigs = useMemo(
     () => getParetoFrontier(configurations, selectedPercentile),
     [configurations, selectedPercentile]
   );
+
+  // Per-model Pareto frontiers for comparison mode
+  const perModelParetoConfigs = useMemo(() => {
+    if (!colorByModel) return new Map<string, (Configuration | ModelConfiguration)[]>();
+
+    const result = new Map<string, (Configuration | ModelConfiguration)[]>();
+    modelIds.forEach(modelId => {
+      const modelConfigs = configurations.filter(c =>
+        'model_id' in c && (c as Configuration).model_id === modelId
+      );
+      result.set(modelId, getParetoFrontier(modelConfigs, selectedPercentile));
+    });
+    return result;
+  }, [colorByModel, configurations, selectedPercentile, modelIds]);
 
   // Transform data for chart (filter out configs without valid ITL data)
   const chartData: ChartDataPoint[] = useMemo(() => {
     return configurations
       .filter(config => getITL(config, selectedPercentile) !== null)
       .map(config => {
-        const isPareto = paretoConfigs.includes(config);
         const modelId = 'model_id' in config ? (config as Configuration).model_id : '';
+        // Use per-model Pareto in comparison mode, global Pareto otherwise
+        const isPareto = colorByModel
+          ? (perModelParetoConfigs.get(modelId)?.includes(config) ?? false)
+          : paretoConfigs.includes(config);
         return {
           x: getITL(config, selectedPercentile)!,
           y: config.energy_per_token_joules,
@@ -192,14 +206,31 @@ export function TimeEnergyTradeoffChart({
           modelColor: colorByModel ? getModelColor(modelId) : '#3b82f6',
         };
       });
-  }, [configurations, selectedPercentile, paretoConfigs, colorByModel, modelIds]);
+  }, [configurations, selectedPercentile, paretoConfigs, perModelParetoConfigs, colorByModel, modelIds]);
 
-  // Sort Pareto points by X for line drawing
+  // Sort Pareto points by X for line drawing (global or per-model)
   const paretoLineData = useMemo(() => {
     return chartData
       .filter(d => d.isPareto)
       .sort((a, b) => a.x - b.x);
   }, [chartData]);
+
+  // Per-model Pareto line data for comparison mode
+  const perModelParetoLineData = useMemo(() => {
+    if (!colorByModel) return new Map<string, ChartDataPoint[]>();
+
+    const result = new Map<string, ChartDataPoint[]>();
+    modelIds.forEach(modelId => {
+      const modelParetoPoints = chartData
+        .filter(d => {
+          const dModelId = 'model_id' in d.config ? (d.config as Configuration).model_id : '';
+          return d.isPareto && dModelId === modelId;
+        })
+        .sort((a, b) => a.x - b.x);
+      result.set(modelId, modelParetoPoints);
+    });
+    return result;
+  }, [colorByModel, chartData, modelIds]);
 
   const percentileOptions: { value: ITLPercentile; label: string }[] = [
     { value: 'p50', label: 'P50 (Median)' },
@@ -288,34 +319,80 @@ export function TimeEnergyTradeoffChart({
                 content={<TooltipCapture onActiveChange={setActiveData} />}
               />
 
-              {/* Pareto frontier line */}
-              <Line
-                data={paretoLineData}
-                dataKey="y"
-                stroke="#f59e0b"
-                strokeWidth={2}
-                strokeDasharray="5 5"
-                dot={false}
-                name="Pareto Frontier"
-                isAnimationActive={false}
-              />
+              {/* Pareto frontier lines - per-model or global */}
+              {colorByModel ? (
+                // Per-model Pareto frontier lines
+                modelIds.map(modelId => {
+                  const lineData = perModelParetoLineData.get(modelId) || [];
+                  return (
+                    <Line
+                      key={`pareto-${modelId}`}
+                      data={lineData}
+                      dataKey="y"
+                      stroke={getModelColor(modelId)}
+                      strokeWidth={2}
+                      strokeDasharray="5 5"
+                      dot={false}
+                      name={`${modelId} Pareto`}
+                      isAnimationActive={false}
+                    />
+                  );
+                })
+              ) : (
+                // Global Pareto frontier line
+                <Line
+                  data={paretoLineData}
+                  dataKey="y"
+                  stroke="#f59e0b"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  dot={false}
+                  name="Pareto Frontier"
+                  isAnimationActive={false}
+                />
+              )}
 
-              {/* All points (non-Pareto) */}
-              <Scatter
-                data={chartData.filter(d => !d.isPareto)}
-                fill="#94a3b8"
-                fillOpacity={0.5}
-                isAnimationActive={false}
-              />
+              {/* Scatter points - colored by model or by Pareto status */}
+              {colorByModel ? (
+                // Per-model colored scatter points
+                modelIds.map(modelId => {
+                  const modelData = chartData.filter(d => {
+                    const dModelId = 'model_id' in d.config ? (d.config as Configuration).model_id : '';
+                    return dModelId === modelId;
+                  });
+                  const color = getModelColor(modelId);
+                  return (
+                    <Scatter
+                      key={`scatter-${modelId}`}
+                      data={modelData}
+                      fill={color}
+                      fillOpacity={0.7}
+                      stroke={color}
+                      strokeWidth={1}
+                      isAnimationActive={false}
+                    />
+                  );
+                })
+              ) : (
+                <>
+                  {/* All points (non-Pareto) */}
+                  <Scatter
+                    data={chartData.filter(d => !d.isPareto)}
+                    fill="#94a3b8"
+                    fillOpacity={0.5}
+                    isAnimationActive={false}
+                  />
 
-              {/* Pareto points (highlighted) */}
-              <Scatter
-                data={chartData.filter(d => d.isPareto)}
-                fill="#f59e0b"
-                stroke="#d97706"
-                strokeWidth={2}
-                isAnimationActive={false}
-              />
+                  {/* Pareto points (highlighted) */}
+                  <Scatter
+                    data={chartData.filter(d => d.isPareto)}
+                    fill="#f59e0b"
+                    stroke="#d97706"
+                    strokeWidth={2}
+                    isAnimationActive={false}
+                  />
+                </>
+              )}
             </ComposedChart>
           </ResponsiveContainer>
 
@@ -331,20 +408,45 @@ export function TimeEnergyTradeoffChart({
       )}
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-6 mt-2 text-sm text-gray-600 dark:text-gray-400">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-amber-500 border-2 border-amber-600" />
-          <span>Pareto optimal</span>
+      {colorByModel ? (
+        // Per-model legend
+        <div className="flex flex-wrap items-center justify-center gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
+          {modelIds.map(modelId => {
+            const color = getModelColor(modelId);
+            // Extract short model name (last part after /)
+            const shortName = modelId.split('/').pop() || modelId;
+            return (
+              <div key={modelId} className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
+                <div
+                  className="w-4 border-t-2 border-dashed"
+                  style={{ borderColor: color }}
+                />
+                <span className="truncate max-w-[150px]" title={modelId}>{shortName}</span>
+              </div>
+            );
+          })}
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-slate-400 opacity-50" />
-          <span>Sub-optimal</span>
+      ) : (
+        // Default legend
+        <div className="flex items-center justify-center gap-6 mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-amber-500 border-2 border-amber-600" />
+            <span>Pareto optimal</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-slate-400 opacity-50" />
+            <span>Sub-optimal</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-6 border-t-2 border-dashed border-amber-500" />
+            <span>Pareto frontier</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-6 border-t-2 border-dashed border-amber-500" />
-          <span>Pareto frontier</span>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

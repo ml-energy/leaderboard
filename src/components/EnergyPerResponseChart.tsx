@@ -66,7 +66,7 @@ function CustomBarTooltip({ active, payload }: TooltipProps<number, string>) {
 export function EnergyPerResponseChart({
   outputLengthDistribution,
   energyPerToken,
-  defaultEnergyPerToken,
+  defaultEnergyPerToken: _defaultEnergyPerToken,
   maxEnergyPerToken,
   configLabel,
 }: EnergyPerResponseChartProps) {

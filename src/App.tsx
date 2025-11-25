@@ -7,6 +7,7 @@ import TaskTabs from './components/TaskTabs';
 import Sidebar from './components/Sidebar';
 import LeaderboardTable from './components/LeaderboardTable';
 import { ModelDetailModal } from './components/ModelDetailModal';
+import { ComparisonModal } from './components/ComparisonModal';
 import { AboutPage } from './components/AboutPage';
 import { TaskAboutModal } from './components/TaskAboutModal';
 import { TimeEnergyTradeoffChart, ITLPercentile } from './components/TimeEnergyTradeoffChart';
@@ -27,6 +28,11 @@ function App() {
   const [modalOpen, setModalOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [taskAboutOpen, setTaskAboutOpen] = useState(false);
+
+  // Multi-model comparison state
+  const [comparisonModels, setComparisonModels] = useState<string[]>([]);
+  const [selectingForComparison, setSelectingForComparison] = useState(false);
+  const [comparisonModalOpen, setComparisonModalOpen] = useState(false);
   const [selectedPercentile, setSelectedPercentile] = useState<ITLPercentile>('p50');
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     const stored = localStorage.getItem('darkMode');
@@ -189,6 +195,63 @@ function App() {
     setSelectedGPUs(newSet);
   };
 
+  // Handle row click - either open single modal or add to comparison
+  const handleRowClick = (config: Configuration) => {
+    if (selectingForComparison) {
+      // In selection mode - add model to comparison
+      if (!comparisonModels.includes(config.model_id)) {
+        const newModels = [...comparisonModels, config.model_id];
+        setComparisonModels(newModels);
+        setSelectingForComparison(false);
+        setComparisonModalOpen(true);
+      }
+    } else {
+      // Normal mode - open single model modal
+      setSelectedConfig(config);
+      setModalOpen(true);
+    }
+  };
+
+  // Start comparison from single model modal
+  const handleStartComparison = (modelId: string) => {
+    setComparisonModels([modelId]);
+    setSelectingForComparison(true);
+    setModalOpen(false);
+  };
+
+  // Add another model to comparison
+  const handleAddToComparison = () => {
+    setSelectingForComparison(true);
+    setComparisonModalOpen(false);
+  };
+
+  // Remove model from comparison
+  const handleRemoveFromComparison = (modelId: string) => {
+    const newModels = comparisonModels.filter(m => m !== modelId);
+    if (newModels.length < 2) {
+      // Not enough models for comparison, close modal
+      setComparisonModels([]);
+      setComparisonModalOpen(false);
+    } else {
+      setComparisonModels(newModels);
+    }
+  };
+
+  // Cancel comparison selection
+  const handleCancelComparison = () => {
+    setComparisonModels([]);
+    setSelectingForComparison(false);
+    setComparisonModalOpen(false);
+  };
+
+  // Open comparison modal directly (when 2+ models already selected)
+  const handleOpenComparison = () => {
+    if (comparisonModels.length >= 2) {
+      setSelectingForComparison(false);
+      setComparisonModalOpen(true);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -339,13 +402,47 @@ function App() {
                         </span>
                       </label>
                     </div>
+
+                    {/* Comparison selection banner */}
+                    {selectingForComparison && (
+                      <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="text-blue-800 dark:text-blue-200">
+                            {comparisonModels.length === 0
+                              ? 'Select a model to compare'
+                              : comparisonModels.length === 1
+                              ? `Selected: ${comparisonModels[0].split('/').pop()}. Click another model to compare.`
+                              : `Selected ${comparisonModels.length} models. Click another to add or open comparison.`}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {comparisonModels.length >= 2 && (
+                            <button
+                              onClick={handleOpenComparison}
+                              className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                            >
+                              Compare Now
+                            </button>
+                          )}
+                          <button
+                            onClick={handleCancelComparison}
+                            className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-md transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     <LeaderboardTable
                       configurations={filteredConfigs}
                       columns={columns}
-                      onRowClick={(config) => {
-                        setSelectedConfig(config);
-                        setModalOpen(true);
-                      }}
+                      onRowClick={handleRowClick}
+                      comparisonModels={comparisonModels}
+                      selectingForComparison={selectingForComparison}
                     />
                   </div>
                 </div>
@@ -372,11 +469,26 @@ function App() {
           task={activeTask}
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
+          onStartComparison={handleStartComparison}
           currentConfig={{
             gpu_model: selectedConfig.gpu_model,
             num_gpus: selectedConfig.num_gpus,
             max_num_seqs: selectedConfig.max_num_seqs,
           }}
+        />
+      )}
+
+      {comparisonModalOpen && comparisonModels.length >= 2 && (
+        <ComparisonModal
+          modelIds={comparisonModels}
+          task={activeTask}
+          isOpen={comparisonModalOpen}
+          onClose={() => {
+            setComparisonModalOpen(false);
+            setComparisonModels([]);
+          }}
+          onAddModel={handleAddToComparison}
+          onRemoveModel={handleRemoveFromComparison}
         />
       )}
 
