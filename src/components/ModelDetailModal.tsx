@@ -248,13 +248,13 @@ export function ModelDetailModal({
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Total Parameters</p>
                   <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {modelDetail.total_params_billions.toFixed(1)}B
+                    {modelDetail.total_params_billions.toFixed(0)}B
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Active Parameters</p>
                   <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {modelDetail.activated_params_billions.toFixed(1)}B
+                    {modelDetail.activated_params_billions.toFixed(0)}B
                   </p>
                 </div>
                 <div>

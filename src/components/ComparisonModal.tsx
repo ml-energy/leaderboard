@@ -333,7 +333,7 @@ export function ComparisonModal({
                         </h3>
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {detail.total_params_billions.toFixed(1)}B params, {detail.architecture}, {detail.weight_precision}
+                        {detail.total_params_billions.toFixed(0)}B params, {detail.architecture}, {detail.weight_precision}
                       </p>
                     </div>
                   );
