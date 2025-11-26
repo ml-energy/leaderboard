@@ -3,5 +3,5 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/v3_leaderboard/',
+  base: '/leaderboard_new/',
 })

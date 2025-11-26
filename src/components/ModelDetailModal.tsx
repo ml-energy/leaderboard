@@ -8,7 +8,7 @@ interface ModelDetailModalProps {
   task: string;
   isOpen: boolean;
   onClose: () => void;
-  onStartComparison?: (modelId: string) => void;
+  onAddToComparison?: (modelId: string) => void;
   currentConfig?: {
     gpu_model: string;
     num_gpus: number;
@@ -23,8 +23,8 @@ export function ModelDetailModal({
   task,
   isOpen,
   onClose,
-  onStartComparison,
-  currentConfig,
+  onAddToComparison,
+  currentConfig: _currentConfig,
 }: ModelDetailModalProps) {
   const [modelDetail, setModelDetail] = useState<ModelDetail | null>(null);
   const [loading, setLoading] = useState(false);
@@ -35,6 +35,16 @@ export function ModelDetailModal({
   const [selectedNumGPUs, setSelectedNumGPUs] = useState<Set<number>>(new Set());
   const [displayedConfig, setDisplayedConfig] = useState<ModelConfiguration | null>(null);
   const [selectedPercentile, setSelectedPercentile] = useState<ITLPercentile>('p50');
+
+  // Close on ESC key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (!isOpen || !modelId || !task) return;
@@ -196,15 +206,15 @@ export function ModelDetailModal({
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {onStartComparison && (
+            {onAddToComparison && (
               <button
-                onClick={() => onStartComparison(modelId)}
+                onClick={() => onAddToComparison(modelId)}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Compare with another model
+                Add to comparison
               </button>
             )}
             <button
@@ -250,7 +260,7 @@ export function ModelDetailModal({
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Architecture</p>
                   <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {modelDetail.is_moe ? 'MoE' : 'Dense'}
+                    {modelDetail.architecture}
                   </p>
                 </div>
                 <div>
@@ -263,43 +273,53 @@ export function ModelDetailModal({
 
               {/* Time-Energy Tradeoff and Energy/Response Distribution */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                   Time-Energy Tradeoff
                 </h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Each point is a hardware configuration for this model. Pareto frontier computed across these configurations.
+                </p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                   {/* Tradeoff Chart */}
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-                    <TimeEnergyTradeoffChart
-                      configurations={filteredConfigs}
-                      selectedPercentile={selectedPercentile}
-                      onPercentileChange={setSelectedPercentile}
-                      onHoverConfig={(config) => {
-                        // Only update when hovering a config, not when hover ends
-                        if (config) {
-                          setDisplayedConfig(config as ModelConfiguration);
-                        }
-                      }}
-                    />
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex flex-col">
+                    <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
+                      Model Configurations and the Pareto Frontier
+                    </h4>
+                    <div className="flex-1 min-h-0">
+                      <TimeEnergyTradeoffChart
+                        configurations={filteredConfigs}
+                        selectedPercentile={selectedPercentile}
+                        onPercentileChange={setSelectedPercentile}
+                        onHoverConfig={(config) => {
+                          // Only update when hovering a config, not when hover ends
+                          if (config) {
+                            setDisplayedConfig(config as ModelConfiguration);
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
 
                   {/* Energy/Response Distribution */}
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex flex-col">
                     <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
                       Energy per Response Distribution
                     </h4>
-                    <EnergyPerResponseChart
-                      outputLengthDistribution={
-                        displayedConfig?.output_length_distribution || modelDetail.output_length_distribution
-                      }
-                      energyPerToken={displayedConfig?.energy_per_token_joules || null}
-                      defaultEnergyPerToken={defaultEnergyPerToken}
-                      maxEnergyPerToken={maxEnergyPerToken}
-                      configLabel={
-                        displayedConfig
-                          ? `Config: ${displayedConfig.num_gpus} × ${displayedConfig.gpu_model}${displayedConfig.max_num_seqs ? `, batch ${displayedConfig.max_num_seqs}` : ''}`
-                          : undefined
-                      }
-                    />
+                    <div className="flex-1 min-h-0">
+                      <EnergyPerResponseChart
+                        outputLengthDistribution={
+                          displayedConfig?.output_length_distribution || modelDetail.output_length_distribution
+                        }
+                        energyPerToken={displayedConfig?.energy_per_token_joules || null}
+                        defaultEnergyPerToken={defaultEnergyPerToken}
+                        maxEnergyPerToken={maxEnergyPerToken}
+                        configLabel={
+                          displayedConfig
+                            ? `${displayedConfig.num_gpus} × ${displayedConfig.gpu_model}${displayedConfig.max_num_seqs ? `, max batch size ${displayedConfig.max_num_seqs}` : ''}`
+                            : undefined
+                        }
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -424,11 +444,11 @@ export function ModelDetailModal({
                     </thead>
                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                       {sortedConfigs.map((config, idx) => {
-                        const isCurrent =
-                          currentConfig &&
-                          config.gpu_model === currentConfig.gpu_model &&
-                          config.num_gpus === currentConfig.num_gpus &&
-                          config.max_num_seqs === currentConfig.max_num_seqs;
+                        const isHovered =
+                          displayedConfig &&
+                          config.gpu_model === displayedConfig.gpu_model &&
+                          config.num_gpus === displayedConfig.num_gpus &&
+                          config.max_num_seqs === displayedConfig.max_num_seqs;
 
                         let parallelStr = 'N/A';
                         if (config.num_gpus > 1) {
@@ -449,7 +469,7 @@ export function ModelDetailModal({
                         return (
                           <tr
                             key={idx}
-                            className={isCurrent ? 'bg-blue-50 dark:bg-blue-900/20' : ''}
+                            className={isHovered ? 'bg-amber-50 dark:bg-amber-900/20' : ''}
                           >
                             <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.gpu_model}</td>
                             <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.num_gpus}</td>

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { getTaskConfig } from '../config/tasks';
 
 interface TaskAboutModalProps {
@@ -7,6 +8,15 @@ interface TaskAboutModalProps {
 
 export function TaskAboutModal({ taskId, onClose }: TaskAboutModalProps) {
   const config = getTaskConfig(taskId);
+
+  // Close on ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   return (
     <div

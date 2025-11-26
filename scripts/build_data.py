@@ -7,7 +7,6 @@ and generates optimized JSON files for the leaderboard website.
 import argparse
 import json
 import multiprocessing
-import os
 import re
 import sys
 from collections import defaultdict
@@ -475,7 +474,7 @@ def infer_weight_precision(model_id: str, model_info: dict) -> str:
     return "bfloat16"
 
 
-def get_model_params(model_id: str, task: str, config_dir: Path) -> Dict[str, float]:
+def get_model_params(model_id: str, task: str, config_dir: Path) -> dict:
     """Get total and activated parameters for a model from model_info.json.
 
     Args:
@@ -484,7 +483,7 @@ def get_model_params(model_id: str, task: str, config_dir: Path) -> Dict[str, fl
         config_dir: Base configuration directory (e.g., "configs/vllm")
 
     Returns:
-        Dict with total_params_billions, activated_params_billions, is_moe, and weight_precision
+        Dict with total_params_billions, activated_params_billions, architecture, and weight_precision
     """
     model_info_path = config_dir / task / model_id / "model_info.json"
 
@@ -517,11 +516,17 @@ def get_model_params(model_id: str, task: str, config_dir: Path) -> Dict[str, fl
         # Use nickname from model_info if available, otherwise derive from model_id
         nickname = model_info.get("nickname", model_id.split("/")[-1])
 
+        # Determine architecture: use explicit field if available, otherwise derive from params
+        if "architecture" in model_info:
+            architecture = model_info["architecture"]
+        else:
+            architecture = "MoE" if total_params != active_params else "Dense"
+
         return {
             "nickname": nickname,
             "total_params_billions": float(total_params),
             "activated_params_billions": float(active_params),
-            "is_moe": total_params != active_params,
+            "architecture": architecture,
             "weight_precision": weight_precision,
         }
 
@@ -755,7 +760,7 @@ def generate_index_json(runs: List[BenchmarkRun], output_dir: Path, config_dir: 
                 "nickname": params["nickname"],
                 "total_params_billions": params["total_params_billions"],
                 "activated_params_billions": params["activated_params_billions"],
-                "is_moe": params["is_moe"],
+                "architecture": params["architecture"],
                 "weight_precision": params["weight_precision"],
             }
 

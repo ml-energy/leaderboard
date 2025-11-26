@@ -20,6 +20,7 @@ interface TimeEnergyTradeoffChartProps {
   onPercentileChange: (p: ITLPercentile) => void;
   onHoverConfig: (config: Configuration | ModelConfiguration | null) => void;
   colorByModel?: boolean;
+  onLegendClick?: (modelId: string) => void;
 }
 
 // Model colors for multi-model view (synced with ComparisonModal)
@@ -142,9 +143,11 @@ export function TimeEnergyTradeoffChart({
   onPercentileChange,
   onHoverConfig,
   colorByModel = false,
+  onLegendClick,
 }: TimeEnergyTradeoffChartProps) {
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
   const [activeData, setActiveData] = useState<ChartDataPoint | null>(null);
+  const [hoveredLegendModel, setHoveredLegendModel] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Sync hovered config with parent
@@ -161,6 +164,20 @@ export function TimeEnergyTradeoffChart({
       }
     });
     return Array.from(ids);
+  }, [configurations]);
+
+  // Map from modelId to nickname
+  const modelNicknames = useMemo(() => {
+    const map = new Map<string, string>();
+    configurations.forEach(c => {
+      if ('model_id' in c) {
+        const config = c as Configuration;
+        if (!map.has(config.model_id)) {
+          map.set(config.model_id, config.nickname || config.model_id);
+        }
+      }
+    });
+    return map;
   }, [configurations]);
 
   const getModelColor = (modelId: string): string => {
@@ -187,6 +204,25 @@ export function TimeEnergyTradeoffChart({
     });
     return result;
   }, [colorByModel, configurations, selectedPercentile, modelIds]);
+
+  // Compute fixed X-axis max using p99 values (the largest ITL percentile)
+  // Round up to a multiple of a nice tick interval for even grid spacing
+  const xAxisMax = useMemo(() => {
+    const p99Values = configurations
+      .map(config => config.p99_itl_ms)
+      .filter((v): v is number => v != null && v > 0);
+    if (p99Values.length === 0) return undefined;
+    const max = Math.max(...p99Values);
+    // Choose a nice tick interval based on magnitude
+    const magnitude = Math.pow(10, Math.floor(Math.log10(max)));
+    const normalized = max / magnitude;
+    let tickInterval: number;
+    if (normalized <= 2) tickInterval = magnitude * 0.5;
+    else if (normalized <= 5) tickInterval = magnitude;
+    else tickInterval = magnitude * 2;
+    // Round max up to next multiple of tick interval
+    return Math.ceil(max / tickInterval) * tickInterval;
+  }, [configurations]);
 
   // Transform data for chart (filter out configs without valid ITL data)
   const chartData: ChartDataPoint[] = useMemo(() => {
@@ -289,7 +325,7 @@ export function TimeEnergyTradeoffChart({
               <XAxis
                 dataKey="x"
                 type="number"
-                domain={[0, 'auto']}
+                domain={[0, xAxisMax ?? 'auto']}
                 name="ITL"
                 label={{
                   value: `Inter-Token Latency (${selectedPercentile.toUpperCase()}) [ms]`,
@@ -321,23 +357,24 @@ export function TimeEnergyTradeoffChart({
 
               {/* Pareto frontier lines - per-model or global */}
               {colorByModel ? (
-                // Per-model Pareto frontier lines
-                modelIds.map(modelId => {
-                  const lineData = perModelParetoLineData.get(modelId) || [];
-                  return (
-                    <Line
-                      key={`pareto-${modelId}`}
-                      data={lineData}
-                      dataKey="y"
-                      stroke={getModelColor(modelId)}
-                      strokeWidth={2}
-                      strokeDasharray="5 5"
-                      dot={false}
-                      name={`${modelId} Pareto`}
-                      isAnimationActive={false}
-                    />
-                  );
-                })
+                // Per-model Pareto frontier lines (skip grayed ones entirely)
+                modelIds
+                  .filter(modelId => hoveredLegendModel === null || hoveredLegendModel === modelId)
+                  .map(modelId => {
+                    const lineData = perModelParetoLineData.get(modelId) || [];
+                    return (
+                      <Line
+                        key={`pareto-${modelId}`}
+                        data={lineData}
+                        dataKey="y"
+                        stroke={getModelColor(modelId)}
+                        strokeWidth={2}
+                        dot={false}
+                        name={`${modelId} Pareto`}
+                        isAnimationActive={false}
+                      />
+                    );
+                  })
               ) : (
                 // Global Pareto frontier line
                 <Line
@@ -345,7 +382,6 @@ export function TimeEnergyTradeoffChart({
                   dataKey="y"
                   stroke="#f59e0b"
                   strokeWidth={2}
-                  strokeDasharray="5 5"
                   dot={false}
                   name="Pareto Frontier"
                   isAnimationActive={false}
@@ -354,24 +390,38 @@ export function TimeEnergyTradeoffChart({
 
               {/* Scatter points - colored by model or by Pareto status */}
               {colorByModel ? (
-                // Per-model colored scatter points
-                modelIds.map(modelId => {
+                // Per-model colored scatter points - suboptimal first, then Pareto on top
+                modelIds.flatMap(modelId => {
                   const modelData = chartData.filter(d => {
                     const dModelId = 'model_id' in d.config ? (d.config as Configuration).model_id : '';
                     return dModelId === modelId;
                   });
-                  const color = getModelColor(modelId);
-                  return (
+                  const isGrayed = hoveredLegendModel !== null && hoveredLegendModel !== modelId;
+                  const color = isGrayed ? '#6b7280' : getModelColor(modelId);
+                  const suboptimalData = modelData.filter(d => !d.isPareto);
+                  const paretoData = modelData.filter(d => d.isPareto);
+                  return [
                     <Scatter
-                      key={`scatter-${modelId}`}
-                      data={modelData}
+                      key={`scatter-suboptimal-${modelId}`}
+                      data={suboptimalData}
                       fill={color}
-                      fillOpacity={0.7}
+                      fillOpacity={isGrayed ? 0.15 : 0.5}
                       stroke={color}
+                      strokeOpacity={isGrayed ? 0.15 : 0.7}
                       strokeWidth={1}
                       isAnimationActive={false}
-                    />
-                  );
+                    />,
+                    <Scatter
+                      key={`scatter-pareto-${modelId}`}
+                      data={paretoData}
+                      fill={color}
+                      fillOpacity={isGrayed ? 0.15 : 0.85}
+                      stroke={color}
+                      strokeOpacity={isGrayed ? 0.15 : 1}
+                      strokeWidth={1}
+                      isAnimationActive={false}
+                    />,
+                  ];
                 })
               ) : (
                 <>
@@ -409,23 +459,30 @@ export function TimeEnergyTradeoffChart({
 
       {/* Legend */}
       {colorByModel ? (
-        // Per-model legend
+        // Per-model legend with hover highlighting and click to open detail
         <div className="flex flex-wrap items-center justify-center gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
           {modelIds.map(modelId => {
             const color = getModelColor(modelId);
-            // Extract short model name (last part after /)
-            const shortName = modelId.split('/').pop() || modelId;
+            const nickname = modelNicknames.get(modelId) || modelId;
+            const isGrayed = hoveredLegendModel !== null && hoveredLegendModel !== modelId;
+            const displayColor = isGrayed ? '#d1d5db' : color;
             return (
-              <div key={modelId} className="flex items-center gap-2">
+              <div
+                key={modelId}
+                className={`flex items-center gap-2 cursor-pointer ${onLegendClick ? 'hover:underline' : ''}`}
+                onMouseEnter={() => setHoveredLegendModel(modelId)}
+                onMouseLeave={() => setHoveredLegendModel(null)}
+                onClick={() => onLegendClick?.(modelId)}
+              >
                 <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: color }}
+                  className="w-3 h-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: displayColor }}
                 />
                 <div
-                  className="w-4 border-t-2 border-dashed"
-                  style={{ borderColor: color }}
+                  className="w-4 border-t-2 flex-shrink-0"
+                  style={{ borderColor: displayColor }}
                 />
-                <span className="truncate max-w-[150px]" title={modelId}>{shortName}</span>
+                <span className={isGrayed ? 'text-gray-400' : ''}>{nickname}</span>
               </div>
             );
           })}
@@ -439,10 +496,10 @@ export function TimeEnergyTradeoffChart({
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-slate-400 opacity-50" />
-            <span>Sub-optimal</span>
+            <span>Suboptimal</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-6 border-t-2 border-dashed border-amber-500" />
+            <div className="w-6 border-t-2 border-amber-500" />
             <span>Pareto frontier</span>
           </div>
         </div>

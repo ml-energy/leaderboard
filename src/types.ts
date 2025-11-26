@@ -2,7 +2,7 @@ export interface ModelInfo {
   nickname: string;
   total_params_billions: number;
   activated_params_billions: number;
-  is_moe: boolean;
+  architecture: string;
   weight_precision: string;
 }
 
@@ -75,7 +75,7 @@ export interface ModelDetail {
   task: string;
   total_params_billions: number;
   activated_params_billions: number;
-  is_moe: boolean;
+  architecture: string;
   weight_precision: string;
 
   output_length_distribution: Distribution;

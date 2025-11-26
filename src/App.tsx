@@ -29,9 +29,8 @@ function App() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [taskAboutOpen, setTaskAboutOpen] = useState(false);
 
-  // Multi-model comparison state
-  const [comparisonModels, setComparisonModels] = useState<string[]>([]);
-  const [selectingForComparison, setSelectingForComparison] = useState(false);
+  // Multi-model comparison state (single source of truth: selectedForCompare)
+  const [selectedForCompare, setSelectedForCompare] = useState<Set<string>>(new Set());
   const [comparisonModalOpen, setComparisonModalOpen] = useState(false);
   const [selectedPercentile, setSelectedPercentile] = useState<ITLPercentile>('p50');
   const [darkMode, setDarkMode] = useState<boolean>(() => {
@@ -126,6 +125,12 @@ function App() {
     }
   }, [maxEnergyBudget]);
 
+  // Clear comparison selection when switching tasks
+  useEffect(() => {
+    setSelectedForCompare(new Set());
+    setComparisonModalOpen(false);
+  }, [activeTask]);
+
   const getBestConfigPerModel = (
     configs: Configuration[],
     deadline: number,
@@ -195,59 +200,53 @@ function App() {
     setSelectedGPUs(newSet);
   };
 
-  // Handle row click - either open single modal or add to comparison
+  // Handle row click - always open model detail modal
   const handleRowClick = (config: Configuration) => {
-    if (selectingForComparison) {
-      // In selection mode - add model to comparison
-      if (!comparisonModels.includes(config.model_id)) {
-        const newModels = [...comparisonModels, config.model_id];
-        setComparisonModels(newModels);
-        setSelectingForComparison(false);
-        setComparisonModalOpen(true);
-      }
-    } else {
-      // Normal mode - open single model modal
+    setSelectedConfig(config);
+    setModalOpen(true);
+  };
+
+  // Add model to comparison from model detail modal
+  const handleAddToComparison = (modelId: string) => {
+    const newSet = new Set(selectedForCompare);
+    newSet.add(modelId);
+    setSelectedForCompare(newSet);
+    setModalOpen(false);
+  };
+
+  // Remove model from comparison (syncs back to checkboxes)
+  const handleRemoveFromComparison = (modelId: string) => {
+    const newSet = new Set(selectedForCompare);
+    newSet.delete(modelId);
+    setSelectedForCompare(newSet);
+    if (newSet.size < 2) {
+      setComparisonModalOpen(false);
+    }
+  };
+
+  // Open model detail from legend click (by modelId)
+  const handleLegendClick = (modelId: string) => {
+    const config = allFilteredConfigs.find(c => c.model_id === modelId);
+    if (config) {
       setSelectedConfig(config);
       setModalOpen(true);
     }
   };
 
-  // Start comparison from single model modal
-  const handleStartComparison = (modelId: string) => {
-    setComparisonModels([modelId]);
-    setSelectingForComparison(true);
-    setModalOpen(false);
-  };
-
-  // Add another model to comparison
-  const handleAddToComparison = () => {
-    setSelectingForComparison(true);
-    setComparisonModalOpen(false);
-  };
-
-  // Remove model from comparison
-  const handleRemoveFromComparison = (modelId: string) => {
-    const newModels = comparisonModels.filter(m => m !== modelId);
-    if (newModels.length < 2) {
-      // Not enough models for comparison, close modal
-      setComparisonModels([]);
-      setComparisonModalOpen(false);
+  // Handle checkbox selection for comparison
+  const handleSelectionChange = (modelId: string, selected: boolean) => {
+    const newSet = new Set(selectedForCompare);
+    if (selected) {
+      newSet.add(modelId);
     } else {
-      setComparisonModels(newModels);
+      newSet.delete(modelId);
     }
+    setSelectedForCompare(newSet);
   };
 
-  // Cancel comparison selection
-  const handleCancelComparison = () => {
-    setComparisonModels([]);
-    setSelectingForComparison(false);
-    setComparisonModalOpen(false);
-  };
-
-  // Open comparison modal directly (when 2+ models already selected)
-  const handleOpenComparison = () => {
-    if (comparisonModels.length >= 2) {
-      setSelectingForComparison(false);
+  // Open comparison modal from checkbox selection
+  const handleCompareSelected = () => {
+    if (selectedForCompare.size >= 2) {
       setComparisonModalOpen(true);
     }
   };
@@ -374,6 +373,7 @@ function App() {
                         onPercentileChange={setSelectedPercentile}
                         onHoverConfig={() => {}}
                         colorByModel={true}
+                        onLegendClick={handleLegendClick}
                       />
                     </div>
                   </div>
@@ -390,59 +390,29 @@ function App() {
                           Each row shows the minimum energy configuration per model (click row for model details).
                         </p>
                       </div>
-                      <label className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 px-3 py-1.5 rounded-md">
-                        <input
-                          type="checkbox"
-                          checked={showAdvanced}
-                          onChange={(e) => setShowAdvanced(e.target.checked)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
-                        />
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Advanced columns
-                        </span>
-                      </label>
-                    </div>
-
-                    {/* Comparison selection banner */}
-                    {selectingForComparison && (
-                      <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span className="text-blue-800 dark:text-blue-200">
-                            {comparisonModels.length === 0
-                              ? 'Select a model to compare'
-                              : comparisonModels.length === 1
-                              ? `Selected: ${comparisonModels[0].split('/').pop()}. Click another model to compare.`
-                              : `Selected ${comparisonModels.length} models. Click another to add or open comparison.`}
+                      <div className="flex items-center gap-3">
+                        <label className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 px-3 py-1.5 rounded-md">
+                          <input
+                            type="checkbox"
+                            checked={showAdvanced}
+                            onChange={(e) => setShowAdvanced(e.target.checked)}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
+                          />
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Advanced columns
                           </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {comparisonModels.length >= 2 && (
-                            <button
-                              onClick={handleOpenComparison}
-                              className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-                            >
-                              Compare Now
-                            </button>
-                          )}
-                          <button
-                            onClick={handleCancelComparison}
-                            className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-md transition-colors"
-                          >
-                            Cancel
-                          </button>
-                        </div>
+                        </label>
                       </div>
-                    )}
+                    </div>
 
                     <LeaderboardTable
                       configurations={filteredConfigs}
                       columns={columns}
                       onRowClick={handleRowClick}
-                      comparisonModels={comparisonModels}
-                      selectingForComparison={selectingForComparison}
+                      selectedForCompare={selectedForCompare}
+                      onSelectionChange={handleSelectionChange}
+                      onCompareClick={handleCompareSelected}
+                      onClearSelection={() => setSelectedForCompare(new Set())}
                     />
                   </div>
                 </div>
@@ -469,7 +439,7 @@ function App() {
           task={activeTask}
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
-          onStartComparison={handleStartComparison}
+          onAddToComparison={handleAddToComparison}
           currentConfig={{
             gpu_model: selectedConfig.gpu_model,
             num_gpus: selectedConfig.num_gpus,
@@ -478,17 +448,20 @@ function App() {
         />
       )}
 
-      {comparisonModalOpen && comparisonModels.length >= 2 && (
+      {comparisonModalOpen && selectedForCompare.size >= 2 && (
         <ComparisonModal
-          modelIds={comparisonModels}
+          modelIds={Array.from(selectedForCompare)}
           task={activeTask}
           isOpen={comparisonModalOpen}
-          onClose={() => {
-            setComparisonModalOpen(false);
-            setComparisonModels([]);
-          }}
-          onAddModel={handleAddToComparison}
+          onClose={() => setComparisonModalOpen(false)}
           onRemoveModel={handleRemoveFromComparison}
+          modelNicknames={
+            indexData
+              ? Object.fromEntries(
+                  Object.entries(indexData.models).map(([id, info]) => [id, info.nickname])
+                )
+              : {}
+          }
         />
       )}
 

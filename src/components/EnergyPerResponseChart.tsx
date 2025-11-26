@@ -81,7 +81,7 @@ export function EnergyPerResponseChart({
 
   if (!chartData || !energyPerToken) {
     return (
-      <div className="flex items-center justify-center h-[350px] bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
+      <div className="flex items-center justify-center h-full min-h-[350px] bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
         <p className="text-gray-500 dark:text-gray-400 text-sm">
           Hover over a configuration to see the energy/response distribution
         </p>
@@ -95,14 +95,15 @@ export function EnergyPerResponseChart({
     : 2;
 
   return (
-    <div>
+    <div className="h-full flex flex-col">
       {configLabel && (
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
           Config: <span className="font-medium text-gray-900 dark:text-white">{configLabel}</span>
         </p>
       )}
-      <ResponsiveContainer width="100%" height={350}>
-        <BarChart
+      <div className="flex-1 min-h-[350px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
           data={chartData}
           margin={{ bottom: 60, left: 10, right: 30, top: 10 }}
           barCategoryGap={0}
@@ -140,8 +141,9 @@ export function EnergyPerResponseChart({
               <Cell key={`cell-${index}`} />
             ))}
           </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

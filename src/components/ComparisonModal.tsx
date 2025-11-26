@@ -20,8 +20,8 @@ interface ComparisonModalProps {
   task: string;
   isOpen: boolean;
   onClose: () => void;
-  onAddModel: () => void;
   onRemoveModel: (modelId: string) => void;
+  modelNicknames?: Record<string, string>;
 }
 
 interface CombinedConfiguration extends ModelConfiguration {
@@ -29,7 +29,7 @@ interface CombinedConfiguration extends ModelConfiguration {
   nickname: string;
   total_params_billions: number;
   activated_params_billions: number;
-  is_moe: boolean;
+  architecture: string;
   weight_precision: string;
 }
 
@@ -40,8 +40,8 @@ export function ComparisonModal({
   task,
   isOpen,
   onClose,
-  onAddModel,
   onRemoveModel,
+  modelNicknames = {},
 }: ComparisonModalProps) {
   const [modelDetails, setModelDetails] = useState<Map<string, ModelDetail>>(new Map());
   const [loading, setLoading] = useState(false);
@@ -52,6 +52,16 @@ export function ComparisonModal({
   const [selectedNumGPUs, setSelectedNumGPUs] = useState<Set<number>>(new Set());
   const [displayedConfig, setDisplayedConfig] = useState<CombinedConfiguration | null>(null);
   const [selectedPercentile, setSelectedPercentile] = useState<ITLPercentile>('p50');
+
+  // Close on ESC key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   // Load all model details
   useEffect(() => {
@@ -118,10 +128,10 @@ export function ComparisonModal({
         combined.push({
           ...config,
           model_id: modelId,
-          nickname: modelId.split('/').pop() || modelId,
+          nickname: modelNicknames[modelId] || modelId.split('/').pop() || modelId,
           total_params_billions: detail.total_params_billions,
           activated_params_billions: detail.activated_params_billions,
-          is_moe: detail.is_moe,
+          architecture: detail.architecture,
           weight_precision: detail.weight_precision,
         });
       });
@@ -137,7 +147,7 @@ export function ComparisonModal({
         selectedGPUs.has(config.gpu_model) &&
         selectedNumGPUs.has(config.num_gpus)
     );
-  }, [modelDetails, modelIds, selectedGPUs, selectedNumGPUs]);
+  }, [modelDetails, modelIds, selectedGPUs, selectedNumGPUs, modelNicknames]);
 
   const sortedConfigs = useMemo(() => {
     return [...filteredConfigs].sort((a, b) => {
@@ -271,25 +281,12 @@ export function ComparisonModal({
               Task: {task}
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            {modelIds.length < 8 && (
-              <button
-                onClick={onAddModel}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Add another model
-              </button>
-            )}
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold leading-none"
-            >
-              ×
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold leading-none"
+          >
+            ×
+          </button>
         </div>
 
         {/* Content */}
@@ -332,11 +329,11 @@ export function ComparisonModal({
                       <div className="flex items-center gap-2 mb-2">
                         <div className={`w-3 h-3 rounded-full`} style={{ backgroundColor: color.hex }}></div>
                         <h3 className="font-semibold text-gray-900 dark:text-white truncate">
-                          {modelId.split('/').pop()}
+                          {modelNicknames[modelId] || modelId.split('/').pop()}
                         </h3>
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {detail.total_params_billions.toFixed(1)}B params, {detail.is_moe ? 'MoE' : 'Dense'}, {detail.weight_precision}
+                        {detail.total_params_billions.toFixed(1)}B params, {detail.architecture}, {detail.weight_precision}
                       </p>
                     </div>
                   );
@@ -348,38 +345,45 @@ export function ComparisonModal({
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                   Time-Energy Tradeoff
                 </h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-                    <TimeEnergyTradeoffChart
-                      configurations={filteredConfigs}
-                      selectedPercentile={selectedPercentile}
-                      onPercentileChange={setSelectedPercentile}
-                      onHoverConfig={(config) => {
-                        if (config) {
-                          setDisplayedConfig(config as CombinedConfiguration);
-                        }
-                      }}
-                      colorByModel={true}
-                    />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex flex-col">
+                    <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
+                      Model Configurations and the Pareto Frontier
+                    </h4>
+                    <div className="flex-1 min-h-0">
+                      <TimeEnergyTradeoffChart
+                        configurations={filteredConfigs}
+                        selectedPercentile={selectedPercentile}
+                        onPercentileChange={setSelectedPercentile}
+                        onHoverConfig={(config) => {
+                          if (config) {
+                            setDisplayedConfig(config as CombinedConfiguration);
+                          }
+                        }}
+                        colorByModel={true}
+                      />
+                    </div>
                   </div>
 
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex flex-col">
                     <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
                       Energy per Response Distribution
                     </h4>
-                    {outputLengthDistribution && (
-                      <EnergyPerResponseChart
-                        outputLengthDistribution={outputLengthDistribution}
-                        energyPerToken={displayedConfig?.energy_per_token_joules || null}
-                        defaultEnergyPerToken={defaultEnergyPerToken}
-                        maxEnergyPerToken={maxEnergyPerToken}
-                        configLabel={
-                          displayedConfig
-                            ? `${displayedConfig.nickname} - ${displayedConfig.num_gpus} × ${displayedConfig.gpu_model}${displayedConfig.max_num_seqs ? `, batch ${displayedConfig.max_num_seqs}` : ''}`
-                            : undefined
-                        }
-                      />
-                    )}
+                    <div className="flex-1 min-h-0">
+                      {outputLengthDistribution && (
+                        <EnergyPerResponseChart
+                          outputLengthDistribution={outputLengthDistribution}
+                          energyPerToken={displayedConfig?.energy_per_token_joules || null}
+                          defaultEnergyPerToken={defaultEnergyPerToken}
+                          maxEnergyPerToken={maxEnergyPerToken}
+                          configLabel={
+                            displayedConfig
+                              ? `${displayedConfig.nickname} - ${displayedConfig.num_gpus} × ${displayedConfig.gpu_model}${displayedConfig.max_num_seqs ? `, batch ${displayedConfig.max_num_seqs}` : ''}`
+                              : undefined
+                          }
+                        />
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -521,7 +525,7 @@ export function ComparisonModal({
                             <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">
                               <div className="flex items-center gap-2">
                                 <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color.hex }}></div>
-                                <span className="truncate max-w-[150px]">{config.nickname}</span>
+                                <span>{config.nickname}</span>
                               </div>
                             </td>
                             <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.gpu_model}</td>

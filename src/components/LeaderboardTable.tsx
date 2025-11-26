@@ -2,24 +2,14 @@ import { useState } from 'react';
 import { Configuration } from '../types';
 import { ColumnDef } from '../config/columns';
 
-// Color palette for comparison highlighting
-const MODEL_COLORS = [
-  'bg-blue-100 dark:bg-blue-900/40',
-  'bg-emerald-100 dark:bg-emerald-900/40',
-  'bg-amber-100 dark:bg-amber-900/40',
-  'bg-red-100 dark:bg-red-900/40',
-  'bg-violet-100 dark:bg-violet-900/40',
-  'bg-pink-100 dark:bg-pink-900/40',
-  'bg-teal-100 dark:bg-teal-900/40',
-  'bg-orange-100 dark:bg-orange-900/40',
-];
-
 interface LeaderboardTableProps {
   configurations: Configuration[];
   columns: ColumnDef[];
   onRowClick?: (config: Configuration) => void;
-  comparisonModels?: string[];
-  selectingForComparison?: boolean;
+  selectedForCompare?: Set<string>;
+  onSelectionChange?: (modelId: string, selected: boolean) => void;
+  onCompareClick?: () => void;
+  onClearSelection?: () => void;
 }
 
 type SortDirection = 'asc' | 'desc' | null;
@@ -28,8 +18,10 @@ export default function LeaderboardTable({
   configurations,
   columns,
   onRowClick,
-  comparisonModels = [],
-  selectingForComparison = false,
+  selectedForCompare = new Set(),
+  onSelectionChange,
+  onCompareClick,
+  onClearSelection,
 }: LeaderboardTableProps) {
   const [sortKey, setSortKey] = useState<string | null>('energy_per_token_joules');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -104,6 +96,38 @@ export default function LeaderboardTable({
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead className="bg-gray-50 dark:bg-gray-800">
           <tr>
+            {onSelectionChange && (
+              <th className="w-40 min-w-40 px-2 py-2 border-r border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-center gap-1">
+                  <button
+                    onClick={onCompareClick}
+                    disabled={selectedForCompare.size < 2}
+                    className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors whitespace-nowrap ${
+                      selectedForCompare.size >= 2
+                        ? 'text-white bg-blue-600 hover:bg-blue-700'
+                        : 'text-gray-400 dark:text-gray-500 bg-gray-200 dark:bg-gray-700 cursor-not-allowed'
+                    }`}
+                    title={selectedForCompare.size >= 2 ? `Compare ${selectedForCompare.size} models` : 'Select 2+ models to compare'}
+                  >
+                    <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    {selectedForCompare.size >= 2 ? `Compare ${selectedForCompare.size}` : 'Compare'}
+                  </button>
+                  {selectedForCompare.size > 0 && onClearSelection && (
+                    <button
+                      onClick={onClearSelection}
+                      className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      title="Clear selection"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </th>
+            )}
             {columns.map((col) => (
               <th
                 key={col.key}
@@ -121,26 +145,38 @@ export default function LeaderboardTable({
           </tr>
         </thead>
         <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-          {sortedConfigs.map((config) => {
-            const comparisonIndex = comparisonModels.indexOf(config.model_id);
-            const isSelectedForComparison = comparisonIndex !== -1;
-            const highlightColor = isSelectedForComparison && selectingForComparison
-              ? MODEL_COLORS[comparisonIndex % MODEL_COLORS.length]
-              : '';
-            const isAlreadySelected = isSelectedForComparison && selectingForComparison;
-
-            return (
+          {sortedConfigs.map((config) => (
             <tr
               key={`${config.model_id}-${config.gpu_model}-${config.num_gpus}-${config.max_num_seqs}`}
               onClick={() => onRowClick?.(config)}
-              className={`${
-                onRowClick && !isAlreadySelected
+              className={
+                onRowClick
                   ? 'cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors'
-                  : isAlreadySelected
-                  ? 'cursor-not-allowed'
                   : ''
-              } ${highlightColor}`}
+              }
             >
+              {onSelectionChange && (
+                <td
+                  className="w-40 min-w-40 px-3 py-4 border-r border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectionChange(config.model_id, !selectedForCompare.has(config.model_id));
+                  }}
+                >
+                  <div className="flex justify-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedForCompare.has(config.model_id)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onSelectionChange(config.model_id, e.target.checked);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded cursor-pointer"
+                    />
+                  </div>
+                </td>
+              )}
               {columns.map((col) => (
                 <td
                   key={col.key}
@@ -150,8 +186,7 @@ export default function LeaderboardTable({
                 </td>
               ))}
             </tr>
-            );
-          })}
+          ))}
         </tbody>
       </table>
       {sortedConfigs.length === 0 && (

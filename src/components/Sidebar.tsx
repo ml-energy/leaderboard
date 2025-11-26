@@ -43,7 +43,7 @@ export default function Sidebar({
 
         <div className="flex-1 min-w-[250px]">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Per token energy budget: <span className="font-mono text-blue-600 dark:text-blue-400">{energyBudget.toFixed(3)}</span> J
+            Per token energy budget: <span className="font-mono text-blue-600 dark:text-blue-400">{energyBudget.toFixed(2)}</span> J
           </label>
           <input
             type="range"
