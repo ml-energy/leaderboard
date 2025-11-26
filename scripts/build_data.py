@@ -176,28 +176,65 @@ def scan_results_directory(results_dir: str) -> List[BenchmarkRun]:
 # ============================================================================
 
 
-def filter_leading_zeros(itl_list: List[float]) -> List[float]:
-    """Filter out leading zeros from an ITL list.
+def smooth_chunked_itl(itl_list: List[float]) -> List[float]:
+    """Smooth chunked ITL values by spreading latency across chunk tokens.
 
-    When tokens arrive in bunches (token bunching), the benchmark records
-    the full latency for the first token in the bunch and zeros for the rest.
-    This can happen at the start of generation, resulting in leading zeros
-    that would skew ITL statistics to be artificially low.
+    When tokens arrive in chunks due to CPU contention, the benchmark records
+    the full latency for the first token and zeros for the rest. This function
+    spreads that latency evenly across all tokens in each chunk.
+
+    A chunk is defined as: non-zero value followed by consecutive zeros.
+    Properly streamed tokens (all non-zero) are left unchanged.
 
     Args:
         itl_list: List of inter-token latencies in seconds
 
     Returns:
-        ITL list with leading zeros removed
+        Smoothed ITL list with chunk latencies spread evenly
     """
+    if not itl_list:
+        return []
+
+    # Step 1: Filter leading zeros
     first_nonzero_idx = 0
     for i, val in enumerate(itl_list):
         if val > 0:
             first_nonzero_idx = i
             break
     else:
-        return []
-    return itl_list[first_nonzero_idx:]
+        return []  # All zeros
+
+    filtered = itl_list[first_nonzero_idx:]
+
+    # Step 2: Smooth each chunk
+    result = []
+    i = 0
+    while i < len(filtered):
+        if filtered[i] <= 0:
+            # Should not happen after filtering, but handle gracefully
+            result.append(filtered[i])
+            i += 1
+            continue
+
+        # Found a non-zero value - find the extent of this chunk
+        chunk_latency = filtered[i]
+        j = i + 1
+        while j < len(filtered) and filtered[j] == 0:
+            j += 1
+
+        chunk_size = j - i
+
+        if chunk_size == 1:
+            # Single token, not a chunk - keep as-is
+            result.append(chunk_latency)
+        else:
+            # Spread latency across chunk
+            avg_latency = chunk_latency / chunk_size
+            result.extend([avg_latency] * chunk_size)
+
+        i = j
+
+    return result
 
 
 def extract_client_itl_percentiles(results: Dict) -> Dict[str, float]:
@@ -206,8 +243,9 @@ def extract_client_itl_percentiles(results: Dict) -> Dict[str, float]:
     Client-side ITL is more accurate than Prometheus histogram buckets
     which have coarse granularity (~50ms minimum bucket).
 
-    For each request, we filter out leading zeros (caused by token bunching
-    at the start of generation) before aggregating.
+    For each request, we smooth chunked ITL values by spreading the latency
+    of each chunk (non-zero followed by zeros) evenly across all tokens in
+    that chunk. This handles CPU contention causing tokens to arrive in batches.
 
     Args:
         results: Loaded results.json dict
@@ -225,7 +263,7 @@ def extract_client_itl_percentiles(results: Dict) -> Dict[str, float]:
         if not itl_list:
             continue
 
-        filtered_itl = filter_leading_zeros(itl_list)
+        filtered_itl = smooth_chunked_itl(itl_list)
         all_itl_values.extend(filtered_itl)
 
     if not all_itl_values:
