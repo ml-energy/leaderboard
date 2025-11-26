@@ -21,6 +21,7 @@ interface TimeEnergyTradeoffChartProps {
   onHoverConfig: (config: Configuration | ModelConfiguration | null) => void;
   colorByModel?: boolean;
   onLegendClick?: (modelId: string) => void;
+  fixedXAxisMax?: number;  // Optional fixed X-axis max (for main page to keep stable axis)
 }
 
 // Model colors for multi-model view (synced with ComparisonModal)
@@ -144,6 +145,7 @@ export function TimeEnergyTradeoffChart({
   onHoverConfig,
   colorByModel = false,
   onLegendClick,
+  fixedXAxisMax,
 }: TimeEnergyTradeoffChartProps) {
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
   const [activeData, setActiveData] = useState<ChartDataPoint | null>(null);
@@ -205,14 +207,16 @@ export function TimeEnergyTradeoffChart({
     return result;
   }, [colorByModel, configurations, selectedPercentile, modelIds]);
 
-  // Compute fixed X-axis max using p99 values (the largest ITL percentile)
+  // Compute X-axis max: use fixedXAxisMax if provided, otherwise compute from selected percentile values
   // Round up to a multiple of a nice tick interval for even grid spacing
   const xAxisMax = useMemo(() => {
-    const p99Values = configurations
-      .map(config => config.p99_itl_ms)
+    if (fixedXAxisMax !== undefined) return fixedXAxisMax;
+
+    const values = configurations
+      .map(config => getITL(config, selectedPercentile))
       .filter((v): v is number => v != null && v > 0);
-    if (p99Values.length === 0) return undefined;
-    const max = Math.max(...p99Values);
+    if (values.length === 0) return undefined;
+    const max = Math.max(...values);
     // Choose a nice tick interval based on magnitude
     const magnitude = Math.pow(10, Math.floor(Math.log10(max)));
     const normalized = max / magnitude;
@@ -222,7 +226,7 @@ export function TimeEnergyTradeoffChart({
     else tickInterval = magnitude * 2;
     // Round max up to next multiple of tick interval
     return Math.ceil(max / tickInterval) * tickInterval;
-  }, [configurations]);
+  }, [configurations, fixedXAxisMax, selectedPercentile]);
 
   // Transform data for chart (filter out configs without valid ITL data)
   const chartData: ChartDataPoint[] = useMemo(() => {
@@ -331,9 +335,13 @@ export function TimeEnergyTradeoffChart({
                   value: `Inter-Token Latency (${selectedPercentile.toUpperCase()}) [ms]`,
                   position: 'insideBottom',
                   offset: -10,
-                  className: 'fill-gray-600 dark:fill-gray-400',
+                  fontSize: 15,
+                  className: 'fill-gray-700 dark:fill-gray-200',
                 }}
-                tick={{ fontSize: 13 }}
+                tick={{ fontSize: 14, fill: 'currentColor' }}
+                tickLine={{ stroke: 'currentColor' }}
+                axisLine={{ stroke: 'currentColor' }}
+                className="text-gray-700 dark:text-gray-200"
               />
               <YAxis
                 dataKey="y"
@@ -346,9 +354,13 @@ export function TimeEnergyTradeoffChart({
                   position: 'insideLeft',
                   dx: -15,
                   dy: 60,
-                  className: 'fill-gray-600 dark:fill-gray-400',
+                  fontSize: 15,
+                  className: 'fill-gray-700 dark:fill-gray-200',
                 }}
-                tick={{ fontSize: 13 }}
+                tick={{ fontSize: 14, fill: 'currentColor' }}
+                tickLine={{ stroke: 'currentColor' }}
+                axisLine={{ stroke: 'currentColor' }}
+                className="text-gray-700 dark:text-gray-200"
                 tickFormatter={(value: number) => value.toFixed(3)}
               />
               <Tooltip
