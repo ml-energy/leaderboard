@@ -1,14 +1,12 @@
-import { useMemo, useEffect, useRef, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import {
   Scatter,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
   ResponsiveContainer,
-  Line,
   ComposedChart,
-  TooltipProps,
+  Line,
 } from 'recharts';
 import { Configuration, ModelConfiguration } from '../types';
 
@@ -18,10 +16,11 @@ interface TimeEnergyTradeoffChartProps {
   configurations: (Configuration | ModelConfiguration)[];
   selectedPercentile: ITLPercentile;
   onPercentileChange: (p: ITLPercentile) => void;
-  onHoverConfig: (config: Configuration | ModelConfiguration | null) => void;
+  onHoverConfig?: (config: Configuration | ModelConfiguration | null) => void;
   colorByModel?: boolean;
   onLegendClick?: (modelId: string) => void;
   fixedXAxisMax?: number;  // Optional fixed X-axis max (for main page to keep stable axis)
+  showParetoLine?: boolean;  // Whether to show the Pareto frontier line (default: true for detail view)
 }
 
 // Model colors for multi-model view (synced with ComparisonModal)
@@ -75,44 +74,39 @@ interface ChartDataPoint {
   modelColor: string;
 }
 
-interface TooltipCaptureProps extends TooltipProps<number, string> {
-  onActiveChange: (data: ChartDataPoint | null) => void;
-}
-
-// Invisible component that captures active data point from Recharts
-function TooltipCapture({ active, payload, onActiveChange }: TooltipCaptureProps) {
-  useEffect(() => {
-    if (active && payload && payload.length > 0) {
-      const data = payload[0].payload as ChartDataPoint;
-      onActiveChange(data);
-    } else {
-      onActiveChange(null);
-    }
-  }, [active, payload, onActiveChange]);
-
-  return null; // Render nothing - we handle display separately
-}
-
-// Standalone tooltip component rendered outside Recharts
-function FloatingTooltip({
+// Hover tooltip component for scatter points
+function HoverTooltip({
   data,
   mouseX,
   mouseY,
+  containerRef,
 }: {
   data: ChartDataPoint;
   mouseX: number;
   mouseY: number;
+  containerRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const config = data.config;
   const hasModelId = 'model_id' in config;
 
+  // Calculate position relative to container
+  const containerRect = containerRef.current?.getBoundingClientRect();
+  if (!containerRect) return null;
+
+  // Position tooltip to the right of cursor, or left if near right edge
+  const tooltipWidth = 250;
+  const tooltipLeft = mouseX + 15 + tooltipWidth > containerRect.width
+    ? mouseX - tooltipWidth - 15
+    : mouseX + 15;
+
   return (
     <div
-      className="absolute bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 text-sm pointer-events-none z-50 whitespace-nowrap"
+      className="absolute bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 text-sm pointer-events-none z-50"
       style={{
-        left: mouseX + 15,
-        top: mouseY,
+        left: tooltipLeft,
+        top: mouseY - 10,
         transform: 'translateY(-100%)',
+        minWidth: '200px',
       }}
     >
       {hasModelId && (
@@ -129,11 +123,6 @@ function FloatingTooltip({
         <p>Median ITL: <span className="font-medium">{config.median_itl_ms.toFixed(1)} ms</span></p>
         <p>Throughput: <span className="font-medium">{config.output_throughput_tokens_per_sec.toFixed(0)} tok/s</span></p>
       </div>
-      {data.isPareto && (
-        <p className="mt-2 text-amber-600 dark:text-amber-400 font-medium text-xs">
-          Pareto optimal
-        </p>
-      )}
     </div>
   );
 }
@@ -146,16 +135,12 @@ export function TimeEnergyTradeoffChart({
   colorByModel = false,
   onLegendClick,
   fixedXAxisMax,
+  showParetoLine = true,
 }: TimeEnergyTradeoffChartProps) {
-  const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
-  const [activeData, setActiveData] = useState<ChartDataPoint | null>(null);
   const [hoveredLegendModel, setHoveredLegendModel] = useState<string | null>(null);
+  const [hoveredPoint, setHoveredPoint] = useState<ChartDataPoint | null>(null);
+  const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Sync hovered config with parent
-  useEffect(() => {
-    onHoverConfig(activeData?.config ?? null);
-  }, [activeData, onHoverConfig]);
 
   // Get unique model IDs for color assignment
   const modelIds = useMemo(() => {
@@ -248,29 +233,13 @@ export function TimeEnergyTradeoffChart({
       });
   }, [configurations, selectedPercentile, paretoConfigs, perModelParetoConfigs, colorByModel, modelIds]);
 
-  // Sort Pareto points by X for line drawing (global or per-model)
+  // Sort Pareto points by X for line drawing (only used when showParetoLine is true)
   const paretoLineData = useMemo(() => {
+    if (!showParetoLine) return [];
     return chartData
       .filter(d => d.isPareto)
       .sort((a, b) => a.x - b.x);
-  }, [chartData]);
-
-  // Per-model Pareto line data for comparison mode
-  const perModelParetoLineData = useMemo(() => {
-    if (!colorByModel) return new Map<string, ChartDataPoint[]>();
-
-    const result = new Map<string, ChartDataPoint[]>();
-    modelIds.forEach(modelId => {
-      const modelParetoPoints = chartData
-        .filter(d => {
-          const dModelId = 'model_id' in d.config ? (d.config as Configuration).model_id : '';
-          return d.isPareto && dModelId === modelId;
-        })
-        .sort((a, b) => a.x - b.x);
-      result.set(modelId, modelParetoPoints);
-    });
-    return result;
-  }, [colorByModel, chartData, modelIds]);
+  }, [chartData, showParetoLine]);
 
   const percentileOptions: { value: ITLPercentile; label: string }[] = [
     { value: 'p50', label: 'P50 (Median)' },
@@ -300,7 +269,7 @@ export function TimeEnergyTradeoffChart({
 
       {/* Chart */}
       {chartData.length === 0 ? (
-        <div className="flex items-center justify-center h-[400px] bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
+        <div className="flex items-center justify-center h-[500px] bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
           <p className="text-gray-500 dark:text-gray-400 text-sm">
             No data available for {selectedPercentile.toUpperCase()} percentile. Data regeneration required.
           </p>
@@ -308,22 +277,16 @@ export function TimeEnergyTradeoffChart({
       ) : (
         <div
           ref={containerRef}
-          className="relative overflow-visible"
+          className="relative"
           onMouseMove={(e) => {
             if (containerRef.current) {
               const rect = containerRef.current.getBoundingClientRect();
-              setMousePosition({
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top,
-              });
+              setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
             }
           }}
-          onMouseLeave={() => {
-            setMousePosition(null);
-            setActiveData(null);
-          }}
+          onMouseLeave={() => setHoveredPoint(null)}
         >
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height={500}>
             <ComposedChart margin={{ top: 20, right: 20, bottom: 60, left: 70 }}>
               <CartesianGrid strokeDasharray="3 3" className="opacity-50" />
               <XAxis
@@ -363,32 +326,9 @@ export function TimeEnergyTradeoffChart({
                 className="text-gray-700 dark:text-gray-200"
                 tickFormatter={(value: number) => value.toFixed(3)}
               />
-              <Tooltip
-                content={<TooltipCapture onActiveChange={setActiveData} />}
-              />
 
-              {/* Pareto frontier lines - per-model or global */}
-              {colorByModel ? (
-                // Per-model Pareto frontier lines (skip grayed ones entirely)
-                modelIds
-                  .filter(modelId => hoveredLegendModel === null || hoveredLegendModel === modelId)
-                  .map(modelId => {
-                    const lineData = perModelParetoLineData.get(modelId) || [];
-                    return (
-                      <Line
-                        key={`pareto-${modelId}`}
-                        data={lineData}
-                        dataKey="y"
-                        stroke={getModelColor(modelId)}
-                        strokeWidth={2}
-                        dot={false}
-                        name={`${modelId} Pareto`}
-                        isAnimationActive={false}
-                      />
-                    );
-                  })
-              ) : (
-                // Global Pareto frontier line
+              {/* Pareto frontier line (only when showParetoLine is true and not in colorByModel mode) */}
+              {showParetoLine && !colorByModel && paretoLineData.length > 0 && (
                 <Line
                   data={paretoLineData}
                   dataKey="y"
@@ -402,68 +342,108 @@ export function TimeEnergyTradeoffChart({
 
               {/* Scatter points - colored by model or by Pareto status */}
               {colorByModel ? (
-                // Per-model colored scatter points - suboptimal first, then Pareto on top
-                modelIds.flatMap(modelId => {
+                // Per-model colored scatter points - all points of same model have identical styling
+                modelIds.map(modelId => {
                   const modelData = chartData.filter(d => {
                     const dModelId = 'model_id' in d.config ? (d.config as Configuration).model_id : '';
                     return dModelId === modelId;
                   });
                   const isGrayed = hoveredLegendModel !== null && hoveredLegendModel !== modelId;
                   const color = isGrayed ? '#6b7280' : getModelColor(modelId);
-                  const suboptimalData = modelData.filter(d => !d.isPareto);
-                  const paretoData = modelData.filter(d => d.isPareto);
-                  return [
+                  return (
                     <Scatter
-                      key={`scatter-suboptimal-${modelId}`}
-                      data={suboptimalData}
-                      fill={color}
-                      fillOpacity={isGrayed ? 0.15 : 0.5}
-                      stroke={color}
-                      strokeOpacity={isGrayed ? 0.15 : 0.7}
-                      strokeWidth={1}
-                      isAnimationActive={false}
-                    />,
-                    <Scatter
-                      key={`scatter-pareto-${modelId}`}
-                      data={paretoData}
+                      key={`scatter-${modelId}`}
+                      name={modelId}
+                      data={modelData}
                       fill={color}
                       fillOpacity={isGrayed ? 0.15 : 0.85}
                       stroke={color}
                       strokeOpacity={isGrayed ? 0.15 : 1}
                       strokeWidth={1}
                       isAnimationActive={false}
-                    />,
-                  ];
+                      onMouseEnter={(e) => {
+                        const data = e?.payload as ChartDataPoint;
+                        if (data) {
+                          setHoveredPoint(data);
+                          onHoverConfig?.(data.config);
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        setHoveredPoint(null);
+                        onHoverConfig?.(null);
+                      }}
+                    />
+                  );
                 })
               ) : (
                 <>
                   {/* All points (non-Pareto) */}
                   <Scatter
+                    name="suboptimal"
                     data={chartData.filter(d => !d.isPareto)}
                     fill="#94a3b8"
                     fillOpacity={0.5}
                     isAnimationActive={false}
+                    onMouseEnter={(e) => {
+                      const data = e?.payload as ChartDataPoint;
+                      if (data) {
+                        setHoveredPoint(data);
+                        onHoverConfig?.(data.config);
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredPoint(null);
+                      onHoverConfig?.(null);
+                    }}
                   />
 
                   {/* Pareto points (highlighted) */}
                   <Scatter
+                    name="pareto"
                     data={chartData.filter(d => d.isPareto)}
                     fill="#f59e0b"
                     stroke="#d97706"
                     strokeWidth={2}
                     isAnimationActive={false}
+                    onMouseEnter={(e) => {
+                      const data = e?.payload as ChartDataPoint;
+                      if (data) {
+                        setHoveredPoint(data);
+                        onHoverConfig?.(data.config);
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredPoint(null);
+                      onHoverConfig?.(null);
+                    }}
                   />
                 </>
               )}
             </ComposedChart>
           </ResponsiveContainer>
 
-          {/* Custom floating tooltip */}
-          {activeData && mousePosition && (
-            <FloatingTooltip
-              data={activeData}
-              mouseX={mousePosition.x}
-              mouseY={mousePosition.y}
+          {/* Cursor line - vertical line following mouse X position */}
+          {mousePos.x > 70 && mousePos.x < (containerRef.current?.clientWidth ?? 2000) - 20 && (
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                left: mousePos.x,
+                top: 20,
+                width: 1,
+                height: 420,
+                backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                zIndex: 10,
+              }}
+            />
+          )}
+
+          {/* Hover tooltip */}
+          {hoveredPoint && (
+            <HoverTooltip
+              data={hoveredPoint}
+              mouseX={mousePos.x}
+              mouseY={mousePos.y}
+              containerRef={containerRef}
             />
           )}
         </div>
