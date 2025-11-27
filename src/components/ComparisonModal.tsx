@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
-import { ModelDetail, ModelConfiguration, Distribution } from '../types';
+import { ModelDetail, ModelConfiguration, Distribution, DiffusionModelDetail, ImageModelConfiguration, VideoModelConfiguration } from '../types';
 import { TimeEnergyTradeoffChart, ITLPercentile } from './TimeEnergyTradeoffChart';
 import { EnergyPerResponseChart } from './EnergyPerResponseChart';
+import { isDiffusionTask } from '../config/tasks';
 
 // Color palette for models
 export const MODEL_COLORS = [
@@ -24,7 +25,8 @@ interface ComparisonModalProps {
   modelNicknames?: Record<string, string>;
 }
 
-interface CombinedConfiguration extends ModelConfiguration {
+// Combined configuration for LLM/MLLM
+interface LLMCombinedConfiguration extends ModelConfiguration {
   model_id: string;
   nickname: string;
   total_params_billions: number;
@@ -32,6 +34,35 @@ interface CombinedConfiguration extends ModelConfiguration {
   architecture: string;
   weight_precision: string;
 }
+
+// Combined configuration for diffusion (flat fields to match ImageConfiguration/VideoConfiguration)
+interface DiffusionCombinedConfiguration {
+  model_id: string;
+  nickname: string;
+  gpu_model: string;
+  num_gpus: number;
+  total_params_billions: number;
+  activated_params_billions: number;
+  weight_precision: string;
+  batch_size: number;
+  batch_latency_s: number;
+  inference_steps: number;
+  ulysses_degree: number;
+  ring_degree: number;
+  // Image-specific
+  energy_per_image_joules?: number;
+  throughput_images_per_sec?: number;
+  image_height?: number;
+  image_width?: number;
+  // Video-specific
+  energy_per_video_joules?: number;
+  throughput_videos_per_sec?: number;
+  video_height?: number;
+  video_width?: number;
+}
+
+type CombinedConfiguration = LLMCombinedConfiguration | DiffusionCombinedConfiguration;
+type AnyModelDetail = ModelDetail | DiffusionModelDetail;
 
 type SortDirection = 'asc' | 'desc' | null;
 
@@ -43,15 +74,25 @@ export function ComparisonModal({
   onRemoveModel,
   modelNicknames = {},
 }: ComparisonModalProps) {
-  const [modelDetails, setModelDetails] = useState<Map<string, ModelDetail>>(new Map());
+  const isDiffusion = isDiffusionTask(task);
+  const [modelDetails, setModelDetails] = useState<Map<string, AnyModelDetail>>(new Map());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sortKey, setSortKey] = useState<string | null>('energy_per_token_joules');
+  const defaultSortKey = task === 'text-to-image' ? 'energy_per_image_joules' : task === 'text-to-video' ? 'energy_per_video_joules' : 'energy_per_token_joules';
+  const [sortKey, setSortKey] = useState<string | null>(defaultSortKey);
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [selectedGPUs, setSelectedGPUs] = useState<Set<string>>(new Set());
   const [selectedNumGPUs, setSelectedNumGPUs] = useState<Set<number>>(new Set());
   const [displayedConfig, setDisplayedConfig] = useState<CombinedConfiguration | null>(null);
   const [selectedPercentile, setSelectedPercentile] = useState<ITLPercentile>('p50');
+
+  // Helper to get energy value
+  const getEnergyValue = (config: CombinedConfiguration): number | undefined => {
+    if ('energy_per_image_joules' in config) return config.energy_per_image_joules;
+    if ('energy_per_video_joules' in config) return config.energy_per_video_joules;
+    if ('energy_per_token_joules' in config) return (config as LLMCombinedConfiguration).energy_per_token_joules;
+    return undefined;
+  };
 
   // Close on ESC key
   useEffect(() => {
@@ -77,8 +118,8 @@ export function ComparisonModal({
           if (!response.ok) {
             throw new Error(`Failed to load ${modelId}: ${response.statusText}`);
           }
-          const data: ModelDetail = await response.json();
-          return [modelId, data] as [string, ModelDetail];
+          const data: AnyModelDetail = await response.json();
+          return [modelId, data] as [string, AnyModelDetail];
         });
 
         const results = await Promise.all(promises);
@@ -101,7 +142,7 @@ export function ComparisonModal({
     const allNumGPUs = new Set<number>();
 
     modelDetails.forEach(detail => {
-      detail.configurations.forEach(c => {
+      detail.configurations.forEach((c: any) => {
         allGPUs.add(c.gpu_model);
         allNumGPUs.add(c.num_gpus);
       });
@@ -110,11 +151,11 @@ export function ComparisonModal({
     setSelectedGPUs(allGPUs);
     setSelectedNumGPUs(allNumGPUs);
 
-    // Initialize displayed config to highest energy/token across all models
+    // Initialize displayed config to highest energy across all models
     const allConfigs = getCombinedConfigurations();
     if (allConfigs.length > 0) {
       const highestEnergyConfig = allConfigs.reduce((max, c) =>
-        c.energy_per_token_joules > max.energy_per_token_joules ? c : max
+        (getEnergyValue(c) ?? 0) > (getEnergyValue(max) ?? 0) ? c : max
       );
       setDisplayedConfig(highestEnergyConfig);
     }
@@ -124,17 +165,36 @@ export function ComparisonModal({
   const getCombinedConfigurations = (): CombinedConfiguration[] => {
     const combined: CombinedConfiguration[] = [];
     modelDetails.forEach((detail, modelId) => {
-      detail.configurations.forEach(config => {
-        combined.push({
-          ...config,
-          model_id: modelId,
-          nickname: modelNicknames[modelId] || modelId.split('/').pop() || modelId,
-          total_params_billions: detail.total_params_billions,
-          activated_params_billions: detail.activated_params_billions,
-          architecture: detail.architecture,
-          weight_precision: detail.weight_precision,
+      if (isDiffusion) {
+        const diffDetail = detail as DiffusionModelDetail;
+        diffDetail.configurations.forEach((config: ImageModelConfiguration | VideoModelConfiguration) => {
+          // Flatten parallelization fields to match ImageConfiguration/VideoConfiguration format
+          const { parallelization, ...restConfig } = config;
+          combined.push({
+            ...restConfig,
+            model_id: modelId,
+            nickname: modelNicknames[modelId] || diffDetail.nickname || modelId.split('/').pop() || modelId,
+            total_params_billions: diffDetail.total_params_billions,
+            activated_params_billions: diffDetail.activated_params_billions,
+            weight_precision: diffDetail.weight_precision,
+            ulysses_degree: parallelization.ulysses_degree,
+            ring_degree: parallelization.ring_degree,
+          } as DiffusionCombinedConfiguration);
         });
-      });
+      } else {
+        const llmDetail = detail as ModelDetail;
+        llmDetail.configurations.forEach(config => {
+          combined.push({
+            ...config,
+            model_id: modelId,
+            nickname: modelNicknames[modelId] || modelId.split('/').pop() || modelId,
+            total_params_billions: llmDetail.total_params_billions,
+            activated_params_billions: llmDetail.activated_params_billions,
+            architecture: llmDetail.architecture,
+            weight_precision: llmDetail.weight_precision,
+          } as LLMCombinedConfiguration);
+        });
+      }
     });
     return combined;
   };
@@ -147,7 +207,7 @@ export function ComparisonModal({
         selectedGPUs.has(config.gpu_model) &&
         selectedNumGPUs.has(config.num_gpus)
     );
-  }, [modelDetails, modelIds, selectedGPUs, selectedNumGPUs, modelNicknames]);
+  }, [modelDetails, modelIds, selectedGPUs, selectedNumGPUs, modelNicknames, isDiffusion]);
 
   const sortedConfigs = useMemo(() => {
     return [...filteredConfigs].sort((a, b) => {
@@ -176,23 +236,27 @@ export function ComparisonModal({
     });
   }, [filteredConfigs, sortKey, sortDirection]);
 
-  // Calculate energy stats for histogram X-axis
+  // Calculate energy stats for histogram X-axis (only for LLM/MLLM)
   const { defaultEnergyPerToken, maxEnergyPerToken } = useMemo(() => {
-    if (filteredConfigs.length === 0) return { defaultEnergyPerToken: 0, maxEnergyPerToken: 0 };
-    const energies = filteredConfigs.map(c => c.energy_per_token_joules).sort((a, b) => a - b);
+    if (filteredConfigs.length === 0 || isDiffusion) return { defaultEnergyPerToken: 0, maxEnergyPerToken: 0 };
+    const energies = filteredConfigs
+      .map(c => getEnergyValue(c))
+      .filter((v): v is number => v != null)
+      .sort((a, b) => a - b);
+    if (energies.length === 0) return { defaultEnergyPerToken: 0, maxEnergyPerToken: 0 };
     const max = energies[energies.length - 1];
     const medianIdx = Math.floor(energies.length / 2);
     const median = energies.length % 2 === 0
       ? (energies[medianIdx - 1] + energies[medianIdx]) / 2
       : energies[medianIdx];
     return { defaultEnergyPerToken: median, maxEnergyPerToken: max };
-  }, [filteredConfigs]);
+  }, [filteredConfigs, isDiffusion]);
 
   // Get available GPUs and num_gpus for filters
   const availableGPUs = useMemo(() => {
     const gpus = new Set<string>();
     modelDetails.forEach(detail => {
-      detail.configurations.forEach(c => gpus.add(c.gpu_model));
+      detail.configurations.forEach((c: any) => gpus.add(c.gpu_model));
     });
     return Array.from(gpus).sort();
   }, [modelDetails]);
@@ -200,19 +264,20 @@ export function ComparisonModal({
   const availableNumGPUs = useMemo(() => {
     const numGPUs = new Set<number>();
     modelDetails.forEach(detail => {
-      detail.configurations.forEach(c => numGPUs.add(c.num_gpus));
+      detail.configurations.forEach((c: any) => numGPUs.add(c.num_gpus));
     });
     return Array.from(numGPUs).sort((a, b) => a - b);
   }, [modelDetails]);
 
-  // Get output length distribution (use first model's distribution as reference)
+  // Get output length distribution (only for LLM/MLLM)
   const outputLengthDistribution = useMemo((): Distribution | null => {
-    if (displayedConfig) {
-      return displayedConfig.output_length_distribution;
+    if (isDiffusion) return null;
+    if (displayedConfig && 'output_length_distribution' in displayedConfig) {
+      return (displayedConfig as LLMCombinedConfiguration).output_length_distribution;
     }
-    const firstDetail = modelDetails.values().next().value;
+    const firstDetail = modelDetails.values().next().value as ModelDetail | undefined;
     return firstDetail?.output_length_distribution || null;
-  }, [modelDetails, displayedConfig]);
+  }, [modelDetails, displayedConfig, isDiffusion]);
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -329,11 +394,17 @@ export function ComparisonModal({
                       <div className="flex items-center gap-2 mb-2">
                         <div className={`w-3 h-3 rounded-full`} style={{ backgroundColor: color.hex }}></div>
                         <h3 className="font-semibold text-gray-900 dark:text-white truncate">
-                          {modelNicknames[modelId] || modelId.split('/').pop()}
+                          {isDiffusion
+                            ? (detail as DiffusionModelDetail).nickname || modelId.split('/').pop()
+                            : modelNicknames[modelId] || modelId.split('/').pop()}
                         </h3>
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {detail.total_params_billions.toFixed(0)}B params, {detail.architecture}, {detail.weight_precision}
+                        {detail.total_params_billions < 1
+                          ? `${(detail.total_params_billions * 1000).toFixed(0)}M`
+                          : `${detail.total_params_billions.toFixed(1)}B`} params
+                        {!isDiffusion && `, ${(detail as ModelDetail).architecture}`}
+                        , {detail.weight_precision}
                       </p>
                     </div>
                   );
@@ -345,14 +416,15 @@ export function ComparisonModal({
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                   Time-Energy Tradeoff
                 </h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex flex-col">
+                <div className={`grid grid-cols-1 ${isDiffusion ? '' : 'lg:grid-cols-2'} gap-6 items-stretch`}>
+                  <div className={`bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex flex-col ${isDiffusion ? 'mx-auto w-full max-w-4xl' : ''}`}>
                     <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
                       Model Configurations and the Pareto Frontier
                     </h4>
                     <div className="flex-1 min-h-0">
                       <TimeEnergyTradeoffChart
-                        configurations={filteredConfigs}
+                        configurations={filteredConfigs as any[]}
+                        task={task}
                         selectedPercentile={selectedPercentile}
                         onPercentileChange={setSelectedPercentile}
                         onHoverConfig={(config) => {
@@ -365,26 +437,28 @@ export function ComparisonModal({
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex flex-col">
-                    <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
-                      Energy per Response Distribution
-                    </h4>
-                    <div className="flex-1 min-h-0">
-                      {outputLengthDistribution && (
-                        <EnergyPerResponseChart
-                          outputLengthDistribution={outputLengthDistribution}
-                          energyPerToken={displayedConfig?.energy_per_token_joules || null}
-                          defaultEnergyPerToken={defaultEnergyPerToken}
-                          maxEnergyPerToken={maxEnergyPerToken}
-                          configLabel={
-                            displayedConfig
-                              ? `${displayedConfig.nickname} - ${displayedConfig.num_gpus} × ${displayedConfig.gpu_model}${displayedConfig.max_num_seqs ? `, batch ${displayedConfig.max_num_seqs}` : ''}`
-                              : undefined
-                          }
-                        />
-                      )}
+                  {!isDiffusion && (
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex flex-col">
+                      <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
+                        Energy per Response Distribution
+                      </h4>
+                      <div className="flex-1 min-h-0">
+                        {outputLengthDistribution && (
+                          <EnergyPerResponseChart
+                            outputLengthDistribution={outputLengthDistribution}
+                            energyPerToken={(displayedConfig as LLMCombinedConfiguration)?.energy_per_token_joules || null}
+                            defaultEnergyPerToken={defaultEnergyPerToken}
+                            maxEnergyPerToken={maxEnergyPerToken}
+                            configLabel={
+                              displayedConfig
+                                ? `${displayedConfig.nickname} - ${displayedConfig.num_gpus} × ${displayedConfig.gpu_model}${(displayedConfig as LLMCombinedConfiguration).max_num_seqs ? `, batch ${(displayedConfig as LLMCombinedConfiguration).max_num_seqs}` : ''}`
+                                : undefined
+                            }
+                          />
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -476,39 +550,39 @@ export function ComparisonModal({
                           </div>
                         </th>
                         <th
-                          onClick={() => handleSort('max_num_seqs')}
+                          onClick={() => handleSort(isDiffusion ? 'batch_size' : 'max_num_seqs')}
                           className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           <div className="flex items-center">
-                            Max Batch
-                            {getSortIcon('max_num_seqs')}
+                            {isDiffusion ? 'Batch Size' : 'Max Batch'}
+                            {getSortIcon(isDiffusion ? 'batch_size' : 'max_num_seqs')}
                           </div>
                         </th>
                         <th
-                          onClick={() => handleSort('energy_per_token_joules')}
+                          onClick={() => handleSort(defaultSortKey)}
                           className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           <div className="flex items-center">
-                            Energy/Token (J)
-                            {getSortIcon('energy_per_token_joules')}
+                            {task === 'text-to-image' ? 'Energy/Image (J)' : task === 'text-to-video' ? 'Energy/Video (J)' : 'Energy/Token (J)'}
+                            {getSortIcon(defaultSortKey)}
                           </div>
                         </th>
                         <th
-                          onClick={() => handleSort('median_itl_ms')}
+                          onClick={() => handleSort(isDiffusion ? 'batch_latency_s' : 'median_itl_ms')}
                           className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           <div className="flex items-center">
-                            Median ITL (ms)
-                            {getSortIcon('median_itl_ms')}
+                            {isDiffusion ? 'Batch Latency (s)' : 'Median ITL (ms)'}
+                            {getSortIcon(isDiffusion ? 'batch_latency_s' : 'median_itl_ms')}
                           </div>
                         </th>
                         <th
-                          onClick={() => handleSort('output_throughput_tokens_per_sec')}
+                          onClick={() => handleSort(isDiffusion ? (task === 'text-to-image' ? 'throughput_images_per_sec' : 'throughput_videos_per_sec') : 'output_throughput_tokens_per_sec')}
                           className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           <div className="flex items-center">
-                            Throughput (tok/s)
-                            {getSortIcon('output_throughput_tokens_per_sec')}
+                            {task === 'text-to-image' ? 'Throughput (img/s)' : task === 'text-to-video' ? 'Throughput (vid/s)' : 'Throughput (tok/s)'}
+                            {getSortIcon(isDiffusion ? (task === 'text-to-image' ? 'throughput_images_per_sec' : 'throughput_videos_per_sec') : 'output_throughput_tokens_per_sec')}
                           </div>
                         </th>
                       </tr>
@@ -520,6 +594,25 @@ export function ComparisonModal({
                         if (modelIndex === -1) return null;
                         const color = MODEL_COLORS[modelIndex % MODEL_COLORS.length];
 
+                        // Get cell values based on config type (with null checks)
+                        const batchCell = isDiffusion
+                          ? (config as DiffusionCombinedConfiguration).batch_size ?? '-'
+                          : (config as LLMCombinedConfiguration).max_num_seqs || '-';
+                        const energyValue = getEnergyValue(config);
+                        const energyCell = energyValue != null ? energyValue.toFixed(isDiffusion ? 1 : 4) : '-';
+                        const latencyValue = isDiffusion
+                          ? (config as DiffusionCombinedConfiguration).batch_latency_s
+                          : (config as LLMCombinedConfiguration).median_itl_ms;
+                        const latencyCell = latencyValue != null ? latencyValue.toFixed(isDiffusion ? 2 : 1) : '-';
+                        const throughputValue = task === 'text-to-image'
+                          ? (config as DiffusionCombinedConfiguration).throughput_images_per_sec
+                          : task === 'text-to-video'
+                            ? (config as DiffusionCombinedConfiguration).throughput_videos_per_sec
+                            : (config as LLMCombinedConfiguration).output_throughput_tokens_per_sec;
+                        const throughputCell = throughputValue != null
+                          ? throughputValue.toFixed(task === 'text-to-image' ? 3 : task === 'text-to-video' ? 4 : 0)
+                          : '-';
+
                         return (
                           <tr key={idx}>
                             <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">
@@ -530,10 +623,10 @@ export function ComparisonModal({
                             </td>
                             <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.gpu_model}</td>
                             <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.num_gpus}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.max_num_seqs || '-'}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.energy_per_token_joules.toFixed(4)}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.median_itl_ms.toFixed(1)}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.output_throughput_tokens_per_sec.toFixed(0)}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{batchCell}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{energyCell}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{latencyCell}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{throughputCell}</td>
                           </tr>
                         );
                       })}

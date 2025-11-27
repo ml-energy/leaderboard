@@ -8,15 +8,20 @@ import {
   ComposedChart,
   Line,
 } from 'recharts';
-import { Configuration, ModelConfiguration } from '../types';
+import { Configuration, ModelConfiguration, ImageConfiguration, VideoConfiguration, AnyConfiguration, AnyModelConfiguration, ImageModelConfiguration, VideoModelConfiguration } from '../types';
+import { isDiffusionTask } from '../config/tasks';
+
+// Chart can accept either task-level configs (with model_id) or model-level configs (without model_id)
+type ChartConfiguration = AnyConfiguration | AnyModelConfiguration;
 
 export type ITLPercentile = 'p50' | 'p90' | 'p95' | 'p99';
 
 interface TimeEnergyTradeoffChartProps {
-  configurations: (Configuration | ModelConfiguration)[];
+  configurations: ChartConfiguration[];
+  task: string;
   selectedPercentile: ITLPercentile;
   onPercentileChange: (p: ITLPercentile) => void;
-  onHoverConfig?: (config: Configuration | ModelConfiguration | null) => void;
+  onHoverConfig?: (config: ChartConfiguration | null) => void;
   colorByModel?: boolean;
   onLegendClick?: (modelId: string) => void;
   fixedXAxisMax?: number;  // Optional fixed X-axis max (for main page to keep stable axis)
@@ -48,20 +53,44 @@ function getITL(config: Configuration | ModelConfiguration, percentile: ITLPerce
   }
 }
 
-function getParetoFrontier<T extends Configuration | ModelConfiguration>(
+// Get X-axis value (latency) for any configuration type
+function getXValue(config: ChartConfiguration, task: string, percentile: ITLPercentile): number | null {
+  if (isDiffusionTask(task)) {
+    // For diffusion, X is batch latency in seconds
+    return (config as ImageConfiguration | VideoConfiguration | ImageModelConfiguration | VideoModelConfiguration).batch_latency_s;
+  }
+  // For LLM/MLLM, X is ITL in ms
+  return getITL(config as Configuration | ModelConfiguration, percentile);
+}
+
+// Get Y-axis value (energy) for any configuration type
+function getYValue(config: ChartConfiguration, task: string): number {
+  if (task === 'text-to-image') {
+    return (config as ImageConfiguration | ImageModelConfiguration).energy_per_image_joules;
+  }
+  if (task === 'text-to-video') {
+    return (config as VideoConfiguration | VideoModelConfiguration).energy_per_video_joules;
+  }
+  // For LLM/MLLM, Y is energy per token
+  return (config as Configuration | ModelConfiguration).energy_per_token_joules;
+}
+
+function getParetoFrontier<T extends ChartConfiguration>(
   configs: T[],
+  task: string,
   percentile: ITLPercentile
 ): T[] {
-  // Filter configs that have valid ITL data for this percentile
-  const validConfigs = configs.filter(c => getITL(c, percentile) !== null);
+  // Filter configs that have valid X data
+  const validConfigs = configs.filter(c => getXValue(c, task, percentile) !== null);
 
   return validConfigs.filter(config => {
-    const configITL = getITL(config, percentile)!;
+    const configX = getXValue(config, task, percentile)!;
+    const configY = getYValue(config, task);
     // Pareto-optimal if no other config dominates (lower energy AND lower latency)
     return !validConfigs.some(other => {
-      const otherITL = getITL(other, percentile)!;
-      return other.energy_per_token_joules < config.energy_per_token_joules &&
-        otherITL < configITL;
+      const otherX = getXValue(other, task, percentile)!;
+      const otherY = getYValue(other, task);
+      return otherY < configY && otherX < configX;
     });
   });
 }
@@ -69,7 +98,7 @@ function getParetoFrontier<T extends Configuration | ModelConfiguration>(
 interface ChartDataPoint {
   x: number;
   y: number;
-  config: Configuration | ModelConfiguration;
+  config: ChartConfiguration;
   isPareto: boolean;
   modelColor: string;
 }
@@ -77,11 +106,13 @@ interface ChartDataPoint {
 // Hover tooltip component for scatter points
 function HoverTooltip({
   data,
+  task,
   mouseX,
   mouseY,
   containerRef,
 }: {
   data: ChartDataPoint;
+  task: string;
   mouseX: number;
   mouseY: number;
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -99,6 +130,85 @@ function HoverTooltip({
     ? mouseX - tooltipWidth - 15
     : mouseX + 15;
 
+  // Helper to format parallelization string for diffusion model detail view
+  const formatDiffusionParallel = (cfg: ImageModelConfiguration | VideoModelConfiguration): string => {
+    const parts = [];
+    if (cfg.parallelization.ulysses_degree > 1) {
+      parts.push(`U${cfg.parallelization.ulysses_degree}`);
+    }
+    if (cfg.parallelization.ring_degree > 1) {
+      parts.push(`R${cfg.parallelization.ring_degree}`);
+    }
+    return parts.length > 0 ? ` (${parts.join('+')})` : '';
+  };
+
+  // Diffusion-specific tooltip content
+  if (task === 'text-to-image') {
+    const imgConfig = config as ImageConfiguration | ImageModelConfiguration;
+    const isModelDetail = !hasModelId && 'parallelization' in imgConfig;
+    return (
+      <div
+        className="absolute bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 text-sm pointer-events-none z-50"
+        style={{
+          left: tooltipLeft,
+          top: mouseY - 10,
+          transform: 'translateY(-100%)',
+          minWidth: '200px',
+        }}
+      >
+        {hasModelId && (
+          <p className="font-semibold text-gray-900 dark:text-white">
+            {(imgConfig as ImageConfiguration).nickname || (imgConfig as ImageConfiguration).model_id}
+          </p>
+        )}
+        <p className="text-gray-600 dark:text-gray-300">
+          {imgConfig.num_gpus} × {imgConfig.gpu_model}, batch {imgConfig.batch_size}
+          {isModelDetail && formatDiffusionParallel(imgConfig as ImageModelConfiguration)}
+        </p>
+        <div className="mt-2 space-y-1 text-gray-700 dark:text-gray-200">
+          <p>Energy: <span className="font-medium">{imgConfig.energy_per_image_joules.toFixed(1)} J/img</span></p>
+          <p>Latency: <span className="font-medium">{imgConfig.batch_latency_s.toFixed(2)} s</span></p>
+          <p>Throughput: <span className="font-medium">{imgConfig.throughput_images_per_sec.toFixed(3)} img/s</span></p>
+          <p>Resolution: <span className="font-medium">{imgConfig.image_height}×{imgConfig.image_width}</span></p>
+        </div>
+      </div>
+    );
+  }
+
+  if (task === 'text-to-video') {
+    const vidConfig = config as VideoConfiguration | VideoModelConfiguration;
+    const isModelDetail = !hasModelId && 'parallelization' in vidConfig;
+    return (
+      <div
+        className="absolute bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 text-sm pointer-events-none z-50"
+        style={{
+          left: tooltipLeft,
+          top: mouseY - 10,
+          transform: 'translateY(-100%)',
+          minWidth: '200px',
+        }}
+      >
+        {hasModelId && (
+          <p className="font-semibold text-gray-900 dark:text-white">
+            {(vidConfig as VideoConfiguration).nickname || (vidConfig as VideoConfiguration).model_id}
+          </p>
+        )}
+        <p className="text-gray-600 dark:text-gray-300">
+          {vidConfig.num_gpus} × {vidConfig.gpu_model}, batch {vidConfig.batch_size}
+          {isModelDetail && formatDiffusionParallel(vidConfig as VideoModelConfiguration)}
+        </p>
+        <div className="mt-2 space-y-1 text-gray-700 dark:text-gray-200">
+          <p>Energy: <span className="font-medium">{vidConfig.energy_per_video_joules.toFixed(1)} J/vid</span></p>
+          <p>Latency: <span className="font-medium">{vidConfig.batch_latency_s.toFixed(2)} s</span></p>
+          <p>Throughput: <span className="font-medium">{vidConfig.throughput_videos_per_sec.toFixed(4)} vid/s</span></p>
+          <p>Resolution: <span className="font-medium">{vidConfig.video_height}×{vidConfig.video_width}</span></p>
+        </div>
+      </div>
+    );
+  }
+
+  // LLM/MLLM tooltip content
+  const llmConfig = config as Configuration | ModelConfiguration;
   return (
     <div
       className="absolute bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 text-sm pointer-events-none z-50"
@@ -115,13 +225,13 @@ function HoverTooltip({
         </p>
       )}
       <p className="text-gray-600 dark:text-gray-300">
-        {config.num_gpus} × {config.gpu_model}
-        {config.max_num_seqs && `, batch ${config.max_num_seqs}`}
+        {llmConfig.num_gpus} × {llmConfig.gpu_model}
+        {llmConfig.max_num_seqs && `, batch ${llmConfig.max_num_seqs}`}
       </p>
       <div className="mt-2 space-y-1 text-gray-700 dark:text-gray-200">
-        <p>Energy: <span className="font-medium">{config.energy_per_token_joules.toFixed(4)} J/tok</span></p>
-        <p>Median ITL: <span className="font-medium">{config.median_itl_ms.toFixed(1)} ms</span></p>
-        <p>Throughput: <span className="font-medium">{config.output_throughput_tokens_per_sec.toFixed(0)} tok/s</span></p>
+        <p>Energy: <span className="font-medium">{llmConfig.energy_per_token_joules.toFixed(4)} J/tok</span></p>
+        <p>Median ITL: <span className="font-medium">{llmConfig.median_itl_ms.toFixed(1)} ms</span></p>
+        <p>Throughput: <span className="font-medium">{llmConfig.output_throughput_tokens_per_sec.toFixed(0)} tok/s</span></p>
       </div>
     </div>
   );
@@ -129,6 +239,7 @@ function HoverTooltip({
 
 export function TimeEnergyTradeoffChart({
   configurations,
+  task,
   selectedPercentile,
   onPercentileChange,
   onHoverConfig,
@@ -137,6 +248,7 @@ export function TimeEnergyTradeoffChart({
   fixedXAxisMax,
   showParetoLine = true,
 }: TimeEnergyTradeoffChartProps) {
+  const isDiffusion = isDiffusionTask(task);
   const [hoveredLegendModel, setHoveredLegendModel] = useState<string | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<ChartDataPoint | null>(null);
   const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -174,35 +286,26 @@ export function TimeEnergyTradeoffChart({
 
   // Calculate Pareto frontier - either global or per-model
   const paretoConfigs = useMemo(
-    () => getParetoFrontier(configurations, selectedPercentile),
-    [configurations, selectedPercentile]
+    () => getParetoFrontier(configurations, task, selectedPercentile),
+    [configurations, task, selectedPercentile]
   );
 
   // Per-model Pareto frontiers for comparison mode
   const perModelParetoConfigs = useMemo(() => {
-    if (!colorByModel) return new Map<string, (Configuration | ModelConfiguration)[]>();
+    if (!colorByModel) return new Map<string, ChartConfiguration[]>();
 
-    const result = new Map<string, (Configuration | ModelConfiguration)[]>();
+    const result = new Map<string, ChartConfiguration[]>();
     modelIds.forEach(modelId => {
       const modelConfigs = configurations.filter(c =>
         'model_id' in c && (c as Configuration).model_id === modelId
       );
-      result.set(modelId, getParetoFrontier(modelConfigs, selectedPercentile));
+      result.set(modelId, getParetoFrontier(modelConfigs, task, selectedPercentile));
     });
     return result;
-  }, [colorByModel, configurations, selectedPercentile, modelIds]);
+  }, [colorByModel, configurations, task, selectedPercentile, modelIds]);
 
-  // Compute X-axis max: use fixedXAxisMax if provided, otherwise compute from selected percentile values
-  // Round up to a multiple of a nice tick interval for even grid spacing
-  const xAxisMax = useMemo(() => {
-    if (fixedXAxisMax !== undefined) return fixedXAxisMax;
-
-    const values = configurations
-      .map(config => getITL(config, selectedPercentile))
-      .filter((v): v is number => v != null && v > 0);
-    if (values.length === 0) return undefined;
-    const max = Math.max(...values);
-    // Choose a nice tick interval based on magnitude
+  // Helper to compute nice axis max with proper tick intervals
+  const computeNiceAxisMax = (max: number): number => {
     const magnitude = Math.pow(10, Math.floor(Math.log10(max)));
     const normalized = max / magnitude;
     let tickInterval: number;
@@ -211,12 +314,36 @@ export function TimeEnergyTradeoffChart({
     else tickInterval = magnitude * 2;
     // Round max up to next multiple of tick interval
     return Math.ceil(max / tickInterval) * tickInterval;
-  }, [configurations, fixedXAxisMax, selectedPercentile]);
+  };
 
-  // Transform data for chart (filter out configs without valid ITL data)
+  // Compute X-axis max: use fixedXAxisMax if provided, otherwise compute from data values
+  // Round up to a multiple of a nice tick interval for even grid spacing
+  const xAxisMax = useMemo(() => {
+    if (fixedXAxisMax !== undefined) return fixedXAxisMax;
+
+    const values = configurations
+      .map(config => getXValue(config, task, selectedPercentile))
+      .filter((v): v is number => v != null && v > 0);
+    if (values.length === 0) return undefined;
+    const max = Math.max(...values);
+    return computeNiceAxisMax(max);
+  }, [configurations, task, fixedXAxisMax, selectedPercentile]);
+
+  // Compute Y-axis max with headroom so points don't stick to top edge
+  const yAxisMax = useMemo(() => {
+    const values = configurations
+      .map(config => getYValue(config, task))
+      .filter((v): v is number => v != null && v > 0);
+    if (values.length === 0) return undefined;
+    const max = Math.max(...values);
+    // Add 10% headroom before computing nice max
+    return computeNiceAxisMax(max * 1.1);
+  }, [configurations, task]);
+
+  // Transform data for chart (filter out configs without valid X data)
   const chartData: ChartDataPoint[] = useMemo(() => {
     return configurations
-      .filter(config => getITL(config, selectedPercentile) !== null)
+      .filter(config => getXValue(config, task, selectedPercentile) !== null)
       .map(config => {
         const modelId = 'model_id' in config ? (config as Configuration).model_id : '';
         // Use per-model Pareto in comparison mode, global Pareto otherwise
@@ -224,14 +351,14 @@ export function TimeEnergyTradeoffChart({
           ? (perModelParetoConfigs.get(modelId)?.includes(config) ?? false)
           : paretoConfigs.includes(config);
         return {
-          x: getITL(config, selectedPercentile)!,
-          y: config.energy_per_token_joules,
+          x: getXValue(config, task, selectedPercentile)!,
+          y: getYValue(config, task),
           config,
           isPareto,
           modelColor: colorByModel ? getModelColor(modelId) : '#3b82f6',
         };
       });
-  }, [configurations, selectedPercentile, paretoConfigs, perModelParetoConfigs, colorByModel, modelIds]);
+  }, [configurations, task, selectedPercentile, paretoConfigs, perModelParetoConfigs, colorByModel, modelIds]);
 
   // Sort Pareto points by X for line drawing (only used when showParetoLine is true)
   const paretoLineData = useMemo(() => {
@@ -241,6 +368,23 @@ export function TimeEnergyTradeoffChart({
       .sort((a, b) => a.x - b.x);
   }, [chartData, showParetoLine]);
 
+  // Per-model Pareto line data for colorByModel mode
+  const perModelParetoLineData = useMemo(() => {
+    if (!showParetoLine || !colorByModel) return new Map<string, ChartDataPoint[]>();
+
+    const result = new Map<string, ChartDataPoint[]>();
+    modelIds.forEach(modelId => {
+      const modelParetoData = chartData
+        .filter(d => {
+          const dModelId = 'model_id' in d.config ? (d.config as Configuration).model_id : '';
+          return dModelId === modelId && d.isPareto;
+        })
+        .sort((a, b) => a.x - b.x);
+      result.set(modelId, modelParetoData);
+    });
+    return result;
+  }, [chartData, showParetoLine, colorByModel, modelIds]);
+
   const percentileOptions: { value: ITLPercentile; label: string }[] = [
     { value: 'p50', label: 'P50 (Median)' },
     { value: 'p90', label: 'P90' },
@@ -248,24 +392,36 @@ export function TimeEnergyTradeoffChart({
     { value: 'p99', label: 'P99' },
   ];
 
+  // Axis labels based on task type
+  const xAxisLabel = isDiffusion
+    ? 'Batch Latency [s]'
+    : `Inter-Token Latency (${selectedPercentile.toUpperCase()}) [ms]`;
+  const yAxisLabel = task === 'text-to-image'
+    ? 'Energy per Image [J]'
+    : task === 'text-to-video'
+      ? 'Energy per Video [J]'
+      : 'Energy per Token [J]';
+
   return (
     <div>
-      {/* Percentile selector */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {percentileOptions.map(opt => (
-          <button
-            key={opt.value}
-            onClick={() => onPercentileChange(opt.value)}
-            className={`px-3 py-1 text-sm rounded-md transition-colors ${
-              selectedPercentile === opt.value
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
+      {/* Percentile selector (only for LLM/MLLM) */}
+      {!isDiffusion && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {percentileOptions.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => onPercentileChange(opt.value)}
+              className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                selectedPercentile === opt.value
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Chart */}
       {chartData.length === 0 ? (
@@ -293,9 +449,9 @@ export function TimeEnergyTradeoffChart({
                 dataKey="x"
                 type="number"
                 domain={[0, xAxisMax ?? 'auto']}
-                name="ITL"
+                name={isDiffusion ? 'Latency' : 'ITL'}
                 label={{
-                  value: `Inter-Token Latency (${selectedPercentile.toUpperCase()}) [ms]`,
+                  value: xAxisLabel,
                   position: 'insideBottom',
                   offset: -10,
                   fontSize: 15,
@@ -309,10 +465,10 @@ export function TimeEnergyTradeoffChart({
               <YAxis
                 dataKey="y"
                 type="number"
-                domain={[0, 'auto']}
+                domain={[0, yAxisMax ?? 'auto']}
                 name="Energy"
                 label={{
-                  value: 'Energy per Token [J]',
+                  value: yAxisLabel,
                   angle: -90,
                   position: 'insideLeft',
                   dx: -15,
@@ -324,7 +480,7 @@ export function TimeEnergyTradeoffChart({
                 tickLine={{ stroke: 'currentColor' }}
                 axisLine={{ stroke: 'currentColor' }}
                 className="text-gray-700 dark:text-gray-200"
-                tickFormatter={(value: number) => value.toFixed(3)}
+                tickFormatter={(value: number) => isDiffusion ? value.toFixed(1) : value.toFixed(3)}
               />
 
               {/* Pareto frontier line (only when showParetoLine is true and not in colorByModel mode) */}
@@ -339,6 +495,27 @@ export function TimeEnergyTradeoffChart({
                   isAnimationActive={false}
                 />
               )}
+
+              {/* Per-model Pareto frontier lines (when in colorByModel mode) */}
+              {showParetoLine && colorByModel && modelIds.map(modelId => {
+                const lineData = perModelParetoLineData.get(modelId);
+                if (!lineData || lineData.length < 2) return null;
+                const isGrayed = hoveredLegendModel !== null && hoveredLegendModel !== modelId;
+                const color = isGrayed ? '#6b7280' : getModelColor(modelId);
+                return (
+                  <Line
+                    key={`pareto-line-${modelId}`}
+                    data={lineData}
+                    dataKey="y"
+                    stroke={color}
+                    strokeWidth={2}
+                    strokeOpacity={isGrayed ? 0.15 : 1}
+                    dot={false}
+                    name={`${modelId} Pareto`}
+                    isAnimationActive={false}
+                  />
+                );
+              })}
 
               {/* Scatter points - colored by model or by Pareto status */}
               {colorByModel ? (
@@ -441,6 +618,7 @@ export function TimeEnergyTradeoffChart({
           {hoveredPoint && (
             <HoverTooltip
               data={hoveredPoint}
+              task={task}
               mouseX={mousePos.x}
               mouseY={mousePos.y}
               containerRef={containerRef}

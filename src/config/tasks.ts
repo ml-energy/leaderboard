@@ -3,13 +3,19 @@
  * Edit this file to customize task display names, slider defaults, and about content.
  */
 
+import type { Architecture } from '../types';
+
 export interface TaskConfig {
   /** Display name shown in the page header */
   displayName: string;
   /** Tab label shown in the task tabs */
   tabLabel: string;
-  /** Default ITL deadline in ms (slider starts here) */
-  defaultItlDeadlineMs: number;
+  /** Architecture type for the task */
+  architecture: Architecture;
+  /** Default ITL deadline in ms (for LLM/MLLM) */
+  defaultItlDeadlineMs?: number;
+  /** Default batch latency deadline in seconds (for diffusion) */
+  defaultLatencyDeadlineS?: number;
   /** Default energy budget in J (null = use max from data) */
   defaultEnergyBudgetJ: number | null;
   /** Short description for the task */
@@ -19,9 +25,11 @@ export interface TaskConfig {
 }
 
 export const TASK_CONFIGS: Record<string, TaskConfig> = {
+  // LLM tasks
   "gpqa": {
     displayName: "GPQA Diamond",
     tabLabel: "Problem Solving with Reasoning",
+    architecture: "llm",
     defaultItlDeadlineMs: 500,
     defaultEnergyBudgetJ: null,
     description: "Graduate-level science questions requiring deep reasoning",
@@ -57,6 +65,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
   "lm-arena-chat": {
     displayName: "LLM Chat (LM Arena)",
     tabLabel: "Text Conversation",
+    architecture: "llm",
     defaultItlDeadlineMs: 500,
     defaultEnergyBudgetJ: null,
     description: "General conversational benchmark from LM Arena",
@@ -64,13 +73,16 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
   "sourcegraph-fim": {
     displayName: "Fill-in-the-Middle (Sourcegraph)",
     tabLabel: "Code Completion",
+    architecture: "llm",
     defaultItlDeadlineMs: 500,
     defaultEnergyBudgetJ: null,
     description: "Code completion benchmark from Sourcegraph",
   },
+  // MLLM tasks
   "image-chat": {
     displayName: "Image Chat",
     tabLabel: "Image Chat",
+    architecture: "mllm",
     defaultItlDeadlineMs: 500,
     defaultEnergyBudgetJ: null,
     description: "Multimodal image understanding and chat",
@@ -78,6 +90,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
   "video-chat": {
     displayName: "Video Chat",
     tabLabel: "Video Chat",
+    architecture: "mllm",
     defaultItlDeadlineMs: 500,
     defaultEnergyBudgetJ: null,
     description: "Multimodal video understanding and chat",
@@ -85,9 +98,27 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
   "audio-chat": {
     displayName: "Audio Chat",
     tabLabel: "Audio Chat",
+    architecture: "mllm",
     defaultItlDeadlineMs: 500,
     defaultEnergyBudgetJ: null,
     description: "Multimodal audio understanding and chat",
+  },
+  // Diffusion tasks
+  "text-to-image": {
+    displayName: "Text to Image",
+    tabLabel: "Text to Image",
+    architecture: "diffusion",
+    defaultLatencyDeadlineS: 10,
+    defaultEnergyBudgetJ: null,
+    description: "Generate images from text prompts",
+  },
+  "text-to-video": {
+    displayName: "Text to Video",
+    tabLabel: "Text to Video",
+    architecture: "diffusion",
+    defaultLatencyDeadlineS: 120,
+    defaultEnergyBudgetJ: null,
+    description: "Generate videos from text prompts",
   },
 };
 
@@ -98,9 +129,24 @@ export function getTaskConfig(taskId: string): TaskConfig {
   return TASK_CONFIGS[taskId] ?? {
     displayName: taskId,
     tabLabel: taskId,
+    architecture: "llm",
     defaultItlDeadlineMs: 500,
     defaultEnergyBudgetJ: null,
   };
+}
+
+/**
+ * Check if a task is a diffusion task.
+ */
+export function isDiffusionTask(taskId: string): boolean {
+  return getTaskConfig(taskId).architecture === "diffusion";
+}
+
+/**
+ * Get the architecture for a task.
+ */
+export function getTaskArchitecture(taskId: string): Architecture {
+  return getTaskConfig(taskId).architecture;
 }
 
 /**

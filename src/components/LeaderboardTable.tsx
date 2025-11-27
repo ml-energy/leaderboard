@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { Configuration } from '../types';
+import { useState, useEffect } from 'react';
+import { AnyConfiguration } from '../types';
 import { ColumnDef } from '../config/columns';
 
 interface LeaderboardTableProps {
-  configurations: Configuration[];
+  configurations: AnyConfiguration[];
   columns: ColumnDef[];
-  onRowClick?: (config: Configuration) => void;
+  defaultSortKey?: string;
+  onRowClick?: (config: AnyConfiguration) => void;
   selectedForCompare?: Set<string>;
   onSelectionChange?: (modelId: string, selected: boolean) => void;
   onCompareClick?: () => void;
@@ -17,14 +18,21 @@ type SortDirection = 'asc' | 'desc' | null;
 export default function LeaderboardTable({
   configurations,
   columns,
+  defaultSortKey,
   onRowClick,
   selectedForCompare = new Set(),
   onSelectionChange,
   onCompareClick,
   onClearSelection,
 }: LeaderboardTableProps) {
-  const [sortKey, setSortKey] = useState<string | null>('energy_per_token_joules');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [sortKey, setSortKey] = useState<string | null>(defaultSortKey ?? null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(defaultSortKey ? 'asc' : null);
+
+  // Reset sort when columns or default sort key changes (task switch)
+  useEffect(() => {
+    setSortKey(defaultSortKey ?? null);
+    setSortDirection(defaultSortKey ? 'asc' : null);
+  }, [defaultSortKey]);
 
   const handleSort = (key: string, sortable: boolean) => {
     if (!sortable) return;
@@ -77,7 +85,7 @@ export default function LeaderboardTable({
     return <span className="ml-1 text-gray-400">⇅</span>;
   };
 
-  const getCellValue = (config: Configuration, col: ColumnDef) => {
+  const getCellValue = (config: AnyConfiguration, col: ColumnDef) => {
     const value = col.getValue ? col.getValue(config) : (config as any)[col.key];
 
     if (value === null || value === undefined) {
@@ -89,6 +97,17 @@ export default function LeaderboardTable({
     }
 
     return String(value);
+  };
+
+  // Generate unique row key for any configuration type
+  const getRowKey = (config: AnyConfiguration): string => {
+    const base = `${config.model_id}-${config.gpu_model}-${config.num_gpus}`;
+    if ('batch_size' in config) {
+      // Diffusion config
+      return `${base}-${config.batch_size}`;
+    }
+    // LLM/MLLM config
+    return `${base}-${(config as any).max_num_seqs ?? 'null'}`;
   };
 
   return (
@@ -147,7 +166,7 @@ export default function LeaderboardTable({
         <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
           {sortedConfigs.map((config) => (
             <tr
-              key={`${config.model_id}-${config.gpu_model}-${config.num_gpus}-${config.max_num_seqs}`}
+              key={getRowKey(config)}
               onClick={() => onRowClick?.(config)}
               className={
                 onRowClick

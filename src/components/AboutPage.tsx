@@ -40,7 +40,7 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
               What is this?
             </h3>
             <p className="text-gray-700 dark:text-gray-300">
-              The ML.ENERGY Leaderboard is a comprehensive benchmark for measuring the <strong>energy efficiency</strong> and <strong>performance</strong> of Large Language Models (LLMs), Multimodal LLMs (MLLMs), and diffusion models. We run real-world inference workloads using production-grade serving frameworks like vLLM while precisely measuring energy consumption with Zeus.
+              The ML.ENERGY Leaderboard is a comprehensive benchmark for measuring the <strong>energy efficiency</strong> and <strong>performance</strong> of Large Language Models (LLMs), Multimodal LLMs (MLLMs), and diffusion models. We run real-world inference workloads using production-grade serving frameworks like vLLM while precisely measuring <strong>GPU energy consumption</strong> with Zeus.
             </p>
           </section>
 
@@ -54,7 +54,7 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
                 <strong>Benchmark Framework:</strong> We use vLLM as the inference engine, running inside Docker/Singularity containers on NVIDIA GPUs (H100, B200, etc.). Each model is tested with multiple batch sizes and GPU configurations to find the optimal energy-performance trade-off.
               </p>
               <p>
-                <strong>Energy Measurement:</strong> Power consumption is measured at the GPU level using NVIDIA Management Library (NVML) through our Zeus energy measurement framework. We report steady-state energy per token (Joules/token) after the server reaches thermal and throughput equilibrium.
+                <strong>Energy Measurement:</strong> We measure <strong>GPU energy only</strong> (not total system energy) using the NVIDIA Management Library (NVML) through our Zeus energy measurement framework. We report steady-state GPU energy per token (Joules/token) after the server reaches thermal and throughput equilibrium.
               </p>
               <p>
                 <strong>Workloads:</strong> We use real-world datasets including:
@@ -78,7 +78,7 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
               <div>
                 <h4 className="font-semibold text-gray-900 dark:text-white">Energy/Token (J)</h4>
                 <p className="text-gray-700 dark:text-gray-300">
-                  Total energy consumed divided by the number of output tokens generated. Lower is better for energy efficiency.
+                  Total <strong>GPU energy</strong> consumed divided by the number of output tokens generated. This measures only GPU energy, not CPU, memory, or other system components. Lower is better for energy efficiency.
                 </p>
               </div>
               <div>

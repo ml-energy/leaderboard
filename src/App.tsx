@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
-import { IndexData, TaskData, Configuration } from './types';
+import { IndexData, TaskData, AnyConfiguration } from './types';
 import { loadIndexData, loadTaskData } from './utils/dataLoader';
-import { DEFAULT_COLUMNS, ADVANCED_COLUMNS } from './config/columns';
-import { getTaskConfig, sortTasks } from './config/tasks';
+import { getColumnsForTask } from './config/columns';
+import { getTaskConfig, sortTasks, isDiffusionTask } from './config/tasks';
 import TaskTabs from './components/TaskTabs';
 import Sidebar from './components/Sidebar';
 import LeaderboardTable from './components/LeaderboardTable';
@@ -20,11 +20,11 @@ function App() {
   const [error, setError] = useState<string | null>(null);
 
   const [activeTask, setActiveTask] = useState<string>('');
-  const [latencyDeadline, setLatencyDeadline] = useState<number>(500);
+  const [latencyDeadline, setLatencyDeadline] = useState<number>(500); // ITL (ms) for LLM/MLLM, batch latency (s) for diffusion
   const [energyBudget, setEnergyBudget] = useState<number | null>(null);
   const [selectedGPUs, setSelectedGPUs] = useState<Set<string>>(new Set());
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
-  const [selectedConfig, setSelectedConfig] = useState<Configuration | null>(null);
+  const [selectedConfig, setSelectedConfig] = useState<AnyConfiguration | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [taskAboutOpen, setTaskAboutOpen] = useState(false);
@@ -81,7 +81,11 @@ function App() {
   useEffect(() => {
     if (!activeTask) return;
     const config = getTaskConfig(activeTask);
-    setLatencyDeadline(config.defaultItlDeadlineMs);
+    // Set default latency based on task type
+    const defaultLatency = isDiffusionTask(activeTask)
+      ? config.defaultLatencyDeadlineS ?? 10
+      : config.defaultItlDeadlineMs ?? 500;
+    setLatencyDeadline(defaultLatency);
     setEnergyBudget(config.defaultEnergyBudgetJ);
   }, [activeTask]);
 
@@ -94,17 +98,36 @@ function App() {
     return Array.from(gpuSet).sort();
   }, [taskData]);
 
+  // Helper to get energy value from any configuration type
+  const getEnergyValue = (config: AnyConfiguration): number => {
+    if ('energy_per_image_joules' in config) return config.energy_per_image_joules;
+    if ('energy_per_video_joules' in config) return config.energy_per_video_joules;
+    return (config as any).energy_per_token_joules;
+  };
+
+  // Helper to get latency value from any configuration type
+  const getLatencyValue = (config: AnyConfiguration): number => {
+    if ('batch_latency_s' in config) return config.batch_latency_s;
+    return (config as any).median_itl_ms;
+  };
+
   const maxEnergyBudget = useMemo(() => {
     if (!taskData || taskData.configurations.length === 0) return 0.1;
-    return Math.max(...taskData.configurations.map((c) => c.energy_per_token_joules));
+    return Math.max(...taskData.configurations.map(getEnergyValue));
   }, [taskData]);
 
   const maxLatencyDeadline = useMemo(() => {
-    if (!taskData || taskData.configurations.length === 0) return 500;
-    const maxITL = Math.max(...taskData.configurations.map((c) => c.median_itl_ms));
-    // Smallest multiple of 100 larger than maxITL
-    return Math.ceil(maxITL / 100) * 100;
-  }, [taskData]);
+    if (!taskData || taskData.configurations.length === 0) {
+      return isDiffusionTask(activeTask) ? 120 : 500;
+    }
+    const maxLatency = Math.max(...taskData.configurations.map(getLatencyValue));
+    if (isDiffusionTask(activeTask)) {
+      // For diffusion: round up to nice value (10s increments)
+      return Math.ceil(maxLatency / 10) * 10;
+    }
+    // For LLM/MLLM: smallest multiple of 100 larger than maxITL
+    return Math.ceil(maxLatency / 100) * 100;
+  }, [taskData, activeTask]);
 
   // Clamp latencyDeadline to maxLatencyDeadline when it changes
   useEffect(() => {
@@ -132,17 +155,17 @@ function App() {
   }, [activeTask]);
 
   const getBestConfigPerModel = (
-    configs: Configuration[],
+    configs: AnyConfiguration[],
     deadline: number,
     budget: number,
     gpus: Set<string>
-  ): Configuration[] => {
-    const byModel = new Map<string, Configuration[]>();
+  ): AnyConfiguration[] => {
+    const byModel = new Map<string, AnyConfiguration[]>();
 
     configs.forEach((config) => {
       if (!gpus.has(config.gpu_model)) return;
-      if (config.median_itl_ms > deadline) return;
-      if (config.energy_per_token_joules > budget) return;
+      if (getLatencyValue(config) > deadline) return;
+      if (getEnergyValue(config) > budget) return;
 
       if (!byModel.has(config.model_id)) {
         byModel.set(config.model_id, []);
@@ -150,16 +173,16 @@ function App() {
       byModel.get(config.model_id)!.push(config);
     });
 
-    const bestConfigs: Configuration[] = [];
+    const bestConfigs: AnyConfiguration[] = [];
     byModel.forEach((modelConfigs) => {
       const best = modelConfigs.reduce((prev, curr) =>
-        curr.energy_per_token_joules < prev.energy_per_token_joules ? curr : prev
+        getEnergyValue(curr) < getEnergyValue(prev) ? curr : prev
       );
       bestConfigs.push(best);
     });
 
     return bestConfigs.sort(
-      (a, b) => a.energy_per_token_joules - b.energy_per_token_joules
+      (a, b) => getEnergyValue(a) - getEnergyValue(b)
     );
   };
 
@@ -181,14 +204,22 @@ function App() {
     return taskData.configurations.filter(
       (config) =>
         selectedGPUs.has(config.gpu_model) &&
-        config.median_itl_ms <= latencyDeadline &&
-        config.energy_per_token_joules <= effectiveEnergyBudget
+        getLatencyValue(config) <= latencyDeadline &&
+        getEnergyValue(config) <= effectiveEnergyBudget
     );
   }, [taskData, selectedGPUs, latencyDeadline, effectiveEnergyBudget]);
 
   const columns = useMemo(() => {
-    return showAdvanced ? [...DEFAULT_COLUMNS, ...ADVANCED_COLUMNS] : DEFAULT_COLUMNS;
-  }, [showAdvanced]);
+    const { default: defaultCols, advanced: advancedCols } = getColumnsForTask(activeTask);
+    return showAdvanced ? [...defaultCols, ...advancedCols] : defaultCols;
+  }, [activeTask, showAdvanced]);
+
+  // Default sort key depends on task type
+  const defaultSortKey = useMemo(() => {
+    if (activeTask === 'text-to-image') return 'energy_per_image_joules';
+    if (activeTask === 'text-to-video') return 'energy_per_video_joules';
+    return 'energy_per_token_joules';
+  }, [activeTask]);
 
   const handleGPUToggle = (gpu: string) => {
     const newSet = new Set(selectedGPUs);
@@ -201,7 +232,7 @@ function App() {
   };
 
   // Handle row click - always open model detail modal
-  const handleRowClick = (config: Configuration) => {
+  const handleRowClick = (config: AnyConfiguration) => {
     setSelectedConfig(config);
     setModalOpen(true);
   };
@@ -318,6 +349,7 @@ function App() {
               tasks={sortTasks(indexData?.tasks || [])}
               activeTask={activeTask}
               onTaskChange={setActiveTask}
+              architectures={indexData?.architectures}
             />
           </div>
 
@@ -330,9 +362,14 @@ function App() {
             ) : (
               <div className="space-y-6">
                 <Sidebar
+                  task={activeTask}
                   latencyDeadline={latencyDeadline}
                   onLatencyDeadlineChange={setLatencyDeadline}
-                  defaultLatencyDeadline={getTaskConfig(activeTask).defaultItlDeadlineMs}
+                  defaultLatencyDeadline={
+                    isDiffusionTask(activeTask)
+                      ? getTaskConfig(activeTask).defaultLatencyDeadlineS ?? 10
+                      : getTaskConfig(activeTask).defaultItlDeadlineMs ?? 500
+                  }
                   maxLatencyDeadline={maxLatencyDeadline}
                   energyBudget={effectiveEnergyBudget}
                   onEnergyBudgetChange={setEnergyBudget}
@@ -369,11 +406,13 @@ function App() {
                     <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
                       <TimeEnergyTradeoffChart
                         configurations={allFilteredConfigs}
+                        task={activeTask}
                         selectedPercentile={selectedPercentile}
                         onPercentileChange={setSelectedPercentile}
                         onHoverConfig={() => {}}
                         colorByModel={true}
                         onLegendClick={handleLegendClick}
+                        showParetoLine={false}
                       />
                     </div>
                   </div>
@@ -408,6 +447,7 @@ function App() {
                     <LeaderboardTable
                       configurations={filteredConfigs}
                       columns={columns}
+                      defaultSortKey={defaultSortKey}
                       onRowClick={handleRowClick}
                       selectedForCompare={selectedForCompare}
                       onSelectionChange={handleSelectionChange}
@@ -443,7 +483,8 @@ function App() {
           currentConfig={{
             gpu_model: selectedConfig.gpu_model,
             num_gpus: selectedConfig.num_gpus,
-            max_num_seqs: selectedConfig.max_num_seqs,
+            batch_size: 'batch_size' in selectedConfig ? selectedConfig.batch_size : undefined,
+            max_num_seqs: 'max_num_seqs' in selectedConfig ? (selectedConfig as any).max_num_seqs : undefined,
           }}
         />
       )}

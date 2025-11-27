@@ -1,4 +1,5 @@
 interface SidebarProps {
+  task: string;
   latencyDeadline: number;
   onLatencyDeadlineChange: (value: number) => void;
   defaultLatencyDeadline: number;
@@ -12,6 +13,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({
+  task,
   latencyDeadline,
   onLatencyDeadlineChange,
   defaultLatencyDeadline,
@@ -23,18 +25,29 @@ export default function Sidebar({
   onGPUToggle,
   availableGPUs,
 }: SidebarProps) {
+  // Labels based on task type
+  const isDiffusion = task === 'text-to-image' || task === 'text-to-video';
+  const latencyLabel = isDiffusion ? 'Batch latency deadline' : 'Median ITL deadline';
+  const latencyUnit = isDiffusion ? 's' : 'ms';
+  const latencyStep = isDiffusion ? 1 : 10;
+  const energyLabel = task === 'text-to-image'
+    ? 'Per image energy budget'
+    : task === 'text-to-video'
+      ? 'Per video energy budget'
+      : 'Per token energy budget';
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
       <div className="flex flex-wrap items-center gap-6">
         <div className="flex-1 min-w-[250px]">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Median ITL deadline: <span className="font-mono text-blue-600 dark:text-blue-400">{latencyDeadline}</span> ms
+            {latencyLabel}: <span className="font-mono text-blue-600 dark:text-blue-400">{isDiffusion ? latencyDeadline.toFixed(1) : latencyDeadline}</span> {latencyUnit}
           </label>
           <input
             type="range"
             min="0"
             max={maxLatencyDeadline}
-            step="10"
+            step={latencyStep}
             value={latencyDeadline}
             onChange={(e) => onLatencyDeadlineChange(Number(e.target.value))}
             className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
@@ -43,7 +56,7 @@ export default function Sidebar({
 
         <div className="flex-1 min-w-[250px]">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Per token energy budget: <span className="font-mono text-blue-600 dark:text-blue-400">{energyBudget.toFixed(2)}</span> J
+            {energyLabel}: <span className="font-mono text-blue-600 dark:text-blue-400">{isDiffusion ? energyBudget.toFixed(0) : energyBudget.toFixed(2)}</span> J
           </label>
           <input
             type="range"

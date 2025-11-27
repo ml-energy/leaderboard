@@ -49,7 +49,26 @@ class BenchmarkRun:
     seed: int
     results_path: Path
     prometheus_path: Path
-    config_dir: Path
+    config_path: Path
+
+
+@dataclass
+class DiffusionBenchmarkRun:
+    """Metadata for a single diffusion model benchmark run."""
+
+    model_id: str
+    gpu_model: str
+    num_gpus: int
+    task: str  # "text-to-image" or "text-to-video"
+    batch_size: int
+    height: int
+    width: int
+    inference_steps: int
+    ulysses_degree: int
+    ring_degree: int
+    use_torch_compile: bool
+    seed: int
+    results_path: Path
 
 
 # ============================================================================
@@ -89,11 +108,12 @@ def parse_dir_params(dirname: str) -> dict:
     return params
 
 
-def scan_results_directory(results_dir: str) -> List[BenchmarkRun]:
+def scan_results_directory(results_dir: str, config_dir: Path) -> List[BenchmarkRun]:
     """Scan results directory and collect metadata for all runs.
 
     Args:
         results_dir: Path to results directory (e.g., "results/")
+        config_dir: Path to config directory (e.g., Path("configs/vllm"))
 
     Returns:
         List of BenchmarkRun objects
@@ -104,6 +124,10 @@ def scan_results_directory(results_dir: str) -> List[BenchmarkRun]:
     for results_json_path in results_root.rglob("results.json"):
         parts = results_json_path.relative_to(results_root).parts
 
+        # Skip diffusion results - those are handled by scan_diffusion_results_directory
+        if parts[0] == "diffusion":
+            continue
+
         if parts[0] in ("llm", "mllm"):
             if len(parts) < 8:
                 continue
@@ -112,6 +136,7 @@ def scan_results_directory(results_dir: str) -> List[BenchmarkRun]:
             model_name = parts[4]
             gpu_model = parts[5]
             params_dir = parts[6]
+            config_path = config_dir / task / f"{org}/{model_name}" / gpu_model / "monolithic.config.yaml"
         else:
             if len(parts) < 5:
                 continue
@@ -120,8 +145,8 @@ def scan_results_directory(results_dir: str) -> List[BenchmarkRun]:
             gpu_model = parts[2]
             params_dir = parts[3]
 
-            config_base = Path("configs/vllm")
             task = None
+            config_path = None
             for task_candidate in [
                 "lm-arena-chat",
                 "gpqa",
@@ -131,19 +156,18 @@ def scan_results_directory(results_dir: str) -> List[BenchmarkRun]:
                 "audio-chat",
             ]:
                 config_path = (
-                    config_base / task_candidate / f"{org}/{model_name}" / gpu_model / "monolithic.config.yaml"
+                    config_dir / task_candidate / f"{org}/{model_name}" / gpu_model / "monolithic.config.yaml"
                 )
                 if config_path.exists():
                     task = task_candidate
                     break
 
-            if task is None:
+            if task is None or config_path is None:
                 print(f"Warning: Could not determine task for {org}/{model_name} on {gpu_model}")
                 continue
 
         model_id = f"{org}/{model_name}"
         params = parse_dir_params(params_dir)
-        config_base = Path("configs/vllm")
 
         # Validate required parameters exist
         try:
@@ -162,12 +186,113 @@ def scan_results_directory(results_dir: str) -> List[BenchmarkRun]:
             seed=params.get("seed", 42),  # Has reasonable default
             results_path=results_json_path,
             prometheus_path=results_json_path.parent / "prometheus.json",
-            config_dir=config_base / task / model_id / gpu_model,
+            config_path=config_path,
         )
 
         runs.append(run)
 
     print(f"Found {len(runs)} benchmark runs")
+    return runs
+
+
+def parse_diffusion_config_dir(dirname: str) -> dict:
+    """Parse parameters from diffusion config directory name.
+
+    Directory names follow pattern: batch-{B}+size-{H}x{W}+steps-{S}+seed-{SEED}+uly-{U}+ring-{R}+tc-{TC}
+
+    Args:
+        dirname: Directory name like "batch-1+size-1024x1024+steps-20+seed-48105+uly-1+ring-1+tc-False"
+
+    Returns:
+        Dict with parsed parameters
+    """
+    params = {}
+    parts = dirname.split("+")
+
+    for part in parts:
+        if part.startswith("batch-"):
+            params["batch_size"] = int(part[6:])
+        elif part.startswith("size-"):
+            size_str = part[5:]
+            h, w = size_str.split("x")
+            params["height"] = int(h)
+            params["width"] = int(w)
+        elif part.startswith("steps-"):
+            params["inference_steps"] = int(part[6:])
+        elif part.startswith("seed-"):
+            params["seed"] = int(part[5:])
+        elif part.startswith("uly-"):
+            params["ulysses_degree"] = int(part[4:])
+        elif part.startswith("ring-"):
+            params["ring_degree"] = int(part[5:])
+        elif part.startswith("tc-"):
+            params["use_torch_compile"] = part[3:].lower() == "true"
+
+    return params
+
+
+def scan_diffusion_results_directory(results_dir: str) -> List[DiffusionBenchmarkRun]:
+    """Scan diffusion results directory and collect metadata for all runs.
+
+    Args:
+        results_dir: Path to results directory containing diffusion results
+
+    Returns:
+        List of DiffusionBenchmarkRun objects
+    """
+    results_root = Path(results_dir)
+    runs = []
+
+    for results_json_path in results_root.rglob("results.json"):
+        parts = results_json_path.relative_to(results_root).parts
+
+        # Check if this is a diffusion result: diffusion/{task}/{org}/{model}/{config}/results.json
+        if len(parts) < 6 or parts[0] != "diffusion":
+            continue
+
+        task = parts[1]  # "text-to-image" or "text-to-video"
+        if task not in ("text-to-image", "text-to-video"):
+            continue
+
+        org = parts[2]
+        model_name = parts[3]
+        config_dir = parts[4]
+
+        model_id = f"{org}/{model_name}"
+        config_params = parse_diffusion_config_dir(config_dir)
+
+        # Derive num_gpus from parallelism degrees
+        ulysses_degree = config_params.get("ulysses_degree", 1)
+        ring_degree = config_params.get("ring_degree", 1)
+        num_gpus = ulysses_degree * ring_degree
+
+        # Derive GPU model from results path (e.g., .../h100/run/...)
+        # Look for gpu model in parent directories
+        gpu_model = "H100"  # Default
+        for parent in results_json_path.parents:
+            if parent.name.lower() in ("h100", "b200", "a100"):
+                gpu_model = parent.name.upper()
+                break
+
+        run = DiffusionBenchmarkRun(
+            model_id=model_id,
+            gpu_model=gpu_model,
+            num_gpus=num_gpus,
+            task=task,
+            batch_size=config_params.get("batch_size", 1),
+            height=config_params.get("height", 1024),
+            width=config_params.get("width", 1024),
+            inference_steps=config_params.get("inference_steps", 20),
+            ulysses_degree=ulysses_degree,
+            ring_degree=ring_degree,
+            use_torch_compile=config_params.get("use_torch_compile", False),
+            seed=config_params.get("seed", 42),
+            results_path=results_json_path,
+        )
+
+        runs.append(run)
+
+    print(f"Found {len(runs)} diffusion benchmark runs")
     return runs
 
 
@@ -346,6 +471,61 @@ def extract_metrics(run: BenchmarkRun) -> Dict:
     return metrics
 
 
+def extract_diffusion_metrics(run: DiffusionBenchmarkRun) -> Dict:
+    """Extract all metrics from a diffusion benchmark run.
+
+    Args:
+        run: DiffusionBenchmarkRun object with path to results file
+
+    Returns:
+        Dict with all extracted metrics
+    """
+    results = load_json_cached(run.results_path)
+
+    # Validate required fields exist
+    if "iteration_energy_measurements" not in results:
+        raise ValueError(f"Missing 'iteration_energy_measurements' in {run.results_path}")
+
+    iterations = results["iteration_energy_measurements"]
+    if not iterations:
+        raise ValueError(f"Empty 'iteration_energy_measurements' in {run.results_path}")
+
+    # Compute average metrics across iterations
+    # Sum GPU energy across all GPUs for each iteration
+    gpu_energies = []
+    latencies = []
+    for iter_data in iterations:
+        # Sum energy from all GPUs
+        total_gpu_energy = sum(iter_data["gpu_energy"].values())
+        gpu_energies.append(total_gpu_energy)
+        latencies.append(iter_data["time"])
+
+    avg_gpu_energy = float(np.mean(gpu_energies))
+    avg_batch_latency = float(np.mean(latencies))
+
+    # Energy per output = total batch energy / batch size
+    energy_per_output = avg_gpu_energy / run.batch_size
+
+    # Throughput = batch_size / batch_latency
+    throughput = run.batch_size / avg_batch_latency
+
+    metrics = {
+        "batch_latency_s": avg_batch_latency,
+        "avg_gpu_energy_joules": avg_gpu_energy,
+        "num_iterations": len(iterations),
+    }
+
+    # Task-specific metrics
+    if run.task == "text-to-image":
+        metrics["energy_per_image_joules"] = energy_per_output
+        metrics["throughput_images_per_sec"] = throughput
+    else:  # text-to-video
+        metrics["energy_per_video_joules"] = energy_per_output
+        metrics["throughput_videos_per_sec"] = throughput
+
+    return metrics
+
+
 def parse_prometheus_histogram(metrics_text: str, metric_name: str) -> Dict:
     """Parse histogram from Prometheus text format.
 
@@ -445,7 +625,7 @@ def parse_parallelization(run: BenchmarkRun) -> Dict:
     Returns:
         Dict with tensor_parallel, expert_parallel, data_parallel, and notes
     """
-    config_path = run.config_dir / "monolithic.config.yaml"
+    config_path = run.config_path
 
     if not config_path.exists():
         print(f"Warning: Config not found: {config_path}")
@@ -510,6 +690,63 @@ def infer_weight_precision(model_id: str, model_info: dict) -> str:
         return "fp8"
 
     return "bfloat16"
+
+
+def get_diffusion_model_params(model_id: str, task: str, config_dir: Path) -> dict:
+    """Get model parameters for a diffusion model from model_info.json.
+
+    Args:
+        model_id: Model identifier like "stabilityai/stable-diffusion-3.5-large"
+        task: Task name like "text-to-image"
+        config_dir: Configuration directory containing model_info.json files
+
+    Returns:
+        Dict with nickname, total_params_billions, activated_params_billions, weight_precision
+    """
+    model_info_path = config_dir / task / model_id / "model_info.json"
+
+    if model_info_path.exists():
+        try:
+            with open(model_info_path) as f:
+                model_info = json.load(f)
+        except json.JSONDecodeError as e:
+            raise ValueError(
+                f"Malformed JSON in model_info.json\n"
+                f"File: {model_info_path}\n"
+                f"Error: {e}\n"
+                f"Fix the model_info.json file."
+            )
+
+        # Validate required fields
+        if "total_parameters_billion" not in model_info:
+            raise ValueError(
+                f"Missing 'total_parameters_billion' in model_info.json\n"
+                f"File: {model_info_path}\n"
+                f"This field is required. Add it to the model_info.json file."
+            )
+
+        total_params = model_info["total_parameters_billion"]
+        # Diffusion models are dense, so activated = total
+        active_params = model_info.get("active_parameters_billion", total_params)
+        nickname = model_info.get("nickname", model_id.split("/")[-1])
+        weight_precision = model_info.get("weight_precision", "bfloat16")
+
+        return {
+            "nickname": nickname,
+            "total_params_billions": float(total_params),
+            "activated_params_billions": float(active_params),
+            "weight_precision": weight_precision,
+        }
+
+    # If model_info.json is not found, error out
+    raise ValueError(
+        f"model_info.json not found for {model_id} in task {task}\n"
+        f"Looked in: {model_info_path}\n"
+        f"Please create the model_info.json file with the following fields:\n"
+        f"  - nickname: Display name for the model\n"
+        f"  - total_parameters_billion: Total parameter count in billions\n"
+        f"  - weight_precision: Weight precision (e.g., 'bfloat16')\n"
+    )
 
 
 def get_model_params(model_id: str, task: str, config_dir: Path) -> dict:
@@ -784,12 +1021,32 @@ def group_runs_by_model_task(runs: List[BenchmarkRun]) -> Dict[tuple, List[Bench
 # ============================================================================
 
 
-def generate_index_json(runs: List[BenchmarkRun], output_dir: Path, config_dir: Path) -> None:
-    """Generate index.json with task list and model metadata."""
+def generate_index_json(
+    runs: List[BenchmarkRun],
+    diffusion_runs: List[DiffusionBenchmarkRun],
+    output_dir: Path,
+    config_dir: Path,
+    diffusion_config_dir: Optional[Path] = None,
+) -> None:
+    """Generate index.json with task list, architecture groupings, and model metadata."""
     from datetime import datetime
 
-    tasks = sorted(set(run.task for run in runs))
+    # Collect all tasks
+    llm_mllm_tasks = sorted(set(run.task for run in runs))
+    diffusion_tasks = sorted(set(run.task for run in diffusion_runs))
+    all_tasks = sorted(set(llm_mllm_tasks + diffusion_tasks))
 
+    # Group tasks by architecture
+    llm_tasks = [t for t in llm_mllm_tasks if t in ("gpqa", "lm-arena-chat", "sourcegraph-fim")]
+    mllm_tasks = [t for t in llm_mllm_tasks if t in ("image-chat", "video-chat", "audio-chat")]
+
+    architectures = {
+        "llm": llm_tasks,
+        "mllm": mllm_tasks,
+        "diffusion": diffusion_tasks,
+    }
+
+    # Collect model metadata
     models = {}
     for run in runs:
         if run.model_id not in models:
@@ -802,9 +1059,20 @@ def generate_index_json(runs: List[BenchmarkRun], output_dir: Path, config_dir: 
                 "weight_precision": params["weight_precision"],
             }
 
+    for run in diffusion_runs:
+        if run.model_id not in models:
+            params = get_diffusion_model_params(run.model_id, run.task, diffusion_config_dir)
+            models[run.model_id] = {
+                "nickname": params["nickname"],
+                "total_params_billions": params["total_params_billions"],
+                "activated_params_billions": params["activated_params_billions"],
+                "weight_precision": params["weight_precision"],
+            }
+
     index_data = {
         "last_updated": datetime.now().strftime("%Y-%m-%d"),
-        "tasks": tasks,
+        "tasks": all_tasks,
+        "architectures": architectures,
         "models": models,
     }
 
@@ -861,6 +1129,71 @@ def generate_task_json(task: str, runs: List[BenchmarkRun], output_dir: Path, co
     task_data = {
         "task": task,
         "task_display_name": task_display_names.get(task, task),
+        "configurations": configurations,
+    }
+
+    output_path = output_dir / "tasks" / f"{task}.json"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w") as f:
+        json.dump(task_data, f, indent=2)
+
+    print(f"Generated {output_path}")
+
+
+def generate_diffusion_task_json(
+    task: str,
+    runs: List[DiffusionBenchmarkRun],
+    output_dir: Path,
+    config_dir: Optional[Path] = None,
+) -> None:
+    """Generate task-specific JSON for diffusion tasks."""
+    task_runs = [run for run in runs if run.task == task]
+
+    if not task_runs:
+        return
+
+    task_display_names = {
+        "text-to-image": "Text to Image",
+        "text-to-video": "Text to Video",
+    }
+
+    configurations = []
+    for run in task_runs:
+        metrics = extract_diffusion_metrics(run)
+        params = get_diffusion_model_params(run.model_id, task, config_dir)
+
+        config = {
+            "model_id": run.model_id,
+            "nickname": params["nickname"],
+            "gpu_model": run.gpu_model,
+            "num_gpus": run.num_gpus,
+            "total_params_billions": params["total_params_billions"],
+            "activated_params_billions": params["activated_params_billions"],
+            "batch_size": run.batch_size,
+            "batch_latency_s": metrics["batch_latency_s"],
+            "ulysses_degree": run.ulysses_degree,
+            "ring_degree": run.ring_degree,
+            "inference_steps": run.inference_steps,
+        }
+
+        # Add task-specific fields
+        if task == "text-to-image":
+            config["energy_per_image_joules"] = metrics["energy_per_image_joules"]
+            config["throughput_images_per_sec"] = metrics["throughput_images_per_sec"]
+            config["image_height"] = run.height
+            config["image_width"] = run.width
+        else:  # text-to-video
+            config["energy_per_video_joules"] = metrics["energy_per_video_joules"]
+            config["throughput_videos_per_sec"] = metrics["throughput_videos_per_sec"]
+            config["video_height"] = run.height
+            config["video_width"] = run.width
+
+        configurations.append(config)
+
+    task_data = {
+        "task": task,
+        "task_display_name": task_display_names.get(task, task),
+        "architecture": "diffusion",
         "configurations": configurations,
     }
 
@@ -936,9 +1269,67 @@ def generate_model_json(
         "task": task,
         "total_params_billions": params["total_params_billions"],
         "activated_params_billions": params["activated_params_billions"],
-        "is_moe": params["is_moe"],
+        "architecture": params["architecture"],
         "weight_precision": params["weight_precision"],
         "output_length_distribution": output_length_dist,
+        "configurations": configurations,
+    }
+
+    output_path = output_dir / "models" / f"{model_id.replace('/', '__')}__{task}.json"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w") as f:
+        json.dump(model_data, f, indent=2)
+
+    return output_path
+
+
+def generate_diffusion_model_json(
+    model_id: str,
+    task: str,
+    runs: List[DiffusionBenchmarkRun],
+    output_dir: Path,
+    config_dir: Optional[Path] = None,
+) -> Path:
+    """Generate model detail JSON for diffusion models."""
+    params = get_diffusion_model_params(model_id, task, config_dir)
+
+    configurations = []
+    for run in runs:
+        metrics = extract_diffusion_metrics(run)
+
+        config = {
+            "gpu_model": run.gpu_model,
+            "num_gpus": run.num_gpus,
+            "batch_size": run.batch_size,
+            "parallelization": {
+                "ulysses_degree": run.ulysses_degree,
+                "ring_degree": run.ring_degree,
+            },
+            "batch_latency_s": metrics["batch_latency_s"],
+            "inference_steps": run.inference_steps,
+        }
+
+        # Add task-specific fields
+        if task == "text-to-image":
+            config["energy_per_image_joules"] = metrics["energy_per_image_joules"]
+            config["throughput_images_per_sec"] = metrics["throughput_images_per_sec"]
+            config["image_height"] = run.height
+            config["image_width"] = run.width
+        else:  # text-to-video
+            config["energy_per_video_joules"] = metrics["energy_per_video_joules"]
+            config["throughput_videos_per_sec"] = metrics["throughput_videos_per_sec"]
+            config["video_height"] = run.height
+            config["video_width"] = run.width
+
+        configurations.append(config)
+
+    model_data = {
+        "model_id": model_id,
+        "task": task,
+        "nickname": params["nickname"],
+        "total_params_billions": params["total_params_billions"],
+        "activated_params_billions": params["activated_params_billions"],
+        "weight_precision": params["weight_precision"],
         "configurations": configurations,
     }
 
@@ -980,6 +1371,15 @@ def _generate_model_json_worker(args):
     return model_id, task
 
 
+def _generate_diffusion_model_json_worker(args):
+    """Wrapper for generate_diffusion_model_json to use with multiprocessing.Pool."""
+    model_id, task, runs, output_dir, config_dir, idx, total = args
+    print(f"  [{idx}/{total}] Generating {model_id} / {task}...", flush=True)
+    path = generate_diffusion_model_json(model_id, task, runs, output_dir, config_dir)
+    print(f"  [{idx}/{total}] Generated {path}", flush=True)
+    return model_id, task
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Build leaderboard data from benchmark results"
@@ -1004,10 +1404,16 @@ def main():
         help="Maximum allowed size in MB",
     )
     parser.add_argument(
-        "--config-dir",
+        "--llm-config-dir",
         type=str,
-        default="configs/vllm",
-        help="Path to vLLM config directory (default: configs/vllm)",
+        default=None,
+        help="Path to LLM/MLLM config directory containing model_info.json files",
+    )
+    parser.add_argument(
+        "--diffusion-config-dir",
+        type=str,
+        default=None,
+        help="Path to diffusion config directory containing model_info.json files",
     )
 
     args = parser.parse_args()
@@ -1019,56 +1425,100 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    config_dir = Path(args.config_dir)
+    llm_config_dir = Path(args.llm_config_dir) if args.llm_config_dir else None
+    diffusion_config_dir = Path(args.diffusion_config_dir) if args.diffusion_config_dir else None
 
-    print(f"Scanning {len(args.results_dirs)} results directories...", flush=True)
+    # Scan for LLM/MLLM runs
+    print(f"Scanning {len(args.results_dirs)} results directories for LLM/MLLM...", flush=True)
     all_runs = []
     for results_dir in args.results_dirs:
         print(f"  Scanning {results_dir}...", flush=True)
-        runs = scan_results_directory(results_dir)
+        runs = scan_results_directory(results_dir, llm_config_dir)
         all_runs.extend(runs)
-        print(f"    Found {len(runs)} runs", flush=True)
+        print(f"    Found {len(runs)} LLM/MLLM runs", flush=True)
 
     runs = all_runs
-    print(f"Total: {len(runs)} benchmark runs from all directories", flush=True)
+    print(f"Total: {len(runs)} LLM/MLLM benchmark runs from all directories", flush=True)
 
-    if not runs:
+    # Scan for diffusion runs
+    print(f"\nScanning {len(args.results_dirs)} results directories for diffusion models...", flush=True)
+    all_diffusion_runs = []
+    for results_dir in args.results_dirs:
+        print(f"  Scanning {results_dir}...", flush=True)
+        diffusion_runs = scan_diffusion_results_directory(results_dir)
+        all_diffusion_runs.extend(diffusion_runs)
+        print(f"    Found {len(diffusion_runs)} diffusion runs", flush=True)
+
+    diffusion_runs = all_diffusion_runs
+    print(f"Total: {len(diffusion_runs)} diffusion benchmark runs from all directories", flush=True)
+
+    # Check if we have any data
+    if not runs and not diffusion_runs:
         print("No benchmark runs found!")
         sys.exit(1)
 
-    # Filter out unstable runs (OOM, server crashes, etc.)
-    print("\nFiltering unstable runs...", flush=True)
-    runs = filter_unstable_runs(runs)
+    # Filter out unstable LLM/MLLM runs (OOM, server crashes, etc.)
+    if runs:
+        print("\nFiltering unstable LLM/MLLM runs...", flush=True)
+        runs = filter_unstable_runs(runs)
 
-    if not runs:
-        print("No valid runs remaining after filtering!")
-        sys.exit(1)
-
+    # Generate index.json with both LLM/MLLM and diffusion data
     print("\nGenerating index.json...", flush=True)
-    generate_index_json(runs, output_dir, config_dir)
+    generate_index_json(runs, diffusion_runs, output_dir, llm_config_dir, diffusion_config_dir)
 
-    print("\nGenerating task JSONs...", flush=True)
-    tasks = sorted(set(run.task for run in runs))
-    for task in tasks:
-        print(f"  Generating {task}...", flush=True)
-        generate_task_json(task, runs, output_dir, config_dir)
+    # Generate LLM/MLLM task JSONs
+    if runs:
+        print("\nGenerating LLM/MLLM task JSONs...", flush=True)
+        tasks = sorted(set(run.task for run in runs))
+        for task in tasks:
+            print(f"  Generating {task}...", flush=True)
+            generate_task_json(task, runs, output_dir, llm_config_dir)
 
-    print("\nGenerating model detail JSONs...")
-    grouped = group_runs_by_model_task(runs)
-    total_models = len(grouped)
+    # Generate diffusion task JSONs
+    if diffusion_runs:
+        print("\nGenerating diffusion task JSONs...", flush=True)
+        diffusion_tasks = sorted(set(run.task for run in diffusion_runs))
+        for task in diffusion_tasks:
+            print(f"  Generating {task}...", flush=True)
+            generate_diffusion_task_json(task, diffusion_runs, output_dir, diffusion_config_dir)
 
-    # Prepare arguments for multiprocessing
-    pool_args = [
-        (model_id, task, model_runs, output_dir, config_dir, idx, total_models)
-        for idx, ((model_id, task), model_runs) in enumerate(grouped.items(), 1)
-    ]
+    # Generate LLM/MLLM model detail JSONs
+    if runs:
+        print("\nGenerating LLM/MLLM model detail JSONs...")
+        grouped = group_runs_by_model_task(runs)
+        total_models = len(grouped)
 
-    # Use multiprocessing.Pool to generate model files in parallel
-    num_workers = min(multiprocessing.cpu_count(), total_models)
-    print(f"Using {num_workers} workers for parallel processing...", flush=True)
+        pool_args = [
+            (model_id, task, model_runs, output_dir, llm_config_dir, idx, total_models)
+            for idx, ((model_id, task), model_runs) in enumerate(grouped.items(), 1)
+        ]
 
-    with multiprocessing.Pool(processes=num_workers) as pool:
-        pool.map(_generate_model_json_worker, pool_args)
+        num_workers = min(multiprocessing.cpu_count(), total_models)
+        print(f"Using {num_workers} workers for parallel processing...", flush=True)
+
+        with multiprocessing.Pool(processes=num_workers) as pool:
+            pool.map(_generate_model_json_worker, pool_args)
+
+    # Generate diffusion model detail JSONs
+    if diffusion_runs:
+        print("\nGenerating diffusion model detail JSONs...")
+        diffusion_grouped = defaultdict(list)
+        for run in diffusion_runs:
+            key = (run.model_id, run.task)
+            diffusion_grouped[key].append(run)
+
+        total_diffusion_models = len(diffusion_grouped)
+
+        pool_args = [
+            (model_id, task, model_runs, output_dir, diffusion_config_dir, idx, total_diffusion_models)
+            for idx, ((model_id, task), model_runs) in enumerate(diffusion_grouped.items(), 1)
+        ]
+
+        num_workers = min(multiprocessing.cpu_count(), total_diffusion_models)
+        print(f"Using {num_workers} workers for parallel processing...", flush=True)
+
+        with multiprocessing.Pool(processes=num_workers) as pool:
+            pool.map(_generate_diffusion_model_json_worker, pool_args)
 
     print("\nValidating data size...", flush=True)
     validate_size(output_dir, args.max_size_mb)

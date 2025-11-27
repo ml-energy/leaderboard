@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
-import { ModelDetail, ModelConfiguration } from '../types';
+import { ModelDetail, ModelConfiguration, DiffusionModelDetail, AnyModelConfiguration, ImageModelConfiguration, VideoModelConfiguration } from '../types';
 import { TimeEnergyTradeoffChart, ITLPercentile } from './TimeEnergyTradeoffChart';
 import { EnergyPerResponseChart } from './EnergyPerResponseChart';
+import { isDiffusionTask } from '../config/tasks';
 
 interface ModelDetailModalProps {
   modelId: string;
@@ -12,9 +13,12 @@ interface ModelDetailModalProps {
   currentConfig?: {
     gpu_model: string;
     num_gpus: number;
-    max_num_seqs: number | null;
+    max_num_seqs?: number | null;
+    batch_size?: number;
   };
 }
+
+type AnyModelDetail = ModelDetail | DiffusionModelDetail;
 
 type SortDirection = 'asc' | 'desc' | null;
 
@@ -26,15 +30,25 @@ export function ModelDetailModal({
   onAddToComparison,
   currentConfig: _currentConfig,
 }: ModelDetailModalProps) {
-  const [modelDetail, setModelDetail] = useState<ModelDetail | null>(null);
+  const isDiffusion = isDiffusionTask(task);
+  const [modelDetail, setModelDetail] = useState<AnyModelDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sortKey, setSortKey] = useState<string | null>('energy_per_token_joules');
+  const defaultSortKey = task === 'text-to-image' ? 'energy_per_image_joules' : task === 'text-to-video' ? 'energy_per_video_joules' : 'energy_per_token_joules';
+  const [sortKey, setSortKey] = useState<string | null>(defaultSortKey);
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [selectedGPUs, setSelectedGPUs] = useState<Set<string>>(new Set());
   const [selectedNumGPUs, setSelectedNumGPUs] = useState<Set<number>>(new Set());
-  const [displayedConfig, setDisplayedConfig] = useState<ModelConfiguration | null>(null);
+  const [displayedConfig, setDisplayedConfig] = useState<AnyModelConfiguration | null>(null);
   const [selectedPercentile, setSelectedPercentile] = useState<ITLPercentile>('p50');
+
+  // Helper to get energy value from any configuration type
+  const getEnergyValue = (config: AnyModelConfiguration): number | undefined => {
+    if ('energy_per_image_joules' in config) return config.energy_per_image_joules;
+    if ('energy_per_video_joules' in config) return config.energy_per_video_joules;
+    if ('energy_per_token_joules' in config) return (config as ModelConfiguration).energy_per_token_joules;
+    return undefined;
+  };
 
   // Close on ESC key
   useEffect(() => {
@@ -79,10 +93,10 @@ export function ModelDetailModal({
       setSelectedGPUs(gpuModels);
       setSelectedNumGPUs(numGPUs);
 
-      // Initialize displayed config to highest energy/token
+      // Initialize displayed config to highest energy
       if (modelDetail.configurations.length > 0) {
         const highestEnergyConfig = modelDetail.configurations.reduce((max, c) =>
-          c.energy_per_token_joules > max.energy_per_token_joules ? c : max
+          (getEnergyValue(c) ?? 0) > (getEnergyValue(max) ?? 0) ? c : max
         );
         setDisplayedConfig(highestEnergyConfig);
       }
@@ -153,10 +167,14 @@ export function ModelDetailModal({
       )
     : [];
 
-  // Calculate energy per token statistics for X-axis scaling
+  // Calculate energy statistics for X-axis scaling (only used for LLM/MLLM)
   const { defaultEnergyPerToken, maxEnergyPerToken } = useMemo(() => {
-    if (filteredConfigs.length === 0) return { defaultEnergyPerToken: 0, maxEnergyPerToken: 0 };
-    const energies = filteredConfigs.map(c => c.energy_per_token_joules).sort((a, b) => a - b);
+    if (filteredConfigs.length === 0 || isDiffusion) return { defaultEnergyPerToken: 0, maxEnergyPerToken: 0 };
+    const energies = filteredConfigs
+      .map(c => getEnergyValue(c))
+      .filter((v): v is number => v != null)
+      .sort((a, b) => a - b);
+    if (energies.length === 0) return { defaultEnergyPerToken: 0, maxEnergyPerToken: 0 };
     const max = energies[energies.length - 1];
     // Use median as the default X-axis range
     const medianIdx = Math.floor(energies.length / 2);
@@ -164,7 +182,7 @@ export function ModelDetailModal({
       ? (energies[medianIdx - 1] + energies[medianIdx]) / 2
       : energies[medianIdx];
     return { defaultEnergyPerToken: median, maxEnergyPerToken: max };
-  }, [filteredConfigs]);
+  }, [filteredConfigs, isDiffusion]);
 
   const sortedConfigs = [...filteredConfigs].sort((a, b) => {
     if (!sortKey || !sortDirection) return 0;
@@ -244,32 +262,42 @@ export function ModelDetailModal({
           {modelDetail && (
             <div className="space-y-8">
               {/* Model Info */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Parameters</p>
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {modelDetail.total_params_billions.toFixed(0)}B
-                  </p>
+              {'total_params_billions' in modelDetail && (
+                <div className={`grid grid-cols-2 ${isDiffusion ? '' : 'md:grid-cols-4'} gap-4 bg-gray-50 dark:bg-gray-900 rounded-lg p-4`}>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{isDiffusion ? 'Parameters' : 'Total Parameters'}</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {modelDetail.total_params_billions < 1
+                        ? `${(modelDetail.total_params_billions * 1000).toFixed(0)}M`
+                        : `${modelDetail.total_params_billions.toFixed(1)}B`}
+                    </p>
+                  </div>
+                  {!isDiffusion && (
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Active Parameters</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {modelDetail.activated_params_billions < 1
+                          ? `${(modelDetail.activated_params_billions * 1000).toFixed(0)}M`
+                          : `${modelDetail.activated_params_billions.toFixed(1)}B`}
+                      </p>
+                    </div>
+                  )}
+                  {!isDiffusion && (
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Architecture</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {(modelDetail as ModelDetail).architecture}
+                      </p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Weight Precision</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {modelDetail.weight_precision}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Active Parameters</p>
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {modelDetail.activated_params_billions.toFixed(0)}B
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Architecture</p>
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {modelDetail.architecture}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Weight Precision</p>
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {modelDetail.weight_precision}
-                  </p>
-                </div>
-              </div>
+              )}
 
               {/* Time-Energy Tradeoff and Energy/Response Distribution */}
               <div>
@@ -279,48 +307,51 @@ export function ModelDetailModal({
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Each point is a hardware configuration for this model. Pareto frontier computed across these configurations.
                 </p>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                <div className={`grid grid-cols-1 ${isDiffusion ? '' : 'lg:grid-cols-2'} gap-6 items-stretch`}>
                   {/* Tradeoff Chart */}
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex flex-col">
+                  <div className={`bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex flex-col ${isDiffusion ? 'mx-auto w-full max-w-4xl' : ''}`}>
                     <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
                       Model Configurations and the Pareto Frontier
                     </h4>
                     <div className="flex-1 min-h-0">
                       <TimeEnergyTradeoffChart
                         configurations={filteredConfigs}
+                        task={task}
                         selectedPercentile={selectedPercentile}
                         onPercentileChange={setSelectedPercentile}
                         onHoverConfig={(config) => {
                           // Only update when hovering a config, not when hover ends
                           if (config) {
-                            setDisplayedConfig(config as ModelConfiguration);
+                            setDisplayedConfig(config as AnyModelConfiguration);
                           }
                         }}
                       />
                     </div>
                   </div>
 
-                  {/* Energy/Response Distribution */}
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex flex-col">
-                    <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
-                      Energy per Response Distribution
-                    </h4>
-                    <div className="flex-1 min-h-0">
-                      <EnergyPerResponseChart
-                        outputLengthDistribution={
-                          displayedConfig?.output_length_distribution || modelDetail.output_length_distribution
-                        }
-                        energyPerToken={displayedConfig?.energy_per_token_joules || null}
-                        defaultEnergyPerToken={defaultEnergyPerToken}
-                        maxEnergyPerToken={maxEnergyPerToken}
-                        configLabel={
-                          displayedConfig
-                            ? `${displayedConfig.num_gpus} × ${displayedConfig.gpu_model}${displayedConfig.max_num_seqs ? `, max batch size ${displayedConfig.max_num_seqs}` : ''}`
-                            : undefined
-                        }
-                      />
+                  {/* Energy/Response Distribution - only for LLM/MLLM */}
+                  {!isDiffusion && 'output_length_distribution' in modelDetail && (
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex flex-col">
+                      <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
+                        Energy per Response Distribution
+                      </h4>
+                      <div className="flex-1 min-h-0">
+                        <EnergyPerResponseChart
+                          outputLengthDistribution={
+                            (displayedConfig as ModelConfiguration)?.output_length_distribution || (modelDetail as ModelDetail).output_length_distribution
+                          }
+                          energyPerToken={(displayedConfig as ModelConfiguration)?.energy_per_token_joules || null}
+                          defaultEnergyPerToken={defaultEnergyPerToken}
+                          maxEnergyPerToken={maxEnergyPerToken}
+                          configLabel={
+                            displayedConfig
+                              ? `${displayedConfig.num_gpus} × ${displayedConfig.gpu_model}${(displayedConfig as ModelConfiguration).max_num_seqs ? `, max batch size ${(displayedConfig as ModelConfiguration).max_num_seqs}` : ''}`
+                              : undefined
+                          }
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -404,67 +435,105 @@ export function ModelDetailModal({
                           </div>
                         </th>
                         <th
-                          onClick={() => handleSort('max_num_seqs')}
+                          onClick={() => handleSort(isDiffusion ? 'batch_size' : 'max_num_seqs')}
                           className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           <div className="flex items-center">
-                            Max Batch
-                            {getSortIcon('max_num_seqs')}
+                            {isDiffusion ? 'Batch Size' : 'Max Batch'}
+                            {getSortIcon(isDiffusion ? 'batch_size' : 'max_num_seqs')}
                           </div>
                         </th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Parallelization</th>
                         <th
-                          onClick={() => handleSort('energy_per_token_joules')}
+                          onClick={() => handleSort(defaultSortKey)}
                           className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           <div className="flex items-center">
-                            Energy/Token (J)
-                            {getSortIcon('energy_per_token_joules')}
+                            {task === 'text-to-image' ? 'Energy/Image (J)' : task === 'text-to-video' ? 'Energy/Video (J)' : 'Energy/Token (J)'}
+                            {getSortIcon(defaultSortKey)}
                           </div>
                         </th>
                         <th
-                          onClick={() => handleSort('median_itl_ms')}
+                          onClick={() => handleSort(isDiffusion ? 'batch_latency_s' : 'median_itl_ms')}
                           className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           <div className="flex items-center">
-                            Median ITL (ms)
-                            {getSortIcon('median_itl_ms')}
+                            {isDiffusion ? 'Batch Latency (s)' : 'Median ITL (ms)'}
+                            {getSortIcon(isDiffusion ? 'batch_latency_s' : 'median_itl_ms')}
                           </div>
                         </th>
                         <th
-                          onClick={() => handleSort('output_throughput_tokens_per_sec')}
+                          onClick={() => handleSort(isDiffusion ? (task === 'text-to-image' ? 'throughput_images_per_sec' : 'throughput_videos_per_sec') : 'output_throughput_tokens_per_sec')}
                           className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           <div className="flex items-center">
-                            Throughput (tok/s)
-                            {getSortIcon('output_throughput_tokens_per_sec')}
+                            {task === 'text-to-image' ? 'Throughput (img/s)' : task === 'text-to-video' ? 'Throughput (vid/s)' : 'Throughput (tok/s)'}
+                            {getSortIcon(isDiffusion ? (task === 'text-to-image' ? 'throughput_images_per_sec' : 'throughput_videos_per_sec') : 'output_throughput_tokens_per_sec')}
                           </div>
                         </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                       {sortedConfigs.map((config, idx) => {
-                        const isHovered =
-                          displayedConfig &&
-                          config.gpu_model === displayedConfig.gpu_model &&
-                          config.num_gpus === displayedConfig.num_gpus &&
-                          config.max_num_seqs === displayedConfig.max_num_seqs;
+                        // Determine if row is hovered based on config type
+                        const isHovered = isDiffusion
+                          ? displayedConfig &&
+                            config.gpu_model === displayedConfig.gpu_model &&
+                            config.num_gpus === displayedConfig.num_gpus &&
+                            (config as ImageModelConfiguration | VideoModelConfiguration).batch_size === (displayedConfig as ImageModelConfiguration | VideoModelConfiguration).batch_size &&
+                            (config as ImageModelConfiguration | VideoModelConfiguration).parallelization.ulysses_degree === (displayedConfig as ImageModelConfiguration | VideoModelConfiguration).parallelization.ulysses_degree &&
+                            (config as ImageModelConfiguration | VideoModelConfiguration).parallelization.ring_degree === (displayedConfig as ImageModelConfiguration | VideoModelConfiguration).parallelization.ring_degree
+                          : displayedConfig &&
+                            config.gpu_model === displayedConfig.gpu_model &&
+                            config.num_gpus === displayedConfig.num_gpus &&
+                            (config as ModelConfiguration).max_num_seqs === (displayedConfig as ModelConfiguration).max_num_seqs;
 
                         let parallelStr = 'N/A';
                         if (config.num_gpus > 1) {
-                          const parallelization = [];
-                          if (config.parallelization.tensor_parallel > 1) {
-                            parallelization.push(`TP${config.parallelization.tensor_parallel}`);
+                          if (isDiffusion) {
+                            const diffConfig = config as ImageModelConfiguration | VideoModelConfiguration;
+                            const parts = [];
+                            if (diffConfig.parallelization.ulysses_degree > 1) {
+                              parts.push(`U${diffConfig.parallelization.ulysses_degree}`);
+                            }
+                            if (diffConfig.parallelization.ring_degree > 1) {
+                              parts.push(`R${diffConfig.parallelization.ring_degree}`);
+                            }
+                            parallelStr = parts.length > 0 ? parts.join('+') : 'N/A';
+                          } else {
+                            const llmConfig = config as ModelConfiguration;
+                            const parallelization = [];
+                            if (llmConfig.parallelization.tensor_parallel > 1) {
+                              parallelization.push(`TP${llmConfig.parallelization.tensor_parallel}`);
+                            }
+                            if (llmConfig.parallelization.expert_parallel > 1) {
+                              parallelization.push(`EP${llmConfig.parallelization.expert_parallel}`);
+                            }
+                            if (llmConfig.parallelization.data_parallel > 1) {
+                              parallelization.push(`DP${llmConfig.parallelization.data_parallel}`);
+                            }
+                            parallelStr = parallelization.length > 0 ? parallelization.join('+') : `TP${config.num_gpus}`;
                           }
-                          if (config.parallelization.expert_parallel > 1) {
-                            parallelization.push(`EP${config.parallelization.expert_parallel}`);
-                          }
-                          if (config.parallelization.data_parallel > 1) {
-                            parallelization.push(`DP${config.parallelization.data_parallel}`);
-                          }
-                          // Default to TP{num_gpus} if no parallelization detected for multi-GPU
-                          parallelStr = parallelization.length > 0 ? parallelization.join('+') : `TP${config.num_gpus}`;
                         }
+
+                        // Get cell values based on config type (with null checks for task transitions)
+                        const batchCell = isDiffusion
+                          ? (config as ImageModelConfiguration | VideoModelConfiguration).batch_size ?? '-'
+                          : (config as ModelConfiguration).max_num_seqs || '-';
+                        const energyValue = getEnergyValue(config);
+                        const energyCell = energyValue != null ? energyValue.toFixed(isDiffusion ? 1 : 4) : '-';
+                        const latencyValue = isDiffusion
+                          ? (config as ImageModelConfiguration | VideoModelConfiguration).batch_latency_s
+                          : (config as ModelConfiguration).median_itl_ms;
+                        const latencyCell = latencyValue != null ? latencyValue.toFixed(isDiffusion ? 2 : 1) : '-';
+                        const throughputValue = task === 'text-to-image'
+                          ? (config as ImageModelConfiguration).throughput_images_per_sec
+                          : task === 'text-to-video'
+                            ? (config as VideoModelConfiguration).throughput_videos_per_sec
+                            : (config as ModelConfiguration).output_throughput_tokens_per_sec;
+                        const throughputCell = throughputValue != null
+                          ? throughputValue.toFixed(task === 'text-to-image' ? 3 : task === 'text-to-video' ? 4 : 0)
+                          : '-';
 
                         return (
                           <tr
@@ -473,11 +542,11 @@ export function ModelDetailModal({
                           >
                             <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.gpu_model}</td>
                             <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.num_gpus}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.max_num_seqs || '-'}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{batchCell}</td>
                             <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{parallelStr}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.energy_per_token_joules.toFixed(4)}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.median_itl_ms.toFixed(1)}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.output_throughput_tokens_per_sec.toFixed(0)}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{energyCell}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{latencyCell}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{throughputCell}</td>
                           </tr>
                         );
                       })}

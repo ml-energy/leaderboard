@@ -1,14 +1,18 @@
+// Architecture types
+export type Architecture = 'llm' | 'mllm' | 'diffusion';
+
 export interface ModelInfo {
   nickname: string;
-  total_params_billions: number;
-  activated_params_billions: number;
-  architecture: string;
-  weight_precision: string;
+  total_params_billions?: number;
+  activated_params_billions?: number;
+  architecture?: string;
+  weight_precision?: string;
 }
 
 export interface IndexData {
   last_updated: string;
   tasks: string[];
+  architectures: Record<Architecture, string[]>;
   models: Record<string, ModelInfo>;
 }
 
@@ -36,7 +40,53 @@ export interface Configuration {
 export interface TaskData {
   task: string;
   task_display_name: string;
+  architecture?: Architecture;
   configurations: Configuration[];
+}
+
+// Diffusion-specific configuration (text-to-image)
+export interface ImageConfiguration {
+  model_id: string;
+  nickname: string;
+  gpu_model: string;
+  num_gpus: number;
+  total_params_billions: number;
+  activated_params_billions: number;
+  batch_size: number;
+  energy_per_image_joules: number;
+  batch_latency_s: number;
+  throughput_images_per_sec: number;
+  image_height: number;
+  image_width: number;
+  inference_steps: number;
+  ulysses_degree: number;
+  ring_degree: number;
+}
+
+// Diffusion-specific configuration (text-to-video)
+export interface VideoConfiguration {
+  model_id: string;
+  nickname: string;
+  gpu_model: string;
+  num_gpus: number;
+  total_params_billions: number;
+  activated_params_billions: number;
+  batch_size: number;
+  energy_per_video_joules: number;
+  batch_latency_s: number;
+  throughput_videos_per_sec: number;
+  video_height: number;
+  video_width: number;
+  inference_steps: number;
+  ulysses_degree: number;
+  ring_degree: number;
+}
+
+export interface DiffusionTaskData {
+  task: string;
+  task_display_name: string;
+  architecture: 'diffusion';
+  configurations: ImageConfiguration[] | VideoConfiguration[];
 }
 
 export interface Parallelization {
@@ -82,3 +132,50 @@ export interface ModelDetail {
 
   configurations: ModelConfiguration[];
 }
+
+// Diffusion model detail types
+export interface DiffusionParallelization {
+  ulysses_degree: number;
+  ring_degree: number;
+}
+
+export interface ImageModelConfiguration {
+  gpu_model: string;
+  num_gpus: number;
+  batch_size: number;
+  parallelization: DiffusionParallelization;
+  energy_per_image_joules: number;
+  batch_latency_s: number;
+  throughput_images_per_sec: number;
+  image_height: number;
+  image_width: number;
+  inference_steps: number;
+}
+
+export interface VideoModelConfiguration {
+  gpu_model: string;
+  num_gpus: number;
+  batch_size: number;
+  parallelization: DiffusionParallelization;
+  energy_per_video_joules: number;
+  batch_latency_s: number;
+  throughput_videos_per_sec: number;
+  video_height: number;
+  video_width: number;
+  inference_steps: number;
+}
+
+export interface DiffusionModelDetail {
+  model_id: string;
+  task: string;
+  nickname: string;
+  total_params_billions: number;
+  activated_params_billions: number;
+  weight_precision: string;
+  configurations: ImageModelConfiguration[] | VideoModelConfiguration[];
+}
+
+// Union type for any configuration
+export type AnyConfiguration = Configuration | ImageConfiguration | VideoConfiguration;
+export type AnyModelConfiguration = ModelConfiguration | ImageModelConfiguration | VideoModelConfiguration;
+export type AnyModelDetail = ModelDetail | DiffusionModelDetail;
