@@ -24,9 +24,67 @@ interface ChartDataPoint {
   energyEnd: number;
   energyMidpoint: number;
   count: number;
+  // For log scale: index position for even spacing
+  logIndex?: number;
 }
 
 type XAxisScale = 'linear' | 'log';
+
+// Generate log-scale bin boundaries with finer granularity
+// Uses 1, 1.5, 2, 3, 5, 7 sequence (6 bins per decade instead of 3)
+function generate125Bins(min: number, max: number): number[] {
+  const bins: number[] = [];
+  const multipliers = [1, 1.5, 2, 3, 5, 7];
+  let power = Math.floor(Math.log10(min));
+
+  while (bins.length === 0 || bins[bins.length - 1] < max * 2) {
+    for (const m of multipliers) {
+      const value = m * Math.pow(10, power);
+      if (value >= min * 0.5 && value <= max * 2) {
+        bins.push(value);
+      }
+    }
+    power++;
+    if (power > 10) break; // Safety limit
+  }
+  return bins;
+}
+
+// Rebin data for log scale using 1-2-5 sequence
+// Returns data with logIndex for even bar spacing
+function rebinToLogScale(
+  linearData: ChartDataPoint[],
+  minEnergy: number,
+  maxEnergy: number
+): ChartDataPoint[] {
+  const logBins = generate125Bins(minEnergy, maxEnergy);
+
+  const result: ChartDataPoint[] = [];
+  for (let i = 0; i < logBins.length - 1; i++) {
+    const binStart = logBins[i];
+    const binEnd = logBins[i + 1];
+    const binMidpoint = Math.sqrt(binStart * binEnd); // Geometric mean
+
+    // Sum counts from linear bins whose midpoints fall in this range
+    let count = 0;
+    for (const d of linearData) {
+      if (d.energyMidpoint >= binStart && d.energyMidpoint < binEnd) {
+        count += d.count;
+      }
+    }
+
+    // Add logIndex for positioning on evenly-spaced axis
+    result.push({
+      energyStart: binStart,
+      energyEnd: binEnd,
+      energyMidpoint: binMidpoint,
+      count,
+      logIndex: i,
+    });
+  }
+
+  return result; // Keep all bins (even empty ones) for proper spacing
+}
 
 function transformToEnergyDistribution(
   distribution: Distribution,
@@ -72,12 +130,22 @@ export function EnergyPerResponseChart({
 }: EnergyPerResponseChartProps) {
   const [xAxisScale, setXAxisScale] = useState<XAxisScale>('linear');
 
-  const chartData = useMemo(() => {
+  // Linear scale: use original bins
+  const linearChartData = useMemo(() => {
     if (!energyPerToken) return null;
     return transformToEnergyDistribution(outputLengthDistribution, energyPerToken);
   }, [outputLengthDistribution, energyPerToken]);
 
-  if (!chartData || !energyPerToken || !maxEnergyPerResponse) {
+  // Log scale: rebin into 1-2-5 sequence for equal-width bars
+  const logChartData = useMemo(() => {
+    if (!linearChartData || !maxEnergyPerResponse) return null;
+    return rebinToLogScale(linearChartData, 10, maxEnergyPerResponse);
+  }, [linearChartData, maxEnergyPerResponse]);
+
+  // Select data based on current scale
+  const chartData = xAxisScale === 'log' ? logChartData : linearChartData;
+
+  if (!linearChartData || !energyPerToken || !maxEnergyPerResponse) {
     return (
       <div className="flex items-center justify-center h-full min-h-[350px] bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
         <p className="text-gray-500 dark:text-gray-400 text-sm">
@@ -90,30 +158,18 @@ export function EnergyPerResponseChart({
   // After the null check, maxEnergyPerResponse is guaranteed to be a number
   const xAxisMax = maxEnergyPerResponse;
 
-  // For log scale, use a fixed minimum (10 J) to ensure consistent axis range
-  const xAxisMin = xAxisScale === 'log' ? 10 : 0;
-
-  // Calculate bar width as a fraction of X max for proper positioning
-  const barWidthFraction = chartData.length > 0
+  // For linear scale: calculate bar width as fraction of X range
+  const linearBarWidthFraction = chartData && chartData.length > 0 && xAxisScale === 'linear'
     ? (chartData[0].energyEnd - chartData[0].energyStart) / xAxisMax * 100
     : 2;
 
-  // Generate log scale ticks (powers of 10 and intermediates)
-  const generateLogTicks = (min: number, max: number): number[] => {
-    const ticks: number[] = [];
-    const minLog = Math.floor(Math.log10(min));
-    const maxLog = Math.ceil(Math.log10(max));
-    for (let i = minLog; i <= maxLog; i++) {
-      const base = Math.pow(10, i);
-      if (base >= min && base <= max) ticks.push(base);
-      // Add intermediate values (2, 5) for better granularity
-      if (base * 2 >= min && base * 2 <= max) ticks.push(base * 2);
-      if (base * 5 >= min && base * 5 <= max) ticks.push(base * 5);
-    }
-    return ticks.sort((a, b) => a - b);
+  // For log scale: format tick label showing bin range
+  const formatLogTick = (logIndex: number): string => {
+    if (!logChartData || logIndex < 0 || logIndex >= logChartData.length) return '';
+    const d = logChartData[logIndex];
+    // Show bin start value (e.g., "100" for bin 100-200)
+    return d.energyStart.toFixed(0);
   };
-
-  const logTicks = xAxisScale === 'log' ? generateLogTicks(xAxisMin, xAxisMax) : undefined;
 
   const scaleOptions: { value: XAxisScale; label: string }[] = [
     { value: 'linear', label: 'Linear' },
@@ -143,27 +199,43 @@ export function EnergyPerResponseChart({
       <div className="flex-1 min-h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={chartData}
+            data={chartData ?? undefined}
             margin={{ bottom: 60, left: 10, right: 30, top: 10 }}
             barCategoryGap={0}
           >
             <CartesianGrid strokeDasharray="3 3" className="opacity-50" />
-            <XAxis
-              dataKey="energyMidpoint"
-              type="number"
-              scale={xAxisScale === 'log' ? 'log' : undefined}
-              domain={[xAxisMin, xAxisMax]}
-              allowDataOverflow={true}
-              ticks={logTicks}
-              tick={{ fontSize: 10 }}
-              tickFormatter={(value: number) => value.toFixed(0)}
-              label={{
-                value: 'Energy per Response [J]',
-                position: 'insideBottom',
-                offset: -10,
-                className: 'fill-gray-600 dark:fill-gray-400',
-              }}
-            />
+            {xAxisScale === 'linear' ? (
+              <XAxis
+                dataKey="energyMidpoint"
+                type="number"
+                domain={[0, xAxisMax]}
+                allowDataOverflow={true}
+                tick={{ fontSize: 10 }}
+                tickFormatter={(value: number) => value.toFixed(0)}
+                label={{
+                  value: 'Energy per Response [J]',
+                  position: 'insideBottom',
+                  offset: -10,
+                  className: 'fill-gray-600 dark:fill-gray-400',
+                }}
+              />
+            ) : (
+              <XAxis
+                dataKey="logIndex"
+                type="number"
+                domain={logChartData ? [-0.5, logChartData.length - 0.5] : [0, 1]}
+                allowDataOverflow={true}
+                ticks={logChartData?.map((_, i) => i)}
+                tick={{ fontSize: 10 }}
+                tickFormatter={formatLogTick}
+                label={{
+                  value: 'Energy per Response [J] (log scale)',
+                  position: 'insideBottom',
+                  offset: -10,
+                  className: 'fill-gray-600 dark:fill-gray-400',
+                }}
+              />
+            )}
             <YAxis
               tick={{ fontSize: 12 }}
               label={{
@@ -174,15 +246,26 @@ export function EnergyPerResponseChart({
               }}
             />
             <Tooltip content={<CustomBarTooltip />} />
-            <Bar
-              dataKey="count"
-              fill="#10b981"
-              barSize={`${barWidthFraction}%`}
-            >
-              {chartData?.map((_, index) => (
-                <Cell key={`cell-${index}`} />
-              ))}
-            </Bar>
+            {xAxisScale === 'linear' ? (
+              <Bar
+                dataKey="count"
+                fill="#10b981"
+                barSize={`${linearBarWidthFraction}%`}
+              >
+                {chartData?.map((_, index) => (
+                  <Cell key={`cell-${index}`} />
+                ))}
+              </Bar>
+            ) : (
+              <Bar
+                dataKey="count"
+                fill="#10b981"
+              >
+                {chartData?.map((_, index) => (
+                  <Cell key={`cell-${index}`} />
+                ))}
+              </Bar>
+            )}
           </BarChart>
         </ResponsiveContainer>
       </div>
