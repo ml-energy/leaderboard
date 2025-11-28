@@ -15,8 +15,7 @@ import { Distribution } from '../types';
 interface EnergyPerResponseChartProps {
   outputLengthDistribution: Distribution;
   energyPerToken: number | null;
-  defaultEnergyPerToken: number;
-  maxEnergyPerToken: number;
+  maxEnergyPerResponse: number;  // Fixed X-axis max: actual max energy across all configs
   configLabel?: string;
 }
 
@@ -66,8 +65,7 @@ function CustomBarTooltip({ active, payload }: TooltipProps<number, string>) {
 export function EnergyPerResponseChart({
   outputLengthDistribution,
   energyPerToken,
-  defaultEnergyPerToken: _defaultEnergyPerToken,
-  maxEnergyPerToken,
+  maxEnergyPerResponse,
   configLabel,
 }: EnergyPerResponseChartProps) {
   const chartData = useMemo(() => {
@@ -75,9 +73,7 @@ export function EnergyPerResponseChart({
     return transformToEnergyDistribution(outputLengthDistribution, energyPerToken);
   }, [outputLengthDistribution, energyPerToken]);
 
-  // Fixed X-axis max based on maximum energy/token across all configs
-  const maxOutputLength = outputLengthDistribution.bins[outputLengthDistribution.bins.length - 1];
-  const xAxisMax = maxOutputLength * maxEnergyPerToken;
+  const xAxisMax = maxEnergyPerResponse;
 
   if (!chartData || !energyPerToken) {
     return (

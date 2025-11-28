@@ -122,8 +122,15 @@ export function ComparisonModal({
           return [modelId, data] as [string, AnyModelDetail];
         });
 
-        const results = await Promise.all(promises);
-        setModelDetails(new Map(results));
+        const results = await Promise.allSettled(promises);
+        const successfulResults = results
+          .filter((r): r is PromiseFulfilledResult<[string, AnyModelDetail]> => r.status === 'fulfilled')
+          .map(r => r.value);
+
+        if (successfulResults.length === 0) {
+          throw new Error('Failed to load any model details');
+        }
+        setModelDetails(new Map(successfulResults));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load model details');
       } finally {
@@ -236,20 +243,24 @@ export function ComparisonModal({
     });
   }, [filteredConfigs, sortKey, sortDirection]);
 
-  // Calculate energy stats for histogram X-axis (only for LLM/MLLM)
-  const { defaultEnergyPerToken, maxEnergyPerToken } = useMemo(() => {
-    if (filteredConfigs.length === 0 || isDiffusion) return { defaultEnergyPerToken: 0, maxEnergyPerToken: 0 };
-    const energies = filteredConfigs
-      .map(c => getEnergyValue(c))
-      .filter((v): v is number => v != null)
-      .sort((a, b) => a - b);
-    if (energies.length === 0) return { defaultEnergyPerToken: 0, maxEnergyPerToken: 0 };
-    const max = energies[energies.length - 1];
-    const medianIdx = Math.floor(energies.length / 2);
-    const median = energies.length % 2 === 0
-      ? (energies[medianIdx - 1] + energies[medianIdx]) / 2
-      : energies[medianIdx];
-    return { defaultEnergyPerToken: median, maxEnergyPerToken: max };
+  // Calculate actual max energy by looking at each config's distribution × energy_per_token
+  const maxEnergyPerResponse = useMemo(() => {
+    if (isDiffusion || filteredConfigs.length === 0) return 0;
+    let maxEnergy = 0;
+    for (const config of filteredConfigs) {
+      const llmConfig = config as LLMCombinedConfiguration;
+      if (!llmConfig.output_length_distribution || !llmConfig.energy_per_token_joules) continue;
+      const { bins, counts } = llmConfig.output_length_distribution;
+      // Find last bin with non-zero count for this config
+      for (let i = counts.length - 1; i >= 0; i--) {
+        if (counts[i] > 0) {
+          const configMaxEnergy = bins[i + 1] * llmConfig.energy_per_token_joules;
+          maxEnergy = Math.max(maxEnergy, configMaxEnergy);
+          break;
+        }
+      }
+    }
+    return maxEnergy;
   }, [filteredConfigs, isDiffusion]);
 
   // Get available GPUs and num_gpus for filters
@@ -446,9 +457,8 @@ export function ComparisonModal({
                         {outputLengthDistribution && (
                           <EnergyPerResponseChart
                             outputLengthDistribution={outputLengthDistribution}
-                            energyPerToken={(displayedConfig as LLMCombinedConfiguration)?.energy_per_token_joules || null}
-                            defaultEnergyPerToken={defaultEnergyPerToken}
-                            maxEnergyPerToken={maxEnergyPerToken}
+                            energyPerToken={(displayedConfig as LLMCombinedConfiguration)?.energy_per_token_joules ?? null}
+                            maxEnergyPerResponse={maxEnergyPerResponse}
                             configLabel={
                               displayedConfig
                                 ? `${displayedConfig.nickname} - ${displayedConfig.num_gpus} × ${displayedConfig.gpu_model}${(displayedConfig as LLMCombinedConfiguration).max_num_seqs ? `, batch ${(displayedConfig as LLMCombinedConfiguration).max_num_seqs}` : ''}`
@@ -594,6 +604,21 @@ export function ComparisonModal({
                         if (modelIndex === -1) return null;
                         const color = MODEL_COLORS[modelIndex % MODEL_COLORS.length];
 
+                        // Determine if row is hovered based on config type
+                        const isHovered = isDiffusion
+                          ? displayedConfig &&
+                            config.model_id === displayedConfig.model_id &&
+                            config.gpu_model === displayedConfig.gpu_model &&
+                            config.num_gpus === displayedConfig.num_gpus &&
+                            (config as DiffusionCombinedConfiguration).batch_size === (displayedConfig as DiffusionCombinedConfiguration).batch_size &&
+                            (config as DiffusionCombinedConfiguration).ulysses_degree === (displayedConfig as DiffusionCombinedConfiguration).ulysses_degree &&
+                            (config as DiffusionCombinedConfiguration).ring_degree === (displayedConfig as DiffusionCombinedConfiguration).ring_degree
+                          : displayedConfig &&
+                            config.model_id === displayedConfig.model_id &&
+                            config.gpu_model === displayedConfig.gpu_model &&
+                            config.num_gpus === displayedConfig.num_gpus &&
+                            (config as LLMCombinedConfiguration).max_num_seqs === (displayedConfig as LLMCombinedConfiguration).max_num_seqs;
+
                         // Get cell values based on config type (with null checks)
                         const batchCell = isDiffusion
                           ? (config as DiffusionCombinedConfiguration).batch_size ?? '-'
@@ -614,7 +639,10 @@ export function ComparisonModal({
                           : '-';
 
                         return (
-                          <tr key={idx}>
+                          <tr
+                            key={idx}
+                            className={isHovered ? 'bg-blue-50 dark:bg-blue-900/30' : ''}
+                          >
                             <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">
                               <div className="flex items-center gap-2">
                                 <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color.hex }}></div>

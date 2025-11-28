@@ -160,29 +160,34 @@ export function ModelDetailModal({
   };
 
   // Apply filters first, then sort
-  const filteredConfigs = modelDetail
-    ? modelDetail.configurations.filter(
-        (config) =>
-          selectedGPUs.has(config.gpu_model) && selectedNumGPUs.has(config.num_gpus)
-      )
-    : [];
+  const filteredConfigs = useMemo(() => {
+    if (!modelDetail) return [];
+    return modelDetail.configurations.filter(
+      (config) =>
+        selectedGPUs.has(config.gpu_model) && selectedNumGPUs.has(config.num_gpus)
+    );
+  }, [modelDetail, selectedGPUs, selectedNumGPUs]);
 
-  // Calculate energy statistics for X-axis scaling (only used for LLM/MLLM)
-  const { defaultEnergyPerToken, maxEnergyPerToken } = useMemo(() => {
-    if (filteredConfigs.length === 0 || isDiffusion) return { defaultEnergyPerToken: 0, maxEnergyPerToken: 0 };
-    const energies = filteredConfigs
-      .map(c => getEnergyValue(c))
-      .filter((v): v is number => v != null)
-      .sort((a, b) => a - b);
-    if (energies.length === 0) return { defaultEnergyPerToken: 0, maxEnergyPerToken: 0 };
-    const max = energies[energies.length - 1];
-    // Use median as the default X-axis range
-    const medianIdx = Math.floor(energies.length / 2);
-    const median = energies.length % 2 === 0
-      ? (energies[medianIdx - 1] + energies[medianIdx]) / 2
-      : energies[medianIdx];
-    return { defaultEnergyPerToken: median, maxEnergyPerToken: max };
-  }, [filteredConfigs, isDiffusion]);
+  // Calculate actual max energy by looking at each config's distribution × energy_per_token
+  // Uses ALL configurations (not filtered) so the X-axis range stays constant
+  const maxEnergyPerResponse = useMemo(() => {
+    if (isDiffusion || !modelDetail) return 0;
+    let maxEnergy = 0;
+    for (const config of modelDetail.configurations) {
+      const llmConfig = config as ModelConfiguration;
+      if (!llmConfig.output_length_distribution || !llmConfig.energy_per_token_joules) continue;
+      const { bins, counts } = llmConfig.output_length_distribution;
+      // Find last bin with non-zero count for this config
+      for (let i = counts.length - 1; i >= 0; i--) {
+        if (counts[i] > 0) {
+          const configMaxEnergy = bins[i + 1] * llmConfig.energy_per_token_joules;
+          maxEnergy = Math.max(maxEnergy, configMaxEnergy);
+          break;
+        }
+      }
+    }
+    return maxEnergy;
+  }, [modelDetail, isDiffusion]);
 
   const sortedConfigs = [...filteredConfigs].sort((a, b) => {
     if (!sortKey || !sortDirection) return 0;
@@ -341,8 +346,7 @@ export function ModelDetailModal({
                             (displayedConfig as ModelConfiguration)?.output_length_distribution || (modelDetail as ModelDetail).output_length_distribution
                           }
                           energyPerToken={(displayedConfig as ModelConfiguration)?.energy_per_token_joules || null}
-                          defaultEnergyPerToken={defaultEnergyPerToken}
-                          maxEnergyPerToken={maxEnergyPerToken}
+                          maxEnergyPerResponse={maxEnergyPerResponse}
                           configLabel={
                             displayedConfig
                               ? `${displayedConfig.num_gpus} × ${displayedConfig.gpu_model}${(displayedConfig as ModelConfiguration).max_num_seqs ? `, max batch size ${(displayedConfig as ModelConfiguration).max_num_seqs}` : ''}`
@@ -492,27 +496,31 @@ export function ModelDetailModal({
                         if (config.num_gpus > 1) {
                           if (isDiffusion) {
                             const diffConfig = config as ImageModelConfiguration | VideoModelConfiguration;
-                            const parts = [];
-                            if (diffConfig.parallelization.ulysses_degree > 1) {
-                              parts.push(`U${diffConfig.parallelization.ulysses_degree}`);
+                            if (diffConfig.parallelization) {
+                              const parts = [];
+                              if (diffConfig.parallelization.ulysses_degree > 1) {
+                                parts.push(`U${diffConfig.parallelization.ulysses_degree}`);
+                              }
+                              if (diffConfig.parallelization.ring_degree > 1) {
+                                parts.push(`R${diffConfig.parallelization.ring_degree}`);
+                              }
+                              parallelStr = parts.length > 0 ? parts.join('+') : 'N/A';
                             }
-                            if (diffConfig.parallelization.ring_degree > 1) {
-                              parts.push(`R${diffConfig.parallelization.ring_degree}`);
-                            }
-                            parallelStr = parts.length > 0 ? parts.join('+') : 'N/A';
                           } else {
                             const llmConfig = config as ModelConfiguration;
-                            const parallelization = [];
-                            if (llmConfig.parallelization.tensor_parallel > 1) {
-                              parallelization.push(`TP${llmConfig.parallelization.tensor_parallel}`);
+                            if (llmConfig.parallelization) {
+                              const parallelization = [];
+                              if (llmConfig.parallelization.tensor_parallel > 1) {
+                                parallelization.push(`TP${llmConfig.parallelization.tensor_parallel}`);
+                              }
+                              if (llmConfig.parallelization.expert_parallel > 1) {
+                                parallelization.push(`EP${llmConfig.parallelization.expert_parallel}`);
+                              }
+                              if (llmConfig.parallelization.data_parallel > 1) {
+                                parallelization.push(`DP${llmConfig.parallelization.data_parallel}`);
+                              }
+                              parallelStr = parallelization.length > 0 ? parallelization.join('+') : `TP${config.num_gpus}`;
                             }
-                            if (llmConfig.parallelization.expert_parallel > 1) {
-                              parallelization.push(`EP${llmConfig.parallelization.expert_parallel}`);
-                            }
-                            if (llmConfig.parallelization.data_parallel > 1) {
-                              parallelization.push(`DP${llmConfig.parallelization.data_parallel}`);
-                            }
-                            parallelStr = parallelization.length > 0 ? parallelization.join('+') : `TP${config.num_gpus}`;
                           }
                         }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AnyConfiguration } from '../types';
+import { AnyConfiguration, Configuration, ImageConfiguration, VideoConfiguration } from '../types';
 import { ColumnDef } from '../config/columns';
 
 interface LeaderboardTableProps {
@@ -103,11 +103,13 @@ export default function LeaderboardTable({
   const getRowKey = (config: AnyConfiguration): string => {
     const base = `${config.model_id}-${config.gpu_model}-${config.num_gpus}`;
     if ('batch_size' in config) {
-      // Diffusion config
-      return `${base}-${config.batch_size}`;
+      // Diffusion config - include parallelization for uniqueness
+      const diffConfig = config as ImageConfiguration | VideoConfiguration;
+      return `${base}-${diffConfig.batch_size}-${diffConfig.ulysses_degree}-${diffConfig.ring_degree}`;
     }
     // LLM/MLLM config
-    return `${base}-${(config as any).max_num_seqs ?? 'null'}`;
+    const maxNumSeqs = 'max_num_seqs' in config ? (config as Configuration).max_num_seqs : null;
+    return `${base}-${maxNumSeqs ?? 'null'}`;
   };
 
   return (

@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { IndexData, TaskData, AnyConfiguration } from './types';
+import { IndexData, TaskData, AnyConfiguration, Configuration } from './types';
 import { loadIndexData, loadTaskData } from './utils/dataLoader';
 import { getColumnsForTask } from './config/columns';
 import { getTaskConfig, sortTasks, isDiffusionTask } from './config/tasks';
@@ -102,13 +102,13 @@ function App() {
   const getEnergyValue = (config: AnyConfiguration): number => {
     if ('energy_per_image_joules' in config) return config.energy_per_image_joules;
     if ('energy_per_video_joules' in config) return config.energy_per_video_joules;
-    return (config as any).energy_per_token_joules;
+    return (config as Configuration).energy_per_token_joules;
   };
 
   // Helper to get latency value from any configuration type
   const getLatencyValue = (config: AnyConfiguration): number => {
     if ('batch_latency_s' in config) return config.batch_latency_s;
-    return (config as any).median_itl_ms;
+    return (config as Configuration).median_itl_ms;
   };
 
   const maxEnergyBudget = useMemo(() => {
@@ -484,7 +484,7 @@ function App() {
             gpu_model: selectedConfig.gpu_model,
             num_gpus: selectedConfig.num_gpus,
             batch_size: 'batch_size' in selectedConfig ? selectedConfig.batch_size : undefined,
-            max_num_seqs: 'max_num_seqs' in selectedConfig ? (selectedConfig as any).max_num_seqs : undefined,
+            max_num_seqs: 'max_num_seqs' in selectedConfig ? (selectedConfig as Configuration).max_num_seqs : undefined,
           }}
         />
       )}
