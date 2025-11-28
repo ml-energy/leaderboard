@@ -41,6 +41,7 @@ export function ModelDetailModal({
   const [selectedNumGPUs, setSelectedNumGPUs] = useState<Set<number>>(new Set());
   const [displayedConfig, setDisplayedConfig] = useState<AnyModelConfiguration | null>(null);
   const [selectedPercentile, setSelectedPercentile] = useState<ITLPercentile>('p50');
+  const [maxEnergyPerResponse, setMaxEnergyPerResponse] = useState<number>(0);
 
   // Helper to get energy value from any configuration type
   const getEnergyValue = (config: AnyModelConfiguration): number | undefined => {
@@ -85,7 +86,7 @@ export function ModelDetailModal({
     loadModelDetail();
   }, [isOpen, modelId, task]);
 
-  // Initialize filters when model detail loads
+  // Initialize filters and max energy when model detail loads
   useEffect(() => {
     if (modelDetail) {
       const gpuModels = new Set(modelDetail.configurations.map(c => c.gpu_model));
@@ -100,8 +101,28 @@ export function ModelDetailModal({
         );
         setDisplayedConfig(highestEnergyConfig);
       }
+
+      // Calculate max energy per response based on actual data across ALL configs
+      // This is only calculated once when modelDetail loads to ensure X-axis stays constant
+      if (!isDiffusionTask(task)) {
+        let maxEnergy = 0;
+        for (const config of modelDetail.configurations) {
+          const llmConfig = config as ModelConfiguration;
+          if (!llmConfig.output_length_distribution || !llmConfig.energy_per_token_joules) continue;
+          const { bins, counts } = llmConfig.output_length_distribution;
+          // Find last bin with non-zero count for this config
+          for (let i = counts.length - 1; i >= 0; i--) {
+            if (counts[i] > 0) {
+              const configMaxEnergy = bins[i + 1] * llmConfig.energy_per_token_joules;
+              maxEnergy = Math.max(maxEnergy, configMaxEnergy);
+              break;
+            }
+          }
+        }
+        setMaxEnergyPerResponse(maxEnergy);
+      }
     }
-  }, [modelDetail]);
+  }, [modelDetail, task]);
 
   // Extract available GPU models and num_gpus
   const availableGPUs = modelDetail
@@ -167,27 +188,6 @@ export function ModelDetailModal({
         selectedGPUs.has(config.gpu_model) && selectedNumGPUs.has(config.num_gpus)
     );
   }, [modelDetail, selectedGPUs, selectedNumGPUs]);
-
-  // Calculate actual max energy by looking at each config's distribution × energy_per_token
-  // Uses ALL configurations (not filtered) so the X-axis range stays constant
-  const maxEnergyPerResponse = useMemo(() => {
-    if (isDiffusion || !modelDetail) return 0;
-    let maxEnergy = 0;
-    for (const config of modelDetail.configurations) {
-      const llmConfig = config as ModelConfiguration;
-      if (!llmConfig.output_length_distribution || !llmConfig.energy_per_token_joules) continue;
-      const { bins, counts } = llmConfig.output_length_distribution;
-      // Find last bin with non-zero count for this config
-      for (let i = counts.length - 1; i >= 0; i--) {
-        if (counts[i] > 0) {
-          const configMaxEnergy = bins[i + 1] * llmConfig.energy_per_token_joules;
-          maxEnergy = Math.max(maxEnergy, configMaxEnergy);
-          break;
-        }
-      }
-    }
-    return maxEnergy;
-  }, [modelDetail, isDiffusion]);
 
   const sortedConfigs = [...filteredConfigs].sort((a, b) => {
     if (!sortKey || !sortDirection) return 0;
@@ -346,7 +346,7 @@ export function ModelDetailModal({
                             (displayedConfig as ModelConfiguration)?.output_length_distribution || (modelDetail as ModelDetail).output_length_distribution
                           }
                           energyPerToken={(displayedConfig as ModelConfiguration)?.energy_per_token_joules || null}
-                          maxEnergyPerResponse={maxEnergyPerResponse}
+                          maxEnergyPerResponse={maxEnergyPerResponse > 0 ? maxEnergyPerResponse : null}
                           configLabel={
                             displayedConfig
                               ? `${displayedConfig.num_gpus} × ${displayedConfig.gpu_model}${(displayedConfig as ModelConfiguration).max_num_seqs ? `, max batch size ${(displayedConfig as ModelConfiguration).max_num_seqs}` : ''}`
