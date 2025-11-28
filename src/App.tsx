@@ -137,7 +137,7 @@ function App() {
   }, [maxLatencyDeadline]);
 
   useEffect(() => {
-    if (availableGPUs.length > 0 && selectedGPUs.size === 0) {
+    if (availableGPUs.length > 0) {
       setSelectedGPUs(new Set(availableGPUs));
     }
   }, [availableGPUs]);
