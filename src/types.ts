@@ -23,11 +23,19 @@ export interface Configuration {
   num_gpus: number;
   total_params_billions: number;
   activated_params_billions: number;
+  architecture: string;
+  weight_precision: string;
   max_num_seqs: number | null;
   max_num_batched_tokens: number | null;
 
+  // Parallelization fields
+  tensor_parallel: number;
+  expert_parallel: number;
+  data_parallel: number;
+
   energy_per_token_joules: number;
   energy_per_request_joules: number;
+  avg_power_watts: number;
   median_itl_ms: number;
   output_throughput_tokens_per_sec: number;
 
@@ -55,6 +63,7 @@ export interface ImageConfiguration {
   batch_size: number;
   energy_per_image_joules: number;
   batch_latency_s: number;
+  avg_power_watts: number;
   throughput_images_per_sec: number;
   image_height: number;
   image_width: number;
@@ -74,9 +83,12 @@ export interface VideoConfiguration {
   batch_size: number;
   energy_per_video_joules: number;
   batch_latency_s: number;
+  avg_power_watts: number;
   throughput_videos_per_sec: number;
   video_height: number;
   video_width: number;
+  num_frames: number | null;
+  fps: number | null;
   inference_steps: number;
   ulysses_degree: number;
   ring_degree: number;
@@ -105,6 +117,7 @@ export interface ModelConfiguration {
 
   energy_per_token_joules: number;
   energy_per_request_joules: number;
+  avg_power_watts: number;
   median_itl_ms: number;
   p90_itl_ms: number;
   p95_itl_ms: number;
@@ -146,6 +159,7 @@ export interface ImageModelConfiguration {
   parallelization: DiffusionParallelization;
   energy_per_image_joules: number;
   batch_latency_s: number;
+  avg_power_watts: number;
   throughput_images_per_sec: number;
   image_height: number;
   image_width: number;
@@ -159,6 +173,7 @@ export interface VideoModelConfiguration {
   parallelization: DiffusionParallelization;
   energy_per_video_joules: number;
   batch_latency_s: number;
+  avg_power_watts: number;
   throughput_videos_per_sec: number;
   video_height: number;
   video_width: number;

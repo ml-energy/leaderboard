@@ -69,6 +69,9 @@ class DiffusionBenchmarkRun:
     use_torch_compile: bool
     seed: int
     results_path: Path
+    # Video-specific fields (None for text-to-image)
+    num_frames: Optional[int] = None
+    fps: Optional[int] = None
 
 
 # ============================================================================
@@ -261,33 +264,60 @@ def scan_diffusion_results_directory(results_dir: str) -> List[DiffusionBenchmar
         model_id = f"{org}/{model_name}"
         config_params = parse_diffusion_config_dir(config_dir)
 
+        # Validate required diffusion config parameters
+        required_diffusion_params = ["ulysses_degree", "ring_degree", "batch_size", "height", "width", "inference_steps", "seed"]
+        for param in required_diffusion_params:
+            if param not in config_params:
+                raise ValueError(
+                    f"Missing required parameter '{param}' in diffusion config directory name\n"
+                    f"Directory: {config_dir}\n"
+                    f"Expected format: batch-{{B}}+size-{{H}}x{{W}}+steps-{{S}}+seed-{{SEED}}+uly-{{U}}+ring-{{R}}+tc-{{TC}}"
+                )
+
         # Derive num_gpus from parallelism degrees
-        ulysses_degree = config_params.get("ulysses_degree", 1)
-        ring_degree = config_params.get("ring_degree", 1)
+        ulysses_degree = config_params["ulysses_degree"]
+        ring_degree = config_params["ring_degree"]
         num_gpus = ulysses_degree * ring_degree
 
         # Derive GPU model from results path (e.g., .../h100/run/...)
         # Look for gpu model in parent directories
-        gpu_model = "H100"  # Default
+        gpu_model = None
         for parent in results_json_path.parents:
             if parent.name.lower() in ("h100", "b200", "a100"):
                 gpu_model = parent.name.upper()
                 break
+
+        if gpu_model is None:
+            raise ValueError(
+                f"Could not determine GPU model from results path\n"
+                f"Path: {results_json_path}\n"
+                f"Expected one of the parent directories to be 'h100', 'b200', or 'a100'"
+            )
+
+        # For video tasks, read num_frames and fps from results.json
+        num_frames = None
+        fps = None
+        if task == "text-to-video":
+            results_data = load_json_cached(results_json_path)
+            num_frames = results_data["num_frames"]
+            fps = results_data["fps"]
 
         run = DiffusionBenchmarkRun(
             model_id=model_id,
             gpu_model=gpu_model,
             num_gpus=num_gpus,
             task=task,
-            batch_size=config_params.get("batch_size", 1),
-            height=config_params.get("height", 1024),
-            width=config_params.get("width", 1024),
-            inference_steps=config_params.get("inference_steps", 20),
+            batch_size=config_params["batch_size"],
+            height=config_params["height"],
+            width=config_params["width"],
+            inference_steps=config_params["inference_steps"],
             ulysses_degree=ulysses_degree,
             ring_degree=ring_degree,
             use_torch_compile=config_params.get("use_torch_compile", False),
-            seed=config_params.get("seed", 42),
+            seed=config_params["seed"],
             results_path=results_json_path,
+            num_frames=num_frames,
+            fps=fps,
         )
 
         runs.append(run)
@@ -445,6 +475,9 @@ def extract_metrics(run: BenchmarkRun) -> Dict:
         metrics["energy_per_token_joules"] * metrics["avg_output_len"]
     )
 
+    # Calculate average power during steady state
+    metrics["avg_power_watts"] = results["steady_state_energy"] / results["steady_state_duration"]
+
     # Extract ITL percentiles from client-side measurements (more accurate than Prometheus)
     itl_metrics = extract_client_itl_percentiles(results)
     metrics.update(itl_metrics)
@@ -513,6 +546,7 @@ def extract_diffusion_metrics(run: DiffusionBenchmarkRun) -> Dict:
         "batch_latency_s": avg_batch_latency,
         "avg_gpu_energy_joules": avg_gpu_energy,
         "num_iterations": len(iterations),
+        "avg_power_watts": avg_gpu_energy / avg_batch_latency,
     }
 
     # Task-specific metrics
@@ -628,13 +662,13 @@ def parse_parallelization(run: BenchmarkRun) -> Dict:
     config_path = run.config_path
 
     if not config_path.exists():
-        print(f"Warning: Config not found: {config_path}")
-        return {
-            "tensor_parallel": 1,
-            "expert_parallel": 0,
-            "data_parallel": 0,
-            "notes": "Config file not found",
-        }
+        raise ValueError(
+            f"Config file not found: {config_path}\n"
+            f"Model: {run.model_id}\n"
+            f"Task: {run.task}\n"
+            f"GPU: {run.gpu_model}\n"
+            f"Please create the config file."
+        )
 
     with open(config_path) as f:
         config = yaml.safe_load(f)
@@ -1103,6 +1137,7 @@ def generate_task_json(task: str, runs: List[BenchmarkRun], output_dir: Path, co
     for run in task_runs:
         metrics = extract_metrics(run)
         params = get_model_params(run.model_id, task, config_dir)
+        parallelization = parse_parallelization(run)
 
         config = {
             "model_id": run.model_id,
@@ -1111,10 +1146,17 @@ def generate_task_json(task: str, runs: List[BenchmarkRun], output_dir: Path, co
             "num_gpus": run.num_gpus,
             "total_params_billions": params["total_params_billions"],
             "activated_params_billions": params["activated_params_billions"],
+            "architecture": params["architecture"],
+            "weight_precision": params["weight_precision"],
             "max_num_seqs": run.max_num_seqs,
             "max_num_batched_tokens": run.max_num_batched_tokens,
+            # Parallelization fields flattened for table display
+            "tensor_parallel": parallelization["tensor_parallel"],
+            "expert_parallel": parallelization["expert_parallel"],
+            "data_parallel": parallelization["data_parallel"],
             "energy_per_token_joules": metrics["energy_per_token_joules"],
             "energy_per_request_joules": metrics["energy_per_request_joules"],
+            "avg_power_watts": metrics["avg_power_watts"],
             "median_itl_ms": metrics["median_itl_ms"],
             "output_throughput_tokens_per_sec": metrics["output_throughput_tokens_per_sec"],
             # These fields are now guaranteed to exist due to strict validation in extract_metrics()
@@ -1171,6 +1213,7 @@ def generate_diffusion_task_json(
             "activated_params_billions": params["activated_params_billions"],
             "batch_size": run.batch_size,
             "batch_latency_s": metrics["batch_latency_s"],
+            "avg_power_watts": metrics["avg_power_watts"],
             "ulysses_degree": run.ulysses_degree,
             "ring_degree": run.ring_degree,
             "inference_steps": run.inference_steps,
@@ -1187,6 +1230,8 @@ def generate_diffusion_task_json(
             config["throughput_videos_per_sec"] = metrics["throughput_videos_per_sec"]
             config["video_height"] = run.height
             config["video_width"] = run.width
+            config["num_frames"] = run.num_frames
+            config["fps"] = run.fps
 
         configurations.append(config)
 
@@ -1253,6 +1298,7 @@ def generate_model_json(
             "parallelization": parallelization,
             "energy_per_token_joules": metrics["energy_per_token_joules"],
             "energy_per_request_joules": metrics["energy_per_request_joules"],
+            "avg_power_watts": metrics["avg_power_watts"],
             "median_itl_ms": metrics["median_itl_ms"],
             "p90_itl_ms": metrics["p90_itl_ms"],
             "p95_itl_ms": metrics["p95_itl_ms"],
@@ -1306,6 +1352,7 @@ def generate_diffusion_model_json(
                 "ring_degree": run.ring_degree,
             },
             "batch_latency_s": metrics["batch_latency_s"],
+            "avg_power_watts": metrics["avg_power_watts"],
             "inference_steps": run.inference_steps,
         }
 
@@ -1320,6 +1367,8 @@ def generate_diffusion_model_json(
             config["throughput_videos_per_sec"] = metrics["throughput_videos_per_sec"]
             config["video_height"] = run.height
             config["video_width"] = run.width
+            config["num_frames"] = run.num_frames
+            config["fps"] = run.fps
 
         configurations.append(config)
 

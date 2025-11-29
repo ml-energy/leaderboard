@@ -1,6 +1,96 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AnyConfiguration, Configuration, ImageConfiguration, VideoConfiguration } from '../types';
 import { ColumnDef } from '../config/columns';
+
+interface ColumnHeaderProps {
+  col: ColumnDef;
+  onSort: () => void;
+  sortIcon: React.ReactNode;
+}
+
+function ColumnHeader({ col, onSort, sortIcon }: ColumnHeaderProps) {
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
+  const [position, setPosition] = useState<{ vertical: 'bottom' | 'top'; horizontal: 'center' | 'left' | 'right' }>({ vertical: 'bottom', horizontal: 'center' });
+  const headerRef = useRef<HTMLTableCellElement>(null);
+
+  useEffect(() => {
+    if (isTooltipVisible && headerRef.current && col.tooltip) {
+      const rect = headerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceRight = window.innerWidth - rect.right;
+      const spaceLeft = rect.left;
+      const tooltipWidth = 256;
+
+      let horizontal: 'center' | 'left' | 'right' = 'center';
+      if (spaceRight < tooltipWidth / 2 + 16) {
+        horizontal = 'right';
+      } else if (spaceLeft < tooltipWidth / 2 + 16) {
+        horizontal = 'left';
+      }
+
+      setPosition({
+        vertical: spaceBelow < 150 ? 'top' : 'bottom',
+        horizontal
+      });
+    }
+  }, [isTooltipVisible, col.tooltip]);
+
+  const getHorizontalClasses = () => {
+    switch (position.horizontal) {
+      case 'right':
+        return 'right-0';
+      case 'left':
+        return 'left-0';
+      default:
+        return 'left-1/2 -translate-x-1/2';
+    }
+  };
+
+  const getArrowClasses = () => {
+    const baseClasses = 'absolute w-2 h-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 transform rotate-45';
+    const verticalClasses = position.vertical === 'bottom'
+      ? '-top-1 border-l border-t'
+      : '-bottom-1 border-r border-b';
+
+    let horizontalClasses = 'left-1/2 -translate-x-1/2';
+    if (position.horizontal === 'right') {
+      horizontalClasses = 'right-4';
+    } else if (position.horizontal === 'left') {
+      horizontalClasses = 'left-4';
+    }
+
+    return `${baseClasses} ${verticalClasses} ${horizontalClasses}`;
+  };
+
+  return (
+    <th
+      ref={headerRef}
+      onClick={onSort}
+      onMouseEnter={() => col.tooltip && setIsTooltipVisible(true)}
+      onMouseLeave={() => setIsTooltipVisible(false)}
+      className={`px-3 py-3 text-base font-medium text-gray-500 dark:text-gray-400 ${
+        col.align === 'right' ? 'text-right' : 'text-left'
+      } ${col.sortable ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700' : ''} relative`}
+    >
+      <div className={`flex items-center ${col.align === 'right' ? 'justify-end' : ''}`}>
+        <span className={col.tooltip ? 'border-b border-dotted border-gray-400 dark:border-gray-500' : ''}>
+          {col.label}
+        </span>
+        {sortIcon}
+      </div>
+      {col.tooltip && isTooltipVisible && (
+        <div
+          className={`absolute z-50 w-64 p-2 text-sm font-normal text-left text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg ${
+            position.vertical === 'bottom' ? 'top-full mt-1' : 'bottom-full mb-1'
+          } ${getHorizontalClasses()}`}
+        >
+          {col.tooltip}
+          <div className={getArrowClasses()} />
+        </div>
+      )}
+    </th>
+  );
+}
 
 interface LeaderboardTableProps {
   configurations: AnyConfiguration[];
@@ -150,18 +240,12 @@ export default function LeaderboardTable({
               </th>
             )}
             {columns.map((col) => (
-              <th
+              <ColumnHeader
                 key={col.key}
-                onClick={() => handleSort(col.key, col.sortable)}
-                className={`px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 ${
-                  col.sortable ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700' : ''
-                }`}
-              >
-                <div className="flex items-center">
-                  {col.label}
-                  {getSortIcon(col.key, col.sortable)}
-                </div>
-              </th>
+                col={col}
+                onSort={() => handleSort(col.key, col.sortable)}
+                sortIcon={getSortIcon(col.key, col.sortable)}
+              />
             ))}
           </tr>
         </thead>
@@ -201,7 +285,9 @@ export default function LeaderboardTable({
               {columns.map((col) => (
                 <td
                   key={col.key}
-                  className="px-3 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100"
+                  className={`px-3 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100 ${
+                    col.align === 'right' ? 'text-right' : ''
+                  }`}
                 >
                   {getCellValue(config, col)}
                 </td>
