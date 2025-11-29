@@ -29,15 +29,13 @@ jobs:
           cache-dependency-path: 'package-lock.json'
 
       - name: Install dependencies
-        working-directory: leaderboard
         run: npm ci
 
       - name: Build website
-        working-directory: leaderboard
         run: npm run build
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: './dist'
 
