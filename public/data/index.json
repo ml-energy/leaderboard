@@ -1,0 +1,339 @@
+{
+  "last_updated": "2025-11-29",
+  "tasks": [
+    "gpqa",
+    "image-chat",
+    "lm-arena-chat",
+    "sourcegraph-fim",
+    "text-to-image",
+    "text-to-video",
+    "video-chat"
+  ],
+  "architectures": {
+    "llm": [
+      "gpqa",
+      "lm-arena-chat",
+      "sourcegraph-fim"
+    ],
+    "mllm": [
+      "image-chat",
+      "video-chat"
+    ],
+    "diffusion": [
+      "text-to-image",
+      "text-to-video"
+    ]
+  },
+  "models": {
+    "Qwen/Qwen3-14B": {
+      "nickname": "Qwen 3 14B",
+      "total_params_billions": 14.0,
+      "activated_params_billions": 14.0,
+      "architecture": "Dense Transformer",
+      "weight_precision": "bfloat16"
+    },
+    "Qwen/Qwen3-235B-A22B-Thinking-2507-FP8": {
+      "nickname": "Qwen 3 235B A22B Thinking FP8",
+      "total_params_billions": 235.0,
+      "activated_params_billions": 22.0,
+      "architecture": "MoE",
+      "weight_precision": "fp8"
+    },
+    "Qwen/Qwen3-235B-A22B-Thinking-2507": {
+      "nickname": "Qwen 3 235B A22B Thinking",
+      "total_params_billions": 235.0,
+      "activated_params_billions": 22.0,
+      "architecture": "MoE",
+      "weight_precision": "bfloat16"
+    },
+    "Qwen/Qwen3-30B-A3B-Thinking-2507": {
+      "nickname": "Qwen 3 30B A3B Thinking",
+      "total_params_billions": 30.0,
+      "activated_params_billions": 3.0,
+      "architecture": "MoE",
+      "weight_precision": "bfloat16"
+    },
+    "Qwen/Qwen3-32B": {
+      "nickname": "Qwen 3 32B",
+      "total_params_billions": 32.0,
+      "activated_params_billions": 32.0,
+      "architecture": "Dense Transformer",
+      "weight_precision": "bfloat16"
+    },
+    "Qwen/Qwen3-8B": {
+      "nickname": "Qwen 3 8B",
+      "total_params_billions": 8.0,
+      "activated_params_billions": 8.0,
+      "architecture": "Dense Transformer",
+      "weight_precision": "bfloat16"
+    },
+    "nvidia/NVIDIA-Nemotron-Nano-12B-v2": {
+      "nickname": "NVIDIA Nemotron Nano 12B V2",
+      "total_params_billions": 12.0,
+      "activated_params_billions": 12.0,
+      "architecture": "Mamba-Transformer Hybrid",
+      "weight_precision": "bfloat16"
+    },
+    "nvidia/NVIDIA-Nemotron-Nano-9B-v2": {
+      "nickname": "NVIDIA Nemotron Nano 9B V2",
+      "total_params_billions": 9.0,
+      "activated_params_billions": 9.0,
+      "architecture": "Mamba-Transformer Hybrid",
+      "weight_precision": "bfloat16"
+    },
+    "openai/gpt-oss-120b": {
+      "nickname": "GPT OSS 120B",
+      "total_params_billions": 117.0,
+      "activated_params_billions": 5.0,
+      "architecture": "MoE",
+      "weight_precision": "mxfp4"
+    },
+    "openai/gpt-oss-20b": {
+      "nickname": "GPT OSS 20B",
+      "total_params_billions": 21.0,
+      "activated_params_billions": 4.0,
+      "architecture": "MoE",
+      "weight_precision": "mxfp4"
+    },
+    "Qwen/Qwen3-235B-A22B-Instruct-2507-FP8": {
+      "nickname": "Qwen 3 235B A22B Instruct FP8",
+      "total_params_billions": 235.0,
+      "activated_params_billions": 22.0,
+      "architecture": "MoE",
+      "weight_precision": "fp8"
+    },
+    "Qwen/Qwen3-235B-A22B-Instruct-2507": {
+      "nickname": "Qwen 3 235B A22B Instruct",
+      "total_params_billions": 235.0,
+      "activated_params_billions": 22.0,
+      "architecture": "MoE",
+      "weight_precision": "bfloat16"
+    },
+    "Qwen/Qwen3-30B-A3B-Instruct-2507": {
+      "nickname": "Qwen 3 30B A3B Instruct",
+      "total_params_billions": 30.0,
+      "activated_params_billions": 3.0,
+      "architecture": "MoE",
+      "weight_precision": "bfloat16"
+    },
+    "google/gemma-3-12b-it": {
+      "nickname": "Gemma 3 12B",
+      "total_params_billions": 12.0,
+      "activated_params_billions": 12.0,
+      "architecture": "Dense Transformer",
+      "weight_precision": "bfloat16"
+    },
+    "google/gemma-3-27b-it": {
+      "nickname": "Gemma 3 27B",
+      "total_params_billions": 27.0,
+      "activated_params_billions": 27.0,
+      "architecture": "Dense Transformer",
+      "weight_precision": "bfloat16"
+    },
+    "meta-llama/Llama-3.1-405B-Instruct-FP8": {
+      "nickname": "Llama 3.1 405B Instruct FP8",
+      "total_params_billions": 405.0,
+      "activated_params_billions": 405.0,
+      "architecture": "Dense Transformer",
+      "weight_precision": "fp8"
+    },
+    "meta-llama/Llama-3.1-70B-Instruct": {
+      "nickname": "Llama 3.1 70B Instruct",
+      "total_params_billions": 70.0,
+      "activated_params_billions": 70.0,
+      "architecture": "Dense Transformer",
+      "weight_precision": "bfloat16"
+    },
+    "meta-llama/Llama-3.1-8B-Instruct": {
+      "nickname": "Llama 3.1 8B Instruct",
+      "total_params_billions": 8.0,
+      "activated_params_billions": 8.0,
+      "architecture": "Dense Transformer",
+      "weight_precision": "bfloat16"
+    },
+    "meta-llama/Llama-3.3-70B-Instruct": {
+      "nickname": "Llama 3.3 70B Instruct",
+      "total_params_billions": 70.0,
+      "activated_params_billions": 70.0,
+      "architecture": "Dense Transformer",
+      "weight_precision": "bfloat16"
+    },
+    "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8": {
+      "nickname": "Llama 4 Maverick 17B 128E Instruct FP8",
+      "total_params_billions": 400.0,
+      "activated_params_billions": 17.0,
+      "architecture": "MoE",
+      "weight_precision": "fp8"
+    },
+    "meta-llama/Llama-4-Scout-17B-16E-Instruct": {
+      "nickname": "Llama 4 Scout 17B 16E Instruct",
+      "total_params_billions": 109.0,
+      "activated_params_billions": 17.0,
+      "architecture": "MoE",
+      "weight_precision": "bfloat16"
+    },
+    "Qwen/Qwen3-Coder-30B-A3B-Instruct": {
+      "nickname": "Qwen 3 Coder 30B A3B",
+      "total_params_billions": 30.0,
+      "activated_params_billions": 3.0,
+      "architecture": "MoE",
+      "weight_precision": "bfloat16"
+    },
+    "Qwen/Qwen3-Omni-30B-A3B-Instruct": {
+      "nickname": "Qwen 3 Omni 30B A3B Instruct",
+      "total_params_billions": 30.0,
+      "activated_params_billions": 3.0,
+      "architecture": "MoE",
+      "weight_precision": "bfloat16"
+    },
+    "Qwen/Qwen3-VL-235B-A22B-Instruct-FP8": {
+      "nickname": "Qwen 3 VL 235B A22B Instruct FP8",
+      "total_params_billions": 235.0,
+      "activated_params_billions": 22.0,
+      "architecture": "MoE",
+      "weight_precision": "fp8"
+    },
+    "Qwen/Qwen3-VL-235B-A22B-Instruct": {
+      "nickname": "Qwen 3 VL 235B A22B Instruct",
+      "total_params_billions": 235.0,
+      "activated_params_billions": 22.0,
+      "architecture": "MoE",
+      "weight_precision": "bfloat16"
+    },
+    "Qwen/Qwen3-VL-30B-A3B-Instruct": {
+      "nickname": "Qwen 3 VL 30B A3B Instruct",
+      "total_params_billions": 30.0,
+      "activated_params_billions": 3.0,
+      "architecture": "MoE",
+      "weight_precision": "bfloat16"
+    },
+    "Qwen/Qwen3-VL-32B-Instruct": {
+      "nickname": "Qwen 3 VL 32B Instruct",
+      "total_params_billions": 32.0,
+      "activated_params_billions": 32.0,
+      "architecture": "Dense Transformer",
+      "weight_precision": "bfloat16"
+    },
+    "Qwen/Qwen3-VL-8B-Instruct": {
+      "nickname": "Qwen 3 VL 8B Instruct",
+      "total_params_billions": 8.0,
+      "activated_params_billions": 8.0,
+      "architecture": "Dense Transformer",
+      "weight_precision": "bfloat16"
+    },
+    "nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16": {
+      "nickname": "NVIDIA Nemotron Nano 12B V2 VL",
+      "total_params_billions": 12.0,
+      "activated_params_billions": 12.0,
+      "architecture": "Mamba-Transformer Hybrid",
+      "weight_precision": "bfloat16"
+    },
+    "deepseek-ai/DeepSeek-R1-0528": {
+      "nickname": "DeepSeek R1",
+      "total_params_billions": 671.0,
+      "activated_params_billions": 37.0,
+      "architecture": "MoE",
+      "weight_precision": "fp8"
+    },
+    "deepseek-ai/DeepSeek-V3.1": {
+      "nickname": "DeepSeek V3.1",
+      "total_params_billions": 671.0,
+      "activated_params_billions": 37.0,
+      "architecture": "MoE",
+      "weight_precision": "fp8"
+    },
+    "meta-llama/Llama-3.1-405B-Instruct": {
+      "nickname": "Llama 3.1 405B Instruct",
+      "total_params_billions": 405.0,
+      "activated_params_billions": 405.0,
+      "architecture": "Dense Transformer",
+      "weight_precision": "bfloat16"
+    },
+    "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8": {
+      "nickname": "Qwen 3 Coder 480B A35B FP8",
+      "total_params_billions": 480.0,
+      "activated_params_billions": 35.0,
+      "architecture": "MoE",
+      "weight_precision": "fp8"
+    },
+    "Qwen/Qwen3-Coder-480B-A35B-Instruct": {
+      "nickname": "Qwen 3 Coder 480B A35B",
+      "total_params_billions": 480.0,
+      "activated_params_billions": 35.0,
+      "architecture": "MoE",
+      "weight_precision": "bfloat16"
+    },
+    "Efficient-Large-Model/SANA1.5_1.6B_1024px_diffusers": {
+      "nickname": "SANA 1.5 1.6B",
+      "total_params_billions": 1.6,
+      "activated_params_billions": 1.6,
+      "weight_precision": "bfloat16"
+    },
+    "Efficient-Large-Model/SANA1.5_4.8B_1024px_diffusers": {
+      "nickname": "SANA 1.5 4.8B",
+      "total_params_billions": 4.8,
+      "activated_params_billions": 4.8,
+      "weight_precision": "bfloat16"
+    },
+    "PixArt-alpha/PixArt-Sigma-XL-2-1024-MS": {
+      "nickname": "PixArt-\u03a3",
+      "total_params_billions": 0.6,
+      "activated_params_billions": 0.6,
+      "weight_precision": "bfloat16"
+    },
+    "Tencent-Hunyuan/HunyuanDiT-v1.2-Diffusers": {
+      "nickname": "Hunyuan-DiT 1.2",
+      "total_params_billions": 1.5,
+      "activated_params_billions": 1.5,
+      "weight_precision": "bfloat16"
+    },
+    "black-forest-labs/FLUX.1-dev": {
+      "nickname": "FLUX.1 Dev",
+      "total_params_billions": 12.0,
+      "activated_params_billions": 12.0,
+      "weight_precision": "bfloat16"
+    },
+    "stabilityai/stable-diffusion-3.5-large": {
+      "nickname": "Stable Diffusion 3.5 Large",
+      "total_params_billions": 8.1,
+      "activated_params_billions": 8.1,
+      "weight_precision": "bfloat16"
+    },
+    "stabilityai/stable-diffusion-3.5-medium": {
+      "nickname": "Stable Diffusion 3.5 Medium",
+      "total_params_billions": 2.5,
+      "activated_params_billions": 2.5,
+      "weight_precision": "bfloat16"
+    },
+    "Wan-AI/Wan2.1-T2V-1.3B-Diffusers": {
+      "nickname": "Wan 2.1 1.3B",
+      "total_params_billions": 1.3,
+      "activated_params_billions": 1.3,
+      "weight_precision": "bfloat16"
+    },
+    "Wan-AI/Wan2.1-T2V-14B-Diffusers": {
+      "nickname": "Wan 2.1 14B",
+      "total_params_billions": 14.0,
+      "activated_params_billions": 14.0,
+      "weight_precision": "bfloat16"
+    },
+    "tencent/HunyuanVideo": {
+      "nickname": "HunyuanVideo",
+      "total_params_billions": 13.0,
+      "activated_params_billions": 13.0,
+      "weight_precision": "bfloat16"
+    },
+    "zai-org/CogVideoX-2b": {
+      "nickname": "CogVideoX 2B",
+      "total_params_billions": 2.0,
+      "activated_params_billions": 2.0,
+      "weight_precision": "bfloat16"
+    },
+    "zai-org/CogVideoX1.5-5B": {
+      "nickname": "CogVideoX 1.5 5B",
+      "total_params_billions": 5.0,
+      "activated_params_billions": 5.0,
+      "weight_precision": "bfloat16"
+    }
+  }
+}
