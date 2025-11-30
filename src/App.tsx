@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { IndexData, TaskData, AnyConfiguration, Configuration } from './types';
 import { loadIndexData, loadTaskData } from './utils/dataLoader';
 import { getColumnsForTask } from './config/columns';
@@ -17,6 +17,7 @@ function App() {
   const [taskData, setTaskData] = useState<TaskData | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingTask, setLoadingTask] = useState(false);
+  const isTaskSwitchingRef = useRef(false); // Ref for synchronous check in effects
   const [error, setError] = useState<string | null>(null);
 
   const [activeTask, setActiveTask] = useState<string>('');
@@ -66,15 +67,19 @@ function App() {
   useEffect(() => {
     if (!activeTask) return;
 
+    // Set ref synchronously so other effects in this cycle can check it
+    isTaskSwitchingRef.current = true;
     setLoadingTask(true);
     loadTaskData(activeTask)
       .then((data) => {
         setTaskData(data);
         setLoadingTask(false);
+        isTaskSwitchingRef.current = false;
       })
       .catch((err) => {
         setError(err.message);
         setLoadingTask(false);
+        isTaskSwitchingRef.current = false;
       });
   }, [activeTask]);
 
@@ -130,11 +135,13 @@ function App() {
   }, [taskData, activeTask]);
 
   // Clamp latencyDeadline to maxLatencyDeadline when it changes
+  // Skip while task is switching to avoid race with default-setting effect
   useEffect(() => {
+    if (isTaskSwitchingRef.current) return;
     if (latencyDeadline > maxLatencyDeadline) {
       setLatencyDeadline(maxLatencyDeadline);
     }
-  }, [maxLatencyDeadline]);
+  }, [maxLatencyDeadline, latencyDeadline]);
 
   useEffect(() => {
     if (availableGPUs.length > 0) {
@@ -143,10 +150,14 @@ function App() {
   }, [availableGPUs]);
 
   useEffect(() => {
-    if (maxEnergyBudget > 0 && energyBudget === null) {
+    // Skip while loading to avoid using stale taskData from previous task
+    if (loadingTask) return;
+    // Only set energy budget when we have real task data (not fallback 0.1)
+    if (!taskData || taskData.configurations.length === 0) return;
+    if (energyBudget === null) {
       setEnergyBudget(maxEnergyBudget);
     }
-  }, [maxEnergyBudget]);
+  }, [maxEnergyBudget, taskData, energyBudget, loadingTask]);
 
   // Clear comparison selection when switching tasks
   useEffect(() => {
@@ -309,11 +320,11 @@ function App() {
       <header className="bg-white dark:bg-gray-800 shadow">
         <div className="mx-auto py-6 px-6 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white" style={{ fontFamily: 'Montserrat, sans-serif' }}>
               The ML.ENERGY Leaderboard
             </h1>
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              Benchmarking energy efficiency of LLMs and MLLMs
+              How much time and energy do generative AI models consume?
             </p>
           </div>
           <div className="flex items-center gap-3">

@@ -74,8 +74,29 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
               What is this?
             </h3>
             <p className="text-gray-700 dark:text-gray-300">
-              The ML.ENERGY Leaderboard visualizes the <strong>time-energy tradeoff</strong> of generative AI models, including Large Language Models (LLMs), Multimodal LLMs (MLLMs), and diffusion models. We run real-world inference workloads using production-grade serving frameworks while precisely measuring <strong>GPU energy consumption</strong>. See our <a href="https://arxiv.org/abs/2505.06371" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">NeurIPS Datasets and Benchmarks 2025 Spotlight paper</a> for details.
+              The ML.ENERGY Leaderboard visualizes the <strong>time-energy tradeoff</strong> of generative AI models, including Large Language Models (LLMs), Multimodal LLMs (MLLMs), and diffusion models. Our goal is to benchmark inference in <strong>realistic production-grade settings</strong> that reflect time and energy consumption <strong>at scale</strong>. See our <a href="https://neurips.cc/virtual/2025/loc/san-diego/poster/121781" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">NeurIPS D&B paper</a> for details.
             </p>
+          </section>
+
+          {/* How to Use */}
+          <section>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+              How to Use the Leaderboard
+            </h3>
+            <div className="space-y-3 text-gray-700 dark:text-gray-300">
+              <p>
+                <strong>Browse the Whole Space:</strong> At the top of each task page, see the full range of benchmarked configurations for every model, including different batch sizes, GPU counts, and hardware options. You can <strong>hover oer points</strong> to see exact metrics and configurations. Also, clicking the legend item will open up a <strong>detailed model view</strong>.
+              </p>
+              <p>
+                <strong>Set Constraints:</strong> Use the sliders to specify your latency requirement and energy budget. The leaderboard automatically filters and ranks models by their most energy-efficient configuration that meets your constraints. <strong>Each row on the table is clickable</strong>; click to open the detailed model view.
+              </p>
+              <p>
+                <strong>Detailed Model View:</strong> Click on any table row or the big scatter plot's legend item to see all its tested configurations, the time-energy tradeoff curve, and all configurations benchmarked for that model.
+              </p>
+              <p>
+                <strong>Compare Models:</strong> Select two or more models using the checkbox and compare their configurations side-by-side and see how they differ across the time-energy spectrum.
+              </p>
+            </div>
           </section>
 
           {/* Methodology */}
@@ -88,10 +109,10 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
                 <strong>Inference Engines:</strong> We use <a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">vLLM</a> for LLMs and MLLMs, and <a href="https://github.com/xdit-project/xDiT" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">xDiT</a> for diffusion models.
               </p>
               <p>
-                <strong>Energy Measurement:</strong> We measure <strong>GPU energy only</strong> (not total system energy) using <a href="https://ml.energy/zeus" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">Zeus</a>. We report steady-state GPU energy per output unit (Joules per token, image, or video) after the server reaches thermal and throughput equilibrium.
+                <strong>Energy Measurement:</strong> We measure and report <strong>GPU energy consumption</strong> using <a href="https://ml.energy/zeus" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">Zeus</a>. We report steady-state GPU energy per output unit (Joules per token, image, or video) after the server reaches thermal and throughput equilibrium.
               </p>
               <p>
-                <strong>Configuration Sweeping:</strong> For each model and task, we sweep across multiple batch sizes and GPU configurations to map out the time-energy tradeoff space. This allows users to find the optimal configuration for their specific latency and energy constraints.
+                <strong>Configuration Sweeping:</strong> For each model and task, we sweep across multiple batch sizes, GPU models, and number of GPUs to map out the time-energy tradeoff space. This allows users to find the optimal configuration for their specific latency and energy constraints.
               </p>
             </div>
           </section>
@@ -104,13 +125,13 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
             <div className="space-y-3 text-gray-700 dark:text-gray-300">
               <p>We benchmark models on realistic use cases:</p>
               <ul className="list-disc list-inside ml-4 space-y-1">
-                <li><strong>Problem Solving:</strong> Answering challenging questions that require long reasoning chains</li>
-                <li><strong>Text Conversation:</strong> ChatGPT-like conversations with back-and-forth dialogue</li>
-                <li><strong>Code Completion:</strong> Inline code suggestions similar to Cursor tab completions</li>
-                <li><strong>Image Chat:</strong> Conversations about images, like asking questions about a photo</li>
-                <li><strong>Video Chat:</strong> Conversations about video content</li>
-                <li><strong>Text to Image:</strong> Generating images from text descriptions</li>
-                <li><strong>Text to Video:</strong> Generating videos from text descriptions</li>
+                <li><strong>Problem Solving:</strong> Working through math problems, debugging code, or explaining concepts step by step</li>
+                <li><strong>Text Conversation:</strong> Chatting with an AI assistant to get help writing, brainstorm ideas, or answer questions</li>
+                <li><strong>Code Completion:</strong> Inline "tab to accept" code suggestions in AI-powered editors</li>
+                <li><strong>Image Chat:</strong> Uploading a photo and asking questions about it</li>
+                <li><strong>Video Chat:</strong> Sharing a video clip and asking questions about it</li>
+                <li><strong>Text to Image:</strong> Describing what you want to see and having the AI create an image</li>
+                <li><strong>Text to Video:</strong> Describing a scene and having the AI create a video</li>
               </ul>
             </div>
           </section>
@@ -130,27 +151,6 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
             </div>
           </section>
 
-          {/* How to Use */}
-          <section>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-              Features
-            </h3>
-            <div className="space-y-3 text-gray-700 dark:text-gray-300">
-              <p>
-                <strong>Browse the Whole Space:</strong> See the full range of tested configurations for every model, including different batch sizes, GPU counts, and hardware options.
-              </p>
-              <p>
-                <strong>Set Constraints:</strong> Use the deadline slider to specify your latency requirements and optionally set an energy budget. The leaderboard automatically filters and ranks models by their most energy-efficient configuration that meets your constraints.
-              </p>
-              <p>
-                <strong>Dive Deep:</strong> Click on any model to see all its tested configurations, the time-energy tradeoff curve, and detailed metrics for each configuration.
-              </p>
-              <p>
-                <strong>Compare Models:</strong> Select multiple models to compare their configurations side-by-side and see how they differ across the time-energy spectrum.
-              </p>
-            </div>
-          </section>
-
           {/* FAQ */}
           <section>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
@@ -160,13 +160,13 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
               <div>
                 <h4 className="font-semibold text-gray-900 dark:text-white">Is this accurate?</h4>
                 <p className="text-gray-700 dark:text-gray-300">
-                  We take accuracy seriously. Our measurements use real GPU energy readings (not TDP-based estimates, which can overestimate by up to 4x). We measure steady-state energy when the server is running at its configured batch size, capturing realistic deployment behavior. All benchmarks run on production-grade hardware and software stacks. See our <a href="https://arxiv.org/abs/2505.06371" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">paper</a> for detailed methodology.
+                  We take accuracy seriously. Our measurements use real GPU energy readings (not max power-based estimates, which can lead to significant overestimations). We measure steady-state energy when the server is running at its configured batch size, capturing realistic deployment behavior. All benchmarks run on production-grade hardware and software stacks. See our <a href="https://arxiv.org/abs/2505.06371" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">paper</a> for detailed methodology.
                 </p>
               </div>
               <div>
                 <h4 className="font-semibold text-gray-900 dark:text-white">What are the limitations?</h4>
                 <p className="text-gray-700 dark:text-gray-300">
-                  We can only benchmark <strong>open-weight models</strong>; closed models like OpenAI GPT or Claude cannot be measured. Software and hardware infrastructure evolves over time, so results may drift slightly from optimal as new versions are released. We also cannot cover every possible optimization (e.g., speculative decoding, prefill-decode disaggregation), though we include the most common and impactful ones and follow deployment best practices.
+                  We can only benchmark <strong>open-weight models</strong>; closed models like OpenAI GPT or Claude cannot be measured. Software and hardware infrastructure evolves over time, so results may drift slightly from optimal as new versions are released. We also cannot cover every possible optimization (e.g., speculative decoding, prefill-decode disaggregation), though we include the most common and impactful ones and follow deployment best practices. However, we are planning to follow-up with a <strong>control benchmark</strong> that selects one or two important models and test out various workloads and optimizations.
                 </p>
               </div>
               <div>
@@ -235,7 +235,7 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
               Citation
             </h3>
             <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-              If you use this leaderboard in your research, please cite our NeurIPS Datasets and Benchmarks 2025 Spotlight paper:
+              If you use this leaderboard in your research, please cite our NeurIPS 2025 D&B paper:
             </p>
             <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-xs overflow-x-auto text-gray-800 dark:text-gray-200">
 {`@inproceedings{mlenergy-neuripsdb25,

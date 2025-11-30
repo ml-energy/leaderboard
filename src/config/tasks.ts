@@ -57,7 +57,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     `,
   },
   "lm-arena-chat": {
-    displayName: "General Text Conversation",
+    displayName: "Conversational AI Chatbot",
     tabLabel: "Text Conversation",
     architecture: "llm",
     defaultItlDeadlineMs: 500,
@@ -74,17 +74,20 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Going Deeper</h3>
           <p class="text-gray-700 dark:text-gray-300 mb-3">
-            Text conversation represents the <strong>most balanced workload</strong> for language models. Both inputs and outputs are relatively short: a typical user message is a sentence or two, and responses are a few paragraphs at most.
+            Text conversation represents a large portion of daily LLM usage today. Both inputs and outputs are relatively short: a typical user message is a sentence or two, and responses are a few paragraphs at most.
+          </p>
+          <p class="text-gray-700 dark:text-gray-300 mb-3">
+            One distinct aspect of conversational AI -- be it text-based or audio-based -- is that a human user is sittin in front of the service, reading or listening to the generated content. However, users do not read or listen at infinitely fast speeds; this creates a natural <strong>loose latency deadline</strong> for generating output tokens, and the server can increase batch size a lot to improve energy-efficiency without negatively impacting user experience. [This paper](https://arxiv.org/abs/2404.16283) explores user experience in more detail.
           </p>
           <p class="text-gray-700 dark:text-gray-300">
-            This balanced profile allows for <strong>efficient batching</strong>: the server can process many requests simultaneously, spreading the GPU's fixed overhead across more responses. This makes text conversation one of the most energy-efficient use cases per token. However, because responses are shorter, the total energy per response is also lower than reasoning-heavy tasks.
+            Another difference is that the conversation history accumulates over <strong>multiple turns</strong>, so the model often sees a longer context of accumulated past conversations, rather than just the latest message. However, efficient <strong>prefix caching</strong> allows the server to avoid repeatedly processing the full conversation history for each request, allowing faster and more efficient response generation.
           </p>
         </div>
       </section>
     `,
   },
   "sourcegraph-fim": {
-    displayName: "Code Completion with Fill-in-the-Middle",
+    displayName: "Fill-in-the-Middle Code Completion",
     tabLabel: "Code Completion",
     architecture: "llm",
     defaultItlDeadlineMs: 500,
@@ -95,19 +98,16 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">What is this?</h3>
           <p class="text-gray-700 dark:text-gray-300">
-            This is the <strong>inline code suggestion</strong> you see when typing in a code editor. The AI predicts what you're about to type and offers to complete it for you. Think of the "tab to accept" suggestions in AI-powered editors. The model sees the code before and after your cursor and fills in the gap.
+            This is the <strong>inline code suggestion</strong> you see when typing in a code editor. An LLM predicts what you're about to type and offers to complete it for you. Think of the "tab to accept" suggestions in AI-powered editors. The model sees the code before and after your cursor and fills in the gap.
           </p>
         </div>
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Going Deeper</h3>
           <p class="text-gray-700 dark:text-gray-300 mb-3">
-            Code completion has the <strong>opposite profile from problem-solving</strong>: inputs are long (the surrounding code context), but outputs are short (typically just a few lines of code). The model needs substantial context to understand what code would fit, but the actual completion is brief.
+            Code completion has the <strong>opposite profile from problem-solving</strong>: inputs are long (the surrounding code context, and sometimes context about the entire codebase), but outputs are short (typically just a couple to tens of lines of code). The model needs substantial context to understand what code would fit, but the actual completion is brief, at least compared to problem solving with reasoning.
           </p>
           <p class="text-gray-700 dark:text-gray-300 mb-3">
-            This creates an interesting energy dynamic. The <strong>prefill phase</strong> (processing the input context) dominates the computation, while the <strong>decode phase</strong> (generating the completion) is quick. Latency is critical here: code completions need to appear nearly instantly as you type, so models must be fast even with long context windows.
-          </p>
-          <p class="text-gray-700 dark:text-gray-300">
-            The short output length keeps energy per response low, but the high frequency of completions (triggered with every keystroke in some editors) means aggregate energy consumption adds up.
+            Fill-in-the-middle code completion is a well-known task, but we found that it's not widely supported by open-weight models and open-source LLM inference servers (models that claim support didn't work as well either), likely because not many people are serving their own complex code completion AI assistants yet. But, among recent models, Qwen 3 Coder worked well, which we currently benchmarked. We are looking forward to adding more models to this task in the future.
           </p>
         </div>
       </section>
@@ -115,7 +115,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
   },
   // MLLM tasks
   "image-chat": {
-    displayName: "Image Understanding and Conversation",
+    displayName: "Conversational AI Chatbot with Image Understanding",
     tabLabel: "Image Chat",
     architecture: "mllm",
     defaultItlDeadlineMs: 500,
@@ -135,17 +135,17 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
             Image chat works differently from text-only conversation. Before the language model can process your question, an <strong>image encoder</strong> (often called a vision encoder) must first convert the image into a sequence of tokens the model can understand. A single image can become hundreds or thousands of tokens.
           </p>
           <p class="text-gray-700 dark:text-gray-300 mb-3">
-            This has two implications for energy consumption. First, the <strong>input context is much longer</strong> than text-only chat, even for simple questions. Second, the <strong>vision encoder itself consumes energy</strong>, and for some models, the vision encoder is surprisingly large and computationally expensive.
+            This has a few implications for the server's runtime. First, the <strong>input context is much longer</strong> than text-only chat, even for simple questions. Second, the <strong>vision encoder itself consumes time and energy</strong>, and for some models, the vision encoder is surprisingly large and computationally expensive. Finally, processing image pixels into a format that the vision encoder can handle can also take non-trivial CPU time, and this may sometimes become a bottleneck. The energy implication of this is that the server runs with a <strong>lower batch size</strong>, leading to less efficient energy amortization and higher energy per token & response.
           </p>
           <p class="text-gray-700 dark:text-gray-300">
-            Vision encoder computation presents an interesting optimization opportunity: the same image encoding can potentially be <strong>reused across multiple questions</strong> about the same image. <a href="https://cornserve.ai" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">Cornserve</a> explores this direction for efficient multimodal serving.
+            Vision encoder computation presents an interesting optimization opportunity: the vision encoder (or, really any subcomponent of the model like audio generators) can be disaggregated out of the monolithic serving system and served separately to reduce interference and server code complexity. <a href="https://cornserve.ai" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">Cornserve</a> explores this direction for efficient multimodal serving.
           </p>
         </div>
       </section>
     `,
   },
   "video-chat": {
-    displayName: "Video Understanding and Conversation",
+    displayName: "Conversational AI Chatbot with Video Understanding",
     tabLabel: "Video Chat",
     architecture: "mllm",
     defaultItlDeadlineMs: 500,
@@ -156,43 +156,19 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">What is this?</h3>
           <p class="text-gray-700 dark:text-gray-300">
-            This is a chatbot that can <strong>watch and understand videos</strong>. Share a video clip and ask questions about it: "What happened in this video?", "Summarize the key points from this lecture", or "What is this person doing wrong in their golf swing?" Video understanding is one of the newest frontiers in AI assistants.
+            This is a chatbot that can <strong>watch and understand videos</strong>. Share a video clip and ask questions about it: "What happened in this video?", "Summarize the key points from this lecture", or "What is this person doing wrong in their golf swing?"
           </p>
         </div>
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Going Deeper</h3>
           <p class="text-gray-700 dark:text-gray-300 mb-3">
-            Video understanding scales up the challenges of image chat. Instead of encoding one image, the model must process <strong>many frames</strong>, sometimes dozens or hundreds. Each frame becomes tokens, so the input context can grow enormous. The model must also understand <strong>temporal dynamics</strong>: what happened first, what came next, how things changed over time.
+            Video chat scales up the challenges of image chat. Instead of encoding one image, an <strong>image encoder</strong> (often called a vision encoder) must process <strong>many frames</strong>, sometimes dozens. Each frame becomes tokens, so the input context can grow enormous. To some degree this is inevitable, as the model must understand <strong>temporal dynamics</strong>: what happened first, what came next, how things changed over time.
           </p>
           <p class="text-gray-700 dark:text-gray-300 mb-3">
-            Energy consumption scales with the number of frames processed. More frames mean better temporal understanding but higher energy costs. This creates an important trade-off: how many frames do you need to answer the question well? Some questions ("What color is the car?") might need only a single frame, while others ("Describe the full sequence of events") require many.
+            This has significant implications for the server's runtime. First, the <strong>input context is much longer</strong> than image chat, scaling with the number of frames. Second, the <strong>vision encoder's computation volume increases significantly</strong>, multiplying its time and energy consumption. Finally, processing video frames into a format the vision encoder can handle takes substantial CPU time, which can become a bottleneck. The energy implication is that the server runs with an <strong>even lower batch size</strong> than image chat, leading to less efficient energy amortization and higher energy per token & response.
           </p>
           <p class="text-gray-700 dark:text-gray-300">
-            As with image chat, the vision encoder's computation can potentially be <strong>cached and reused</strong> across multiple questions about the same video. <a href="https://cornserve.ai" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">Cornserve</a> explores efficient approaches for multimodal serving.
-          </p>
-        </div>
-      </section>
-    `,
-  },
-  "audio-chat": {
-    displayName: "Audio Understanding and Conversation",
-    tabLabel: "Audio Chat",
-    architecture: "mllm",
-    defaultItlDeadlineMs: 500,
-    defaultEnergyBudgetJ: null,
-    description: "Multimodal audio understanding and chat",
-    aboutContent: `
-      <section class="space-y-6">
-        <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">What is this?</h3>
-          <p class="text-gray-700 dark:text-gray-300">
-            This would be a chatbot that can <strong>hear and understand audio</strong>: identify sounds, transcribe speech, or answer questions about audio content. Audio understanding is an emerging capability for AI assistants.
-          </p>
-        </div>
-        <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Status</h3>
-          <p class="text-gray-700 dark:text-gray-300">
-            <strong>Coming soon.</strong> Audio chat benchmarks are not yet included in this version of the leaderboard.
+            As with image chat, the vision encoder can be disaggregated out of the monolithic serving system and served separately to reduce interference and server code complexity. <a href="https://cornserve.ai" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">Cornserve</a> explores this direction for efficient multimodal serving.
           </p>
         </div>
       </section>
@@ -203,7 +179,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     displayName: "Image Generation from Text Prompts",
     tabLabel: "Text to Image",
     architecture: "diffusion",
-    defaultLatencyDeadlineS: 10,
+    defaultLatencyDeadlineS: 30,
     defaultEnergyBudgetJ: null,
     description: "Generate images from text prompts",
     aboutContent: `
@@ -220,13 +196,10 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
             Image generation uses <strong>diffusion models</strong>, which work very differently from language models. Instead of generating tokens one by one, diffusion models start with random noise and gradually refine it into a coherent image through many <strong>denoising steps</strong>.
           </p>
           <p class="text-gray-700 dark:text-gray-300 mb-3">
-            This means energy consumption scales <strong>linearly with the number of denoising steps</strong>. More steps generally mean higher quality but proportionally more time and energy. <strong>Image resolution</strong> also matters significantly: generating a 2K image requires far more computation than a 512×512 image.
-          </p>
-          <p class="text-gray-700 dark:text-gray-300 mb-3">
-            The energy numbers shown here use <strong>model-recommended default settings</strong> (steps, resolution, guidance scale, etc.). These provide a fair comparison across models, but real-world usage often involves adjusting these parameters.
+            This means energy consumption scales <strong>almost linearly with the number of denoising steps</strong>. More steps generally mean higher quality (with diminishing returns) but proportionally more time and energy. <strong>Image resolution</strong> also matters significantly: generating a 2K image requires far more computation than a 512×512 image.
           </p>
           <p class="text-gray-700 dark:text-gray-300">
-            <strong>Coming soon:</strong> We're preparing a control benchmark that holds the model constant while sweeping generation parameters, showing exactly how each setting affects energy consumption.
+            <strong>Coming soon:</strong> The energy numbers shown here use <strong>model-recommended default settings</strong> (steps, resolution, etc.). But real-world usage often involves adjusting these parameters. We're preparing a control benchmark that holds the model constant while sweeping generation parameters, showing exactly how each setting affects energy consumption.
           </p>
         </div>
       </section>
@@ -236,7 +209,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     displayName: "Video Generation from Text Prompts",
     tabLabel: "Text to Video",
     architecture: "diffusion",
-    defaultLatencyDeadlineS: 120,
+    defaultLatencyDeadlineS: 300,
     defaultEnergyBudgetJ: null,
     description: "Generate videos from text prompts",
     aboutContent: `
@@ -253,13 +226,10 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
             Video generation extends image diffusion to the temporal dimension. The model must not only create visually coherent frames but also ensure <strong>smooth motion and temporal consistency</strong>: objects should move naturally, lighting should remain consistent, and the scene should evolve believably.
           </p>
           <p class="text-gray-700 dark:text-gray-300 mb-3">
-            Energy consumption depends on multiple factors: <strong>number of frames</strong> (a 5-second video at 30fps needs 150 frames), <strong>resolution</strong> (4K vs 720p), and <strong>denoising steps</strong>. Each of these scales energy consumption roughly linearly. A high-resolution, long video with many denoising steps can consume orders of magnitude more energy than a short, low-resolution clip.
-          </p>
-          <p class="text-gray-700 dark:text-gray-300 mb-3">
-            The energy numbers shown here use <strong>model-recommended default settings</strong>. These typically represent the model's intended quality/speed balance, but real deployments often customize these extensively.
+            Energy consumption depends on multiple factors: <strong>number of frames</strong> (a 5-second video at 30fps needs 150 frames), <strong>resolution</strong> (4K vs 720p), and <strong>denoising steps</strong>. All of these dimensions influence time and energy consumption significantly. A high-resolution, long video with many denoising steps can consume orders of magnitude more energy than a short, low-resolution clip.
           </p>
           <p class="text-gray-700 dark:text-gray-300">
-            <strong>Coming soon:</strong> We're preparing a control benchmark that holds the model constant while sweeping generation parameters (resolution, frame count, steps), showing exactly how each setting affects energy consumption.
+            <strong>Coming soon:</strong> The energy numbers shown here use <strong>model-recommended default settings</strong> (steps, resolution, number of frames, etc.). But real-world usage often involves adjusting these parameters. We're preparing a control benchmark that holds the model constant while sweeping generation parameters, showing exactly how each setting affects energy consumption.
           </p>
         </div>
       </section>

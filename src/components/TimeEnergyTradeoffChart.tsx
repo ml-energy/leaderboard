@@ -427,7 +427,7 @@ export function TimeEnergyTradeoffChart({
       {chartData.length === 0 ? (
         <div className="flex items-center justify-center h-[500px] bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
           <p className="text-gray-500 dark:text-gray-400 text-sm">
-            No data available for {selectedPercentile.toUpperCase()} percentile. Data regeneration required.
+            No data available{isDiffusion ? '' : ` for ${selectedPercentile.toUpperCase()} percentile`}. Try adjusting the filters.
           </p>
         </div>
       ) : (
