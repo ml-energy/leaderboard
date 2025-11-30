@@ -85,7 +85,7 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
             </h3>
             <div className="space-y-3 text-gray-700 dark:text-gray-300">
               <p>
-                <strong>Browse the Whole Space:</strong> At the top of each task page, see the full range of benchmarked configurations for every model, including different batch sizes, GPU counts, and hardware options. You can <strong>hover oer points</strong> to see exact metrics and configurations. Also, clicking the legend item will open up a <strong>detailed model view</strong>.
+                <strong>Browse the Whole Space:</strong> At the top of each task page, see the full range of benchmarked configurations for every model, including different batch sizes, GPU counts, and hardware options. You can <strong>hover over points</strong> to see exact metrics and configurations. Also, clicking the legend item will open up a <strong>detailed model view</strong>.
               </p>
               <p>
                 <strong>Set Constraints:</strong> Use the sliders to specify your latency requirement and energy budget. The leaderboard automatically filters and ranks models by their most energy-efficient configuration that meets your constraints. <strong>Each row on the table is clickable</strong>; click to open the detailed model view.
