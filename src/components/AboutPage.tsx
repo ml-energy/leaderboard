@@ -109,6 +109,9 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
                 <strong>Inference Engines:</strong> We use <a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">vLLM</a> for LLMs and MLLMs, and <a href="https://github.com/xdit-project/xDiT" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">xDiT</a> for diffusion models.
               </p>
               <p>
+                <strong>Hardware:</strong> We ran our benchmark on NVIDIA H100 80GB HBM3 (max power 700 W per GPU) and NVIDIA B200 GPU (max power 1,000 W per GPU) servers.
+              </p>
+              <p>
                 <strong>Energy Measurement:</strong> We measure and report <strong>GPU energy consumption</strong> using <a href="https://ml.energy/zeus" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">Zeus</a>. We report steady-state GPU energy per output unit (Joules per token, image, or video) after the server reaches thermal and throughput equilibrium.
               </p>
               <p>
@@ -175,6 +178,48 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
                   Yes! All benchmark code, configurations, and data processing scripts are open source. Visit our GitHub repositories for detailed instructions.
                 </p>
               </div>
+            </div>
+          </section>
+
+          {/* Version History */}
+          <section>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+              Version History
+            </h3>
+            <div className="space-y-3 text-gray-700 dark:text-gray-300">
+              <p>
+                <strong>V3.0</strong> (December 1, 2025): Current version with LLMs, MLLMs, and diffusion models.{' '}
+                <a
+                  href="https://github.com/ml-energy/leaderboard"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  GitHub
+                </a>
+              </p>
+              <p>
+                <strong>V2.0</strong> (September 20, 2024): Added multi-GPU configurations and more models.{' '}
+                <a
+                  href="https://github.com/ml-energy/leaderboard-v2"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  GitHub
+                </a>
+              </p>
+              <p>
+                <strong>V1.0</strong> (July 6, 2023): Initial release with single-GPU LLM benchmarks.{' '}
+                <a
+                  href="https://github.com/ml-energy/leaderboard-v2/releases/tag/2023-07-06"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  GitHub
+                </a>
+              </p>
             </div>
           </section>
 

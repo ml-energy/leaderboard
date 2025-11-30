@@ -10,52 +10,62 @@ interface ColumnHeaderProps {
 
 function ColumnHeader({ col, onSort, sortIcon }: ColumnHeaderProps) {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
-  const [position, setPosition] = useState<{ vertical: 'bottom' | 'top'; horizontal: 'center' | 'left' | 'right' }>({ vertical: 'bottom', horizontal: 'center' });
+  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
+  const [arrowStyle, setArrowStyle] = useState<{ vertical: 'top' | 'bottom'; horizontal: 'center' | 'left' | 'right' }>({ vertical: 'top', horizontal: 'center' });
   const headerRef = useRef<HTMLTableCellElement>(null);
 
   useEffect(() => {
     if (isTooltipVisible && headerRef.current && col.tooltip) {
       const rect = headerRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
+      const tooltipWidth = 256;
+      const tooltipHeight = 100; // Approximate max height
+      const spaceAbove = rect.top;
       const spaceRight = window.innerWidth - rect.right;
       const spaceLeft = rect.left;
-      const tooltipWidth = 256;
 
+      // Vertical positioning: prefer above
+      const showAbove = spaceAbove >= tooltipHeight;
+      const top = showAbove ? rect.top - 8 : rect.bottom + 8;
+
+      // Horizontal positioning
+      let left: number;
       let horizontal: 'center' | 'left' | 'right' = 'center';
+      const centerX = rect.left + rect.width / 2;
+
       if (spaceRight < tooltipWidth / 2 + 16) {
+        // Align to right edge
+        left = rect.right - tooltipWidth;
         horizontal = 'right';
       } else if (spaceLeft < tooltipWidth / 2 + 16) {
+        // Align to left edge
+        left = rect.left;
         horizontal = 'left';
+      } else {
+        // Center
+        left = centerX - tooltipWidth / 2;
       }
 
-      setPosition({
-        vertical: spaceBelow < 150 ? 'top' : 'bottom',
-        horizontal
+      setTooltipStyle({
+        position: 'fixed',
+        top: showAbove ? undefined : top,
+        bottom: showAbove ? window.innerHeight - top : undefined,
+        left,
+        width: tooltipWidth,
       });
+      setArrowStyle({ vertical: showAbove ? 'bottom' : 'top', horizontal });
     }
   }, [isTooltipVisible, col.tooltip]);
 
-  const getHorizontalClasses = () => {
-    switch (position.horizontal) {
-      case 'right':
-        return 'right-0';
-      case 'left':
-        return 'left-0';
-      default:
-        return 'left-1/2 -translate-x-1/2';
-    }
-  };
-
   const getArrowClasses = () => {
     const baseClasses = 'absolute w-2 h-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 transform rotate-45';
-    const verticalClasses = position.vertical === 'bottom'
+    const verticalClasses = arrowStyle.vertical === 'top'
       ? '-top-1 border-l border-t'
       : '-bottom-1 border-r border-b';
 
     let horizontalClasses = 'left-1/2 -translate-x-1/2';
-    if (position.horizontal === 'right') {
+    if (arrowStyle.horizontal === 'right') {
       horizontalClasses = 'right-4';
-    } else if (position.horizontal === 'left') {
+    } else if (arrowStyle.horizontal === 'left') {
       horizontalClasses = 'left-4';
     }
 
@@ -80,9 +90,8 @@ function ColumnHeader({ col, onSort, sortIcon }: ColumnHeaderProps) {
       </div>
       {col.tooltip && isTooltipVisible && (
         <div
-          className={`absolute z-50 w-64 p-2 text-sm font-normal text-left text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg ${
-            position.vertical === 'bottom' ? 'top-full mt-1' : 'bottom-full mb-1'
-          } ${getHorizontalClasses()}`}
+          className="z-50 p-2 text-sm font-normal text-left text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg"
+          style={tooltipStyle}
         >
           {col.tooltip}
           <div className={getArrowClasses()} />

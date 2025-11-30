@@ -326,6 +326,9 @@ function App() {
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               How much time and energy do generative AI models consume?
             </p>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              Version 3.0 / Last updated: {__LAST_UPDATED__}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -479,10 +482,7 @@ function App() {
       <footer className="bg-white dark:bg-gray-800 shadow mt-12">
         <div className="mx-auto py-4 px-6">
           <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-            Last updated: {indexData?.last_updated || 'Unknown'}
-          </p>
-          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-            Version: 3.0
+            Apache 2.0 · <a href="https://github.com/ml-energy/leaderboard" target="_blank" rel="noopener noreferrer" className="hover:underline">GitHub</a>
           </p>
         </div>
       </footer>
