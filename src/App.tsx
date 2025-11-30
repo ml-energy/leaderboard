@@ -361,44 +361,48 @@ function App() {
               </div>
             ) : (
               <div className="space-y-6">
-                <Sidebar
-                  task={activeTask}
-                  latencyDeadline={latencyDeadline}
-                  onLatencyDeadlineChange={setLatencyDeadline}
-                  defaultLatencyDeadline={
-                    isDiffusionTask(activeTask)
-                      ? getTaskConfig(activeTask).defaultLatencyDeadlineS ?? 10
-                      : getTaskConfig(activeTask).defaultItlDeadlineMs ?? 500
-                  }
-                  maxLatencyDeadline={maxLatencyDeadline}
-                  energyBudget={effectiveEnergyBudget}
-                  onEnergyBudgetChange={setEnergyBudget}
-                  maxEnergyBudget={maxEnergyBudget}
-                  selectedGPUs={selectedGPUs}
-                  onGPUToggle={handleGPUToggle}
-                  availableGPUs={availableGPUs}
-                />
+                {/* Task title */}
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    {getTaskConfig(activeTask).displayName}
+                  </h2>
+                  <button
+                    onClick={() => setTaskAboutOpen(true)}
+                    className="flex items-center gap-1 px-2 py-1 rounded-md text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>About</span>
+                  </button>
+                </div>
+
+                {/* Controls */}
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 w-fit">
+                  <Sidebar
+                    task={activeTask}
+                    latencyDeadline={latencyDeadline}
+                    onLatencyDeadlineChange={setLatencyDeadline}
+                    defaultLatencyDeadline={
+                      isDiffusionTask(activeTask)
+                        ? getTaskConfig(activeTask).defaultLatencyDeadlineS ?? 10
+                        : getTaskConfig(activeTask).defaultItlDeadlineMs ?? 500
+                    }
+                    maxLatencyDeadline={maxLatencyDeadline}
+                    energyBudget={effectiveEnergyBudget}
+                    onEnergyBudgetChange={setEnergyBudget}
+                    maxEnergyBudget={maxEnergyBudget}
+                    selectedGPUs={selectedGPUs}
+                    onGPUToggle={handleGPUToggle}
+                    availableGPUs={availableGPUs}
+                  />
+                </div>
 
                 <div>
-                  <div className="mb-4 flex items-center gap-2">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                      {getTaskConfig(activeTask).displayName}
-                    </h2>
-                    <button
-                      onClick={() => setTaskAboutOpen(true)}
-                      className="flex items-center gap-1 px-2 py-1 rounded-md text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>About</span>
-                    </button>
-                  </div>
-
-                  {/* Time-Energy Tradeoff Chart */}
+                  {/* All Configurations Chart */}
                   <div className="mb-8">
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
-                      Time-Energy Tradeoff
+                      All configurations
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                       {allFilteredConfigs.length} configurations
@@ -422,11 +426,10 @@ function App() {
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                          Model Rankings
+                          Energy-optimal points for each model
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {filteredConfigs.length} models satisfy the given constraints.
-                          Each row shows the minimum energy configuration per model (click row for model details).
+                          {filteredConfigs.length} models satisfy the given constraints (click row for model details).
                         </p>
                       </div>
                       <div className="flex items-center gap-3">

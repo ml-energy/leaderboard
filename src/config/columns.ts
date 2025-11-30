@@ -23,7 +23,7 @@ export const LLM_COLUMNS: ColumnDef[] = [
     key: 'total_params_billions',
     label: 'Total Params (B)',
     sortable: true,
-    format: (v: number) => v.toFixed(1),
+    format: (v: number) => v.toFixed(0),
     align: 'right',
     tooltip: 'The total number of parameters in the model, measured in billions.'
   },
@@ -31,7 +31,7 @@ export const LLM_COLUMNS: ColumnDef[] = [
     key: 'activated_params_billions',
     label: 'Active Params (B)',
     sortable: true,
-    format: (v: number) => v.toFixed(1),
+    format: (v: number) => v.toFixed(0),
     align: 'right',
     tooltip: 'The number of parameters activated per token. For Mixture-of-Experts (MoE) models, only a subset of parameters are used for each token, making this smaller than total parameters.'
   },
@@ -106,7 +106,7 @@ export const LLM_ADVANCED_COLUMNS: ColumnDef[] = [
       }
       return parts.length > 0 ? parts.join(' ') : '-';
     },
-    tooltip: 'How the model is distributed across GPUs. TP (Tensor Parallel) splits layers across GPUs. EP (Expert Parallel) distributes MoE experts across GPUs.'
+    tooltip: 'How the model is distributed across GPUs. TP (Tensor Parallel) splits layers across GPUs. EP (Expert Parallel) distributes MoE experts across GPUs. DP (Data Parallel) replicates layers across GPUs. Some models use hybrid approaches (e.g., DP for attention + EP for MLP).'
   },
   {
     key: 'output_throughput_tokens_per_sec',
@@ -132,7 +132,7 @@ export const IMAGE_COLUMNS: ColumnDef[] = [
     key: 'total_params_billions',
     label: 'Params',
     sortable: true,
-    format: (v: number) => v < 1 ? `${(v * 1000).toFixed(0)}M` : `${v.toFixed(1)}B`,
+    format: (v: number) => v < 1 ? `${(v * 1000).toFixed(0)}M` : `${v.toFixed(0)}B`,
     align: 'right'
   },
   { key: 'gpu_model', label: 'GPU', sortable: true },
@@ -196,7 +196,7 @@ export const VIDEO_COLUMNS: ColumnDef[] = [
     key: 'total_params_billions',
     label: 'Params',
     sortable: true,
-    format: (v: number) => v < 1 ? `${(v * 1000).toFixed(0)}M` : `${v.toFixed(1)}B`,
+    format: (v: number) => v < 1 ? `${(v * 1000).toFixed(0)}M` : `${v.toFixed(0)}B`,
     align: 'right'
   },
   { key: 'gpu_model', label: 'GPU', sortable: true },

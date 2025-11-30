@@ -180,6 +180,12 @@ export function ModelDetailModal({
     return <span className="ml-1 text-gray-400">⇅</span>;
   };
 
+  // Helper to get latency value from config
+  const getLatencyValue = (config: AnyModelConfiguration): number => {
+    if ('batch_latency_s' in config) return config.batch_latency_s;
+    return (config as ModelConfiguration).median_itl_ms;
+  };
+
   // Apply filters first, then sort
   const filteredConfigs = useMemo(() => {
     if (!modelDetail) return [];
@@ -188,6 +194,31 @@ export function ModelDetailModal({
         selectedGPUs.has(config.gpu_model) && selectedNumGPUs.has(config.num_gpus)
     );
   }, [modelDetail, selectedGPUs, selectedNumGPUs]);
+
+  // Compute Pareto optimal configurations from filtered configs
+  const paretoOptimalConfigs = useMemo(() => {
+    if (filteredConfigs.length === 0) return new Set<AnyModelConfiguration>();
+
+    const paretoSet = new Set<AnyModelConfiguration>();
+    for (const config of filteredConfigs) {
+      const configEnergy = getEnergyValue(config) ?? Infinity;
+      const configLatency = getLatencyValue(config);
+
+      // A config is Pareto optimal if no other config dominates it
+      // (i.e., no other config has both lower energy AND lower latency)
+      const isDominated = filteredConfigs.some(other => {
+        if (other === config) return false;
+        const otherEnergy = getEnergyValue(other) ?? Infinity;
+        const otherLatency = getLatencyValue(other);
+        return otherEnergy < configEnergy && otherLatency < configLatency;
+      });
+
+      if (!isDominated) {
+        paretoSet.add(config);
+      }
+    }
+    return paretoSet;
+  }, [filteredConfigs]);
 
   const sortedConfigs = [...filteredConfigs].sort((a, b) => {
     if (!sortKey || !sortDirection) return 0;
@@ -479,20 +510,10 @@ export function ModelDetailModal({
                     </thead>
                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                       {sortedConfigs.map((config, idx) => {
-                        // Determine if row is hovered based on config type
-                        const isHovered = isDiffusion
-                          ? displayedConfig &&
-                            config.gpu_model === displayedConfig.gpu_model &&
-                            config.num_gpus === displayedConfig.num_gpus &&
-                            (config as ImageModelConfiguration | VideoModelConfiguration).batch_size === (displayedConfig as ImageModelConfiguration | VideoModelConfiguration).batch_size &&
-                            (config as ImageModelConfiguration | VideoModelConfiguration).parallelization.ulysses_degree === (displayedConfig as ImageModelConfiguration | VideoModelConfiguration).parallelization.ulysses_degree &&
-                            (config as ImageModelConfiguration | VideoModelConfiguration).parallelization.ring_degree === (displayedConfig as ImageModelConfiguration | VideoModelConfiguration).parallelization.ring_degree
-                          : displayedConfig &&
-                            config.gpu_model === displayedConfig.gpu_model &&
-                            config.num_gpus === displayedConfig.num_gpus &&
-                            (config as ModelConfiguration).max_num_seqs === (displayedConfig as ModelConfiguration).max_num_seqs;
+                        // Highlight Pareto optimal configurations
+                        const isParetoOptimal = paretoOptimalConfigs.has(config);
 
-                        let parallelStr = 'N/A';
+                        let parallelStr = '-';
                         if (config.num_gpus > 1) {
                           if (isDiffusion) {
                             const diffConfig = config as ImageModelConfiguration | VideoModelConfiguration;
@@ -504,7 +525,7 @@ export function ModelDetailModal({
                               if (diffConfig.parallelization.ring_degree > 1) {
                                 parts.push(`R${diffConfig.parallelization.ring_degree}`);
                               }
-                              parallelStr = parts.length > 0 ? parts.join('+') : 'N/A';
+                              parallelStr = parts.length > 0 ? parts.join('+') : '-';
                             }
                           } else {
                             const llmConfig = config as ModelConfiguration;
@@ -546,7 +567,7 @@ export function ModelDetailModal({
                         return (
                           <tr
                             key={idx}
-                            className={isHovered ? 'bg-amber-50 dark:bg-amber-900/20' : ''}
+                            className={isParetoOptimal ? 'bg-amber-50 dark:bg-amber-900/20' : ''}
                           >
                             <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.gpu_model}</td>
                             <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{config.num_gpus}</td>

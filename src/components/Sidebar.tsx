@@ -37,9 +37,9 @@ export default function Sidebar({
       : 'Per token energy budget';
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+    <div>
       <div className="flex flex-wrap items-center gap-6">
-        <div className="flex-1 min-w-[250px]">
+        <div className="min-w-[250px] max-w-[400px]">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             {latencyLabel}: <span className="font-mono text-blue-600 dark:text-blue-400">{isDiffusion ? latencyDeadline.toFixed(1) : latencyDeadline}</span> {latencyUnit}
           </label>
@@ -54,7 +54,7 @@ export default function Sidebar({
           />
         </div>
 
-        <div className="flex-1 min-w-[250px]">
+        <div className="min-w-[250px] max-w-[400px]">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             {energyLabel}: <span className="font-mono text-blue-600 dark:text-blue-400">{isDiffusion ? energyBudget.toFixed(0) : energyBudget.toFixed(2)}</span> J
           </label>

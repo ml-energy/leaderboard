@@ -65,7 +65,7 @@ export default function TaskTabs({ tasks, activeTask, onTaskChange, architecture
         {groupedTasks.map((group, groupIndex) => (
           <div key={group.architecture} className="flex items-center">
             {/* Architecture label */}
-            <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide px-2 py-4">
+            <span className="text-sm font-semibold text-gray-600 dark:text-gray-300 tracking-wide px-2 py-4">
               {ARCHITECTURE_LABELS[group.architecture]}
             </span>
             {/* Tasks in this architecture */}

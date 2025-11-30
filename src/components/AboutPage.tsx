@@ -34,13 +34,47 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
 
         {/* Content */}
         <div className="p-6 space-y-6">
+          {/* Badges */}
+          <div className="flex flex-wrap gap-2">
+            <a
+              href="https://arxiv.org/abs/2505.06371"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                src="https://img.shields.io/badge/NeurIPS'25_D&B-Spotlight-b31b1b?style=flat-square"
+                alt="NeurIPS 2025 Datasets and Benchmarks Spotlight"
+              />
+            </a>
+            <a
+              href="https://github.com/ml-energy/benchmark"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                src="https://img.shields.io/badge/ml--energy-benchmark-blue?style=flat-square&logo=github"
+                alt="GitHub benchmark repo"
+              />
+            </a>
+            <a
+              href="https://github.com/ml-energy/leaderboard"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                src="https://img.shields.io/badge/ml--energy-leaderboard-blue?style=flat-square&logo=github"
+                alt="GitHub leaderboard repo"
+              />
+            </a>
+          </div>
+
           {/* Introduction */}
           <section>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
               What is this?
             </h3>
             <p className="text-gray-700 dark:text-gray-300">
-              The ML.ENERGY Leaderboard is a comprehensive benchmark for measuring the <strong>energy efficiency</strong> and <strong>performance</strong> of Large Language Models (LLMs), Multimodal LLMs (MLLMs), and diffusion models. We run real-world inference workloads using production-grade serving frameworks like vLLM while precisely measuring <strong>GPU energy consumption</strong> with Zeus.
+              The ML.ENERGY Leaderboard visualizes the <strong>time-energy tradeoff</strong> of generative AI models, including Large Language Models (LLMs), Multimodal LLMs (MLLMs), and diffusion models. We run real-world inference workloads using production-grade serving frameworks while precisely measuring <strong>GPU energy consumption</strong>. See our <a href="https://arxiv.org/abs/2505.06371" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">NeurIPS Datasets and Benchmarks 2025 Spotlight paper</a> for details.
             </p>
           </section>
 
@@ -51,20 +85,32 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
             </h3>
             <div className="space-y-3 text-gray-700 dark:text-gray-300">
               <p>
-                <strong>Benchmark Framework:</strong> We use vLLM as the inference engine, running inside Docker/Singularity containers on NVIDIA GPUs (H100, B200, etc.). Each model is tested with multiple batch sizes and GPU configurations to find the optimal energy-performance trade-off.
+                <strong>Inference Engines:</strong> We use <a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">vLLM</a> for LLMs and MLLMs, and <a href="https://github.com/xdit-project/xDiT" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">xDiT</a> for diffusion models.
               </p>
               <p>
-                <strong>Energy Measurement:</strong> We measure <strong>GPU energy only</strong> (not total system energy) using the NVIDIA Management Library (NVML) through our Zeus energy measurement framework. We report steady-state GPU energy per token (Joules/token) after the server reaches thermal and throughput equilibrium.
+                <strong>Energy Measurement:</strong> We measure <strong>GPU energy only</strong> (not total system energy) using <a href="https://ml.energy/zeus" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">Zeus</a>. We report steady-state GPU energy per output unit (Joules per token, image, or video) after the server reaches thermal and throughput equilibrium.
               </p>
               <p>
-                <strong>Workloads:</strong> We use real-world datasets including:
+                <strong>Configuration Sweeping:</strong> For each model and task, we sweep across multiple batch sizes and GPU configurations to map out the time-energy tradeoff space. This allows users to find the optimal configuration for their specific latency and energy constraints.
               </p>
+            </div>
+          </section>
+
+          {/* Workloads */}
+          <section>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+              Workloads
+            </h3>
+            <div className="space-y-3 text-gray-700 dark:text-gray-300">
+              <p>We benchmark models on realistic use cases:</p>
               <ul className="list-disc list-inside ml-4 space-y-1">
-                <li><strong>LLM Chat (LM Arena):</strong> Conversational prompts from the LMSYS Arena dataset</li>
-                <li><strong>GPQA Diamond:</strong> Graduate-level science questions requiring reasoning</li>
-                <li><strong>Code Completion (Sourcegraph):</strong> Fill-in-the-middle code generation tasks</li>
-                <li><strong>Image Chat:</strong> Vision-language tasks with image understanding</li>
-                <li><strong>Video Chat:</strong> Video understanding and Q&A tasks</li>
+                <li><strong>Problem Solving:</strong> Answering challenging questions that require long reasoning chains</li>
+                <li><strong>Text Conversation:</strong> ChatGPT-like conversations with back-and-forth dialogue</li>
+                <li><strong>Code Completion:</strong> Inline code suggestions similar to Cursor tab completions</li>
+                <li><strong>Image Chat:</strong> Conversations about images, like asking questions about a photo</li>
+                <li><strong>Video Chat:</strong> Conversations about video content</li>
+                <li><strong>Text to Image:</strong> Generating images from text descriptions</li>
+                <li><strong>Text to Video:</strong> Generating videos from text descriptions</li>
               </ul>
             </div>
           </section>
@@ -72,53 +118,35 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
           {/* Key Metrics */}
           <section>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-              Key Metrics Explained
+              Key Metrics
             </h3>
-            <div className="space-y-3">
-              <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white">Energy/Token (J)</h4>
-                <p className="text-gray-700 dark:text-gray-300">
-                  Total <strong>GPU energy</strong> consumed divided by the number of output tokens generated. This measures only GPU energy, not CPU, memory, or other system components. Lower is better for energy efficiency.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white">Median ITL (ms)</h4>
-                <p className="text-gray-700 dark:text-gray-300">
-                  Median Inter-Token Latency - the time between generating consecutive tokens. This measures the responsiveness and streaming quality of the model. We use ITL instead of Time-to-First-Token (TTFT) because our benchmarking methodology focuses on steady-state performance.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white">Throughput (tok/s)</h4>
-                <p className="text-gray-700 dark:text-gray-300">
-                  Output tokens generated per second. Higher throughput means better hardware utilization and lower per-request costs.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white">Total vs Active Parameters (MoE Models)</h4>
-                <p className="text-gray-700 dark:text-gray-300">
-                  For Mixture-of-Experts (MoE) models like DeepSeek-V3 or Qwen3-235B, we show both the total parameter count and the activated parameters per token. This helps understand the actual computational cost per inference.
-                </p>
-              </div>
+            <div className="space-y-3 text-gray-700 dark:text-gray-300">
+              <p>
+                <strong>Response Time:</strong> How long it takes to generate a complete response. For LLMs and MLLMs, this is the time to produce the entire text response. For diffusion models, this is the time to generate the full image or video.
+              </p>
+              <p>
+                <strong>Energy per Response:</strong> Total GPU energy consumed to generate one response. We report this at the granularity of individual output units (tokens for LLMs, images for text-to-image, etc.) to enable fair comparison across models with different output lengths.
+              </p>
             </div>
           </section>
 
           {/* How to Use */}
           <section>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-              How to Use the Leaderboard
+              Features
             </h3>
             <div className="space-y-3 text-gray-700 dark:text-gray-300">
               <p>
-                <strong>1. Select a Task:</strong> Choose from LLM Chat, GPQA, Code Completion, Image Chat, or Video Chat based on your use case.
+                <strong>Browse the Whole Space:</strong> See the full range of tested configurations for every model, including different batch sizes, GPU counts, and hardware options.
               </p>
               <p>
-                <strong>2. Set Latency Deadline:</strong> Use the slider to filter models that meet your latency requirements. The leaderboard automatically shows the most energy-efficient configuration for each model that meets the deadline.
+                <strong>Set Constraints:</strong> Use the deadline slider to specify your latency requirements and optionally set an energy budget. The leaderboard automatically filters and ranks models by their most energy-efficient configuration that meets your constraints.
               </p>
               <p>
-                <strong>3. Compare Models:</strong> Click on any row to see detailed performance metrics, distribution charts, and all tested configurations for that model.
+                <strong>Dive Deep:</strong> Click on any model to see all its tested configurations, the time-energy tradeoff curve, and detailed metrics for each configuration.
               </p>
               <p>
-                <strong>4. Filter by GPU:</strong> Toggle GPU filters to see results for specific hardware (H100, B200, etc.).
+                <strong>Compare Models:</strong> Select multiple models to compare their configurations side-by-side and see how they differ across the time-energy spectrum.
               </p>
             </div>
           </section>
@@ -130,27 +158,21 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
             </h3>
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white">Why median ITL instead of TTFT?</h4>
+                <h4 className="font-semibold text-gray-900 dark:text-white">Is this accurate?</h4>
                 <p className="text-gray-700 dark:text-gray-300">
-                  Our benchmarking methodology focuses on steady-state throughput with continuous request arrivals. In this setting, Inter-Token Latency (ITL) is more representative of the user experience than Time-to-First-Token (TTFT), which is heavily influenced by batching and scheduling rather than model performance.
+                  We take accuracy seriously. Our measurements use real GPU energy readings (not TDP-based estimates, which can overestimate by up to 4x). We measure steady-state energy when the server is running at its configured batch size, capturing realistic deployment behavior. All benchmarks run on production-grade hardware and software stacks. See our <a href="https://arxiv.org/abs/2505.06371" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">paper</a> for detailed methodology.
                 </p>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white">How are configurations selected?</h4>
+                <h4 className="font-semibold text-gray-900 dark:text-white">What are the limitations?</h4>
                 <p className="text-gray-700 dark:text-gray-300">
-                  For each model and task, we sweep across multiple batch sizes and GPU counts. The leaderboard shows the configuration with the lowest energy per token that meets your latency deadline.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white">What about FP8 quantization?</h4>
-                <p className="text-gray-700 dark:text-gray-300">
-                  Models with "-FP8" in their name use FP8 quantization, which reduces memory footprint and often improves energy efficiency. We benchmark both FP8 and full-precision (bfloat16) versions when available.
+                  We can only benchmark <strong>open-weight models</strong>; closed models like OpenAI GPT or Claude cannot be measured. Software and hardware infrastructure evolves over time, so results may drift slightly from optimal as new versions are released. We also cannot cover every possible optimization (e.g., speculative decoding, prefill-decode disaggregation), though we include the most common and impactful ones and follow deployment best practices.
                 </p>
               </div>
               <div>
                 <h4 className="font-semibold text-gray-900 dark:text-white">Can I reproduce these results?</h4>
                 <p className="text-gray-700 dark:text-gray-300">
-                  Yes! All benchmark code, configurations, and data processing scripts are open source. Visit our GitHub repository for detailed instructions.
+                  Yes! All benchmark code, configurations, and data processing scripts are open source. Visit our GitHub repositories for detailed instructions.
                 </p>
               </div>
             </div>
@@ -163,7 +185,18 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
             </h3>
             <ul className="space-y-2 text-gray-700 dark:text-gray-300">
               <li>
-                <strong>GitHub Repository:</strong>{' '}
+                <strong>Benchmark Code:</strong>{' '}
+                <a
+                  href="https://github.com/ml-energy/benchmark"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  ml-energy/benchmark
+                </a>
+              </li>
+              <li>
+                <strong>Leaderboard Code:</strong>{' '}
                 <a
                   href="https://github.com/ml-energy/leaderboard"
                   target="_blank"
@@ -187,10 +220,10 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
               <li>
                 <strong>Contact:</strong>{' '}
                 <a
-                  href="mailto:contact@ml.energy"
+                  href="mailto:admins@ml.energy"
                   className="text-blue-600 dark:text-blue-400 hover:underline"
                 >
-                  contact@ml.energy
+                  admins@ml.energy
                 </a>
               </li>
             </ul>
@@ -202,14 +235,14 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
               Citation
             </h3>
             <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-              If you use this leaderboard in your research, please cite:
+              If you use this leaderboard in your research, please cite our NeurIPS Datasets and Benchmarks 2025 Spotlight paper:
             </p>
-            <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-xs overflow-x-auto">
-{`@misc{mlenergy-leaderboard-v3,
-  title={ML.ENERGY Leaderboard v3.0: Energy Efficiency Benchmark for LLMs and MLLMs},
-  author={ML.ENERGY Initiative},
-  year={2025},
-  url={https://ml.energy/leaderboard}
+            <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-xs overflow-x-auto text-gray-800 dark:text-gray-200">
+{`@inproceedings{mlenergy-neuripsdb25,
+    title={The {ML.ENERGY Benchmark}: Toward Automated Inference Energy Measurement and Optimization},
+    author={Jae-Won Chung and Jeff J. Ma and Ruofan Wu and Jiachen Liu and Oh Jun Kweon and Yuxuan Xia and Zhiyu Wu and Mosharaf Chowdhury},
+    year={2025},
+    booktitle={NeurIPS Datasets and Benchmarks},
 }`}
             </pre>
           </section>
