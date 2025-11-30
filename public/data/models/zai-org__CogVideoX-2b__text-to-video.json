@@ -311,6 +311,276 @@
       "video_width": 720,
       "num_frames": 49,
       "fps": 8
+    },
+    {
+      "gpu_model": "B200",
+      "num_gpus": 2,
+      "batch_size": 1,
+      "parallelization": {
+        "ulysses_degree": 1,
+        "ring_degree": 2
+      },
+      "batch_latency_s": 19.76585555076599,
+      "avg_power_watts": 1486.888256593858,
+      "inference_steps": 50,
+      "energy_per_video_joules": 29389.618499964476,
+      "throughput_videos_per_sec": 0.050592295255403034,
+      "video_height": 480,
+      "video_width": 720,
+      "num_frames": 49,
+      "fps": 8
+    },
+    {
+      "gpu_model": "B200",
+      "num_gpus": 2,
+      "batch_size": 1,
+      "parallelization": {
+        "ulysses_degree": 2,
+        "ring_degree": 1
+      },
+      "batch_latency_s": 20.312451124191284,
+      "avg_power_watts": 1440.940697951309,
+      "inference_steps": 50,
+      "energy_per_video_joules": 29269.03749999404,
+      "throughput_videos_per_sec": 0.04923088768981906,
+      "video_height": 480,
+      "video_width": 720,
+      "num_frames": 49,
+      "fps": 8
+    },
+    {
+      "gpu_model": "B200",
+      "num_gpus": 2,
+      "batch_size": 16,
+      "parallelization": {
+        "ulysses_degree": 1,
+        "ring_degree": 2
+      },
+      "batch_latency_s": 309.23414409160614,
+      "avg_power_watts": 1454.0336185087824,
+      "inference_steps": 50,
+      "energy_per_video_joules": 28102.302593749017,
+      "throughput_videos_per_sec": 0.05174072884804154,
+      "video_height": 480,
+      "video_width": 720,
+      "num_frames": 49,
+      "fps": 8
+    },
+    {
+      "gpu_model": "B200",
+      "num_gpus": 2,
+      "batch_size": 16,
+      "parallelization": {
+        "ulysses_degree": 2,
+        "ring_degree": 1
+      },
+      "batch_latency_s": 313.63283252716064,
+      "avg_power_watts": 1436.8390527511328,
+      "inference_steps": 50,
+      "energy_per_video_joules": 28164.993874998763,
+      "throughput_videos_per_sec": 0.051015067112319616,
+      "video_height": 480,
+      "video_width": 720,
+      "num_frames": 49,
+      "fps": 8
+    },
+    {
+      "gpu_model": "B200",
+      "num_gpus": 2,
+      "batch_size": 2,
+      "parallelization": {
+        "ulysses_degree": 1,
+        "ring_degree": 2
+      },
+      "batch_latency_s": 38.783363461494446,
+      "avg_power_watts": 1514.095226896387,
+      "inference_steps": 50,
+      "energy_per_video_joules": 29360.85275001824,
+      "throughput_videos_per_sec": 0.05156850312855598,
+      "video_height": 480,
+      "video_width": 720,
+      "num_frames": 49,
+      "fps": 8
+    },
+    {
+      "gpu_model": "B200",
+      "num_gpus": 2,
+      "batch_size": 2,
+      "parallelization": {
+        "ulysses_degree": 2,
+        "ring_degree": 1
+      },
+      "batch_latency_s": 39.62495934963226,
+      "avg_power_watts": 1476.3389151730223,
+      "inference_steps": 50,
+      "energy_per_video_joules": 29249.934750005603,
+      "throughput_videos_per_sec": 0.050473237899197006,
+      "video_height": 480,
+      "video_width": 720,
+      "num_frames": 49,
+      "fps": 8
+    },
+    {
+      "gpu_model": "B200",
+      "num_gpus": 2,
+      "batch_size": 4,
+      "parallelization": {
+        "ulysses_degree": 1,
+        "ring_degree": 2
+      },
+      "batch_latency_s": 76.75810122489929,
+      "avg_power_watts": 1537.67135476922,
+      "inference_steps": 50,
+      "energy_per_video_joules": 29507.183375000954,
+      "throughput_videos_per_sec": 0.052111763268871146,
+      "video_height": 480,
+      "video_width": 720,
+      "num_frames": 49,
+      "fps": 8
+    },
+    {
+      "gpu_model": "B200",
+      "num_gpus": 2,
+      "batch_size": 4,
+      "parallelization": {
+        "ulysses_degree": 2,
+        "ring_degree": 1
+      },
+      "batch_latency_s": 77.95008587837219,
+      "avg_power_watts": 1506.1415542657353,
+      "inference_steps": 50,
+      "energy_per_video_joules": 29350.96587499976,
+      "throughput_videos_per_sec": 0.05131488894369299,
+      "video_height": 480,
+      "video_width": 720,
+      "num_frames": 49,
+      "fps": 8
+    },
+    {
+      "gpu_model": "B200",
+      "num_gpus": 2,
+      "batch_size": 8,
+      "parallelization": {
+        "ulysses_degree": 1,
+        "ring_degree": 2
+      },
+      "batch_latency_s": 153.30894684791565,
+      "avg_power_watts": 1505.1234728583263,
+      "inference_steps": 50,
+      "energy_per_video_joules": 28843.61181249842,
+      "throughput_videos_per_sec": 0.05218221222233101,
+      "video_height": 480,
+      "video_width": 720,
+      "num_frames": 49,
+      "fps": 8
+    },
+    {
+      "gpu_model": "B200",
+      "num_gpus": 2,
+      "batch_size": 8,
+      "parallelization": {
+        "ulysses_degree": 2,
+        "ring_degree": 1
+      },
+      "batch_latency_s": 154.71902668476105,
+      "avg_power_watts": 1509.54897729486,
+      "inference_steps": 50,
+      "energy_per_video_joules": 29194.49356250465,
+      "throughput_videos_per_sec": 0.05170663344657632,
+      "video_height": 480,
+      "video_width": 720,
+      "num_frames": 49,
+      "fps": 8
+    },
+    {
+      "gpu_model": "B200",
+      "num_gpus": 1,
+      "batch_size": 1,
+      "parallelization": {
+        "ulysses_degree": 1,
+        "ring_degree": 1
+      },
+      "batch_latency_s": 34.660014033317566,
+      "avg_power_watts": 780.1118018598575,
+      "inference_steps": 50,
+      "energy_per_video_joules": 27038.686000019312,
+      "throughput_videos_per_sec": 0.028851690568813156,
+      "video_height": 480,
+      "video_width": 720,
+      "num_frames": 49,
+      "fps": 8
+    },
+    {
+      "gpu_model": "B200",
+      "num_gpus": 1,
+      "batch_size": 16,
+      "parallelization": {
+        "ulysses_degree": 1,
+        "ring_degree": 1
+      },
+      "batch_latency_s": 550.1499804258347,
+      "avg_power_watts": 766.6411506068404,
+      "inference_steps": 50,
+      "energy_per_video_joules": 26360.475874999538,
+      "throughput_videos_per_sec": 0.02908297840457153,
+      "video_height": 480,
+      "video_width": 720,
+      "num_frames": 49,
+      "fps": 8
+    },
+    {
+      "gpu_model": "B200",
+      "num_gpus": 1,
+      "batch_size": 2,
+      "parallelization": {
+        "ulysses_degree": 1,
+        "ring_degree": 1
+      },
+      "batch_latency_s": 67.99752759933472,
+      "avg_power_watts": 795.2872686582488,
+      "inference_steps": 50,
+      "energy_per_video_joules": 27038.783999994397,
+      "throughput_videos_per_sec": 0.029412834122215466,
+      "video_height": 480,
+      "video_width": 720,
+      "num_frames": 49,
+      "fps": 8
+    },
+    {
+      "gpu_model": "B200",
+      "num_gpus": 1,
+      "batch_size": 4,
+      "parallelization": {
+        "ulysses_degree": 1,
+        "ring_degree": 1
+      },
+      "batch_latency_s": 135.3738316297531,
+      "avg_power_watts": 797.1311124229985,
+      "inference_steps": 50,
+      "energy_per_video_joules": 26977.6732499972,
+      "throughput_videos_per_sec": 0.02954780810917714,
+      "video_height": 480,
+      "video_width": 720,
+      "num_frames": 49,
+      "fps": 8
+    },
+    {
+      "gpu_model": "B200",
+      "num_gpus": 1,
+      "batch_size": 8,
+      "parallelization": {
+        "ulysses_degree": 1,
+        "ring_degree": 1
+      },
+      "batch_latency_s": 273.32294142246246,
+      "avg_power_watts": 775.3932285999069,
+      "inference_steps": 50,
+      "energy_per_video_joules": 26491.5947499983,
+      "throughput_videos_per_sec": 0.02926940548190126,
+      "video_height": 480,
+      "video_width": 720,
+      "num_frames": 49,
+      "fps": 8
     }
   ]
 }
