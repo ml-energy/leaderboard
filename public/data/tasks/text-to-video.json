@@ -21,7 +21,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -41,7 +42,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -61,7 +63,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -81,7 +84,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -101,7 +105,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -121,7 +126,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -141,7 +147,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -161,7 +168,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -181,7 +189,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -201,7 +210,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -221,7 +231,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -241,7 +252,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -261,7 +273,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -281,7 +294,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -301,7 +315,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -321,7 +336,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -341,7 +357,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -361,7 +378,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -381,7 +399,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -401,7 +420,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -421,7 +441,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -441,7 +462,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -461,7 +483,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -481,7 +504,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -501,7 +525,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -521,7 +546,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -541,7 +567,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -561,7 +588,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -581,7 +609,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -601,7 +630,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -621,7 +651,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -641,7 +672,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -661,7 +693,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -681,7 +714,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -701,7 +735,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -721,7 +756,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -741,7 +777,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -761,7 +798,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -781,7 +819,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -801,7 +840,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -821,7 +861,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -841,7 +882,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -861,7 +903,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -881,7 +924,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -901,7 +945,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -921,7 +966,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -941,7 +987,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -961,7 +1008,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -981,7 +1029,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -1001,7 +1050,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -1021,7 +1071,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -1041,7 +1092,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -1061,7 +1113,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -1081,7 +1134,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1101,7 +1155,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1121,7 +1176,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1141,7 +1197,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1161,7 +1218,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1181,7 +1239,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1201,7 +1260,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1221,7 +1281,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1241,7 +1302,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1261,7 +1323,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1281,7 +1344,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1301,7 +1365,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1321,7 +1386,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1341,7 +1407,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1361,7 +1428,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1381,7 +1449,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1401,7 +1470,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1421,7 +1491,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1441,7 +1512,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1461,7 +1533,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1481,7 +1554,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1501,7 +1575,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1521,7 +1596,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1541,7 +1617,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1561,7 +1638,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1581,7 +1659,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1601,7 +1680,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1621,7 +1701,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1641,7 +1722,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1661,7 +1743,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1681,7 +1764,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1701,7 +1785,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1721,7 +1806,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1741,7 +1827,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1761,7 +1848,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1781,7 +1869,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1801,7 +1890,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1821,7 +1911,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1841,7 +1932,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1861,7 +1953,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -1881,7 +1974,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -1901,7 +1995,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -1921,7 +2016,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -1941,7 +2037,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -1961,7 +2058,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -1981,7 +2079,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2001,7 +2100,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2021,7 +2121,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2041,7 +2142,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2061,7 +2163,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2081,7 +2184,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2101,7 +2205,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2121,7 +2226,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2141,7 +2247,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2161,7 +2268,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2181,7 +2289,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2201,7 +2310,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2221,7 +2331,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2241,7 +2352,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2261,7 +2373,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2281,7 +2394,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2301,7 +2415,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2321,7 +2436,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2341,7 +2457,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -2361,7 +2478,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2381,7 +2499,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2401,7 +2520,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2421,7 +2541,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2441,7 +2562,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2461,7 +2583,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2481,7 +2604,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2501,7 +2625,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2521,7 +2646,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2541,7 +2667,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2561,7 +2688,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2581,7 +2709,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2601,7 +2730,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2621,7 +2751,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2641,7 +2772,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2661,7 +2793,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2681,7 +2814,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -2701,7 +2835,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -2721,7 +2856,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -2741,7 +2877,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -2761,7 +2898,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -2781,7 +2919,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -2801,7 +2940,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -2821,7 +2961,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -2841,7 +2982,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -2861,7 +3003,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -2881,7 +3024,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -2901,7 +3045,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -2921,7 +3066,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -2941,7 +3087,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -2961,7 +3108,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -2981,7 +3129,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3001,7 +3150,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3021,7 +3171,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3041,7 +3192,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3061,7 +3213,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3081,7 +3234,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3101,7 +3255,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3121,7 +3276,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3141,7 +3297,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3161,7 +3318,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3181,7 +3339,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3201,7 +3360,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3221,7 +3381,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3241,7 +3402,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3261,7 +3423,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3281,7 +3444,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3301,7 +3465,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3321,7 +3486,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3341,7 +3507,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3361,7 +3528,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3381,7 +3549,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3401,7 +3570,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3421,7 +3591,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -3441,7 +3612,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3461,7 +3633,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3481,7 +3654,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3501,7 +3675,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3521,7 +3696,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3541,7 +3717,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3561,7 +3738,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3581,7 +3759,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3601,7 +3780,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3621,7 +3801,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3641,7 +3822,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3661,7 +3843,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3681,7 +3864,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3701,7 +3885,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3721,7 +3906,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3741,7 +3927,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3761,7 +3948,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3781,7 +3969,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3801,7 +3990,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3821,7 +4011,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3841,7 +4032,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3861,7 +4053,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3881,7 +4074,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3901,7 +4095,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3921,7 +4116,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3941,7 +4137,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3961,7 +4158,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -3981,7 +4179,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4001,7 +4200,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4021,7 +4221,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4041,7 +4242,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4061,7 +4263,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4081,7 +4284,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4101,7 +4305,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4121,7 +4326,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4141,7 +4347,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4161,7 +4368,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4181,7 +4389,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4201,7 +4410,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4221,7 +4431,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4241,7 +4452,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4261,7 +4473,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4281,7 +4494,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4301,7 +4515,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4321,7 +4536,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4341,7 +4557,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4361,7 +4578,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4381,7 +4599,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
@@ -4401,7 +4620,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4421,7 +4641,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4441,7 +4662,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4461,7 +4683,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4481,7 +4704,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4501,7 +4725,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4521,7 +4746,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4541,7 +4767,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4561,7 +4788,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4581,7 +4809,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4601,7 +4830,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4621,7 +4851,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4641,7 +4872,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4661,7 +4893,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4681,7 +4914,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4701,7 +4935,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4721,7 +4956,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4741,7 +4977,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4761,7 +4998,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4781,7 +5019,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4801,7 +5040,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4821,7 +5061,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4841,7 +5082,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4861,7 +5103,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4881,7 +5124,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4901,7 +5145,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4921,7 +5166,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4941,7 +5187,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4961,7 +5208,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -4981,7 +5229,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5001,7 +5250,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5021,7 +5271,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5041,7 +5292,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5061,7 +5313,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5081,7 +5334,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5101,7 +5355,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5121,7 +5376,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5141,7 +5397,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5161,7 +5418,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5181,7 +5439,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5201,7 +5460,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5221,7 +5481,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5241,7 +5502,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5261,7 +5523,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5281,7 +5544,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5301,7 +5565,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5321,7 +5586,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5341,7 +5607,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5361,7 +5628,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5381,7 +5649,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5401,7 +5670,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5421,7 +5691,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5441,7 +5712,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5461,7 +5733,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
@@ -5481,7 +5754,8 @@
       "video_height": 480,
       "video_width": 832,
       "num_frames": 81,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5501,7 +5775,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5521,7 +5796,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5541,7 +5817,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5561,7 +5838,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5581,7 +5859,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5601,7 +5880,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5621,7 +5901,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5641,7 +5922,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5661,7 +5943,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5681,7 +5964,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5701,7 +5985,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5721,7 +6006,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5741,7 +6027,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5761,7 +6048,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5781,7 +6069,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5801,7 +6090,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5821,7 +6111,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5841,7 +6132,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5861,7 +6153,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5881,7 +6174,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5901,7 +6195,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5921,7 +6216,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5941,7 +6237,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5961,7 +6258,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -5981,7 +6279,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6001,7 +6300,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6021,7 +6321,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6041,7 +6342,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6061,7 +6363,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6081,7 +6384,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6101,7 +6405,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6121,7 +6426,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6141,7 +6447,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6161,7 +6468,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6181,7 +6489,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6201,7 +6510,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6221,7 +6531,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6241,7 +6552,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6261,7 +6573,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6281,7 +6594,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6301,7 +6615,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6321,7 +6636,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6341,7 +6657,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "tencent/HunyuanVideo",
@@ -6361,7 +6678,8 @@
       "video_height": 720,
       "video_width": 1280,
       "num_frames": 129,
-      "fps": 15
+      "fps": 15,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -6381,7 +6699,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -6401,7 +6720,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -6421,7 +6741,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -6441,7 +6762,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -6461,7 +6783,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -6481,7 +6804,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -6501,7 +6825,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -6521,7 +6846,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -6541,7 +6867,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -6561,7 +6888,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -6581,7 +6909,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -6601,7 +6930,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -6621,7 +6951,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -6641,7 +6972,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX-2b",
@@ -6661,7 +6993,8 @@
       "video_height": 480,
       "video_width": 720,
       "num_frames": 49,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6681,7 +7014,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6701,7 +7035,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6721,7 +7056,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6741,7 +7077,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6761,7 +7098,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6781,7 +7119,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6801,7 +7140,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6821,7 +7161,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6841,7 +7182,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6861,7 +7203,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6881,7 +7224,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6901,7 +7245,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6921,7 +7266,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6941,7 +7287,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6961,7 +7308,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -6981,7 +7329,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7001,7 +7350,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7021,7 +7371,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7041,7 +7392,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7061,7 +7413,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7081,7 +7434,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7101,7 +7455,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7121,7 +7476,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7141,7 +7497,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7161,7 +7518,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7181,7 +7539,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7201,7 +7560,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7221,7 +7581,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7241,7 +7602,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7261,7 +7623,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7281,7 +7644,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7301,7 +7665,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7321,7 +7686,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7341,7 +7707,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7361,7 +7728,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7381,7 +7749,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7401,7 +7770,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7421,7 +7791,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7441,7 +7812,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7461,7 +7833,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7481,7 +7854,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7501,7 +7875,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7521,7 +7896,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7541,7 +7917,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7561,7 +7938,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7581,7 +7959,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7601,7 +7980,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7621,7 +8001,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     },
     {
       "model_id": "zai-org/CogVideoX1.5-5B",
@@ -7641,7 +8022,8 @@
       "video_height": 768,
       "video_width": 1360,
       "num_frames": 81,
-      "fps": 8
+      "fps": 8,
+      "weight_precision": "bfloat16"
     }
   ]
 }

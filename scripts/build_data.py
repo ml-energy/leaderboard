@@ -1213,6 +1213,7 @@ def generate_diffusion_task_json(
             "num_gpus": run.num_gpus,
             "total_params_billions": params["total_params_billions"],
             "activated_params_billions": params["activated_params_billions"],
+            "weight_precision": params["weight_precision"],
             "batch_size": run.batch_size,
             "batch_latency_s": metrics["batch_latency_s"],
             "avg_power_watts": metrics["avg_power_watts"],

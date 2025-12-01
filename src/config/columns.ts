@@ -129,6 +129,12 @@ export const LLM_ADVANCED_COLUMNS: ColumnDef[] = [
 export const IMAGE_COLUMNS: ColumnDef[] = [
   { key: 'nickname', label: 'Model', sortable: false },
   {
+    key: 'weight_precision',
+    label: 'Precision',
+    sortable: true,
+    tooltip: 'The floating point precision used to store the model weights. Lower precision like FP8 reduces memory usage at the cost of slight model quality degradation.'
+  },
+  {
     key: 'total_params_billions',
     label: 'Params',
     sortable: true,
@@ -227,6 +233,12 @@ export const IMAGE_ADVANCED_COLUMNS: ColumnDef[] = [
 // Diffusion model columns (text-to-video)
 export const VIDEO_COLUMNS: ColumnDef[] = [
   { key: 'nickname', label: 'Model', sortable: false },
+  {
+    key: 'weight_precision',
+    label: 'Precision',
+    sortable: true,
+    tooltip: 'The floating point precision used to store the model weights. Lower precision like FP8 reduces memory usage at the cost of slight model quality degradation.'
+  },
   {
     key: 'total_params_billions',
     label: 'Params',

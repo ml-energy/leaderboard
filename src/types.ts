@@ -60,6 +60,7 @@ export interface ImageConfiguration {
   num_gpus: number;
   total_params_billions: number;
   activated_params_billions: number;
+  weight_precision: string;
   batch_size: number;
   energy_per_image_joules: number;
   batch_latency_s: number;
@@ -80,6 +81,7 @@ export interface VideoConfiguration {
   num_gpus: number;
   total_params_billions: number;
   activated_params_billions: number;
+  weight_precision: string;
   batch_size: number;
   energy_per_video_joules: number;
   batch_latency_s: number;
