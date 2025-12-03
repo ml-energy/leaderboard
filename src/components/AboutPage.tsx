@@ -163,13 +163,13 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
               <div>
                 <h4 className="font-semibold text-gray-900 dark:text-white">Is this accurate?</h4>
                 <p className="text-gray-700 dark:text-gray-300">
-                  We take accuracy seriously. Our measurements use real GPU energy readings (not max power-based estimates, which can lead to significant overestimations). We measure steady-state energy when the server is running at its configured batch size, capturing realistic deployment behavior. All benchmarks run on production-grade hardware and software stacks. See our <a href="https://arxiv.org/abs/2505.06371" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">paper</a> for detailed methodology.
+                  We take accuracy seriously. Our measurements use real GPU energy readings (not max power-based estimates, which can lead to significant overestimations). We measure steady-state energy when the server is running at its configured batch size, capturing realistic deployment behavior. All benchmarks run on production-grade hardware and software stacks. See also our <a href="https://arxiv.org/abs/2505.06371" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">paper</a> for detailed methodology.
                 </p>
               </div>
               <div>
                 <h4 className="font-semibold text-gray-900 dark:text-white">What are the limitations?</h4>
                 <p className="text-gray-700 dark:text-gray-300">
-                  We can only benchmark <strong>open-weight models</strong>; closed models like OpenAI GPT or Claude cannot be measured. Software and hardware infrastructure evolves over time, so results may drift slightly from optimal as new versions are released. We also cannot cover every possible optimization (e.g., speculative decoding, prefill-decode disaggregation), though we include the most common and impactful ones and follow deployment best practices. However, we are planning to follow-up with a <strong>control benchmark</strong> that selects one or two important models and test out various workloads and optimizations.
+                  We can only benchmark <strong>open-weight models</strong>; closed models like OpenAI GPT or Anthropic Claude cannot be measured. Software and hardware infrastructure evolves over time, so results may drift slightly from optimal as new versions are released. We also cannot cover every possible optimization (e.g., speculative decoding, prefill-decode disaggregation), though we include the most common and impactful ones and follow deployment best practices. However, we are planning to follow-up with a <strong>control benchmark</strong> that selects one or two important models and test out various workloads and optimizations.
                 </p>
               </div>
               <div>
@@ -221,6 +221,15 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
                 </a>
               </p>
             </div>
+          </section>
+
+          <section>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+              Acknowledgements
+            </h3>
+            <p className="text-gray-700 dark:text-gray-300">
+              We thank <a href="https://ml.energy" target="_blank" rel="noopener noreferrer" className="text-blue-6000 dark:text-blue-400 hover:underline">The ML.ENERGY Initiative</a> team for their contributions to the benchmark and leaderboard, including Jae-Won Chung, Jeff J. Ma, Ruofan Wu, Jiachen Liu, Oh Jun Kweon, Yuxuan Xia, Zhiyu Wu, and Mosharaf Chowdhury. The computing needs of this work were partially supported by grants from the Mozilla Foundation and Los Alamos National Laboratory.
+            </p>
           </section>
 
           {/* Links */}
@@ -284,7 +293,7 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
             </p>
             <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-xs overflow-x-auto text-gray-800 dark:text-gray-200">
 {`@inproceedings{mlenergy-neuripsdb25,
-    title={The {ML.ENERGY Benchmark}: Toward Automated Inference Energy Measurement and Optimization},
+    title={The {ML.ENERGY} Benchmark: Toward Automated Inference Energy Measurement and Optimization},
     author={Jae-Won Chung and Jeff J. Ma and Ruofan Wu and Jiachen Liu and Oh Jun Kweon and Yuxuan Xia and Zhiyu Wu and Mosharaf Chowdhury},
     year={2025},
     booktitle={NeurIPS Datasets and Benchmarks},
