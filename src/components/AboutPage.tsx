@@ -199,7 +199,7 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
                 </a>
               </p>
               <p>
-                <strong>V2.0</strong> (September 20, 2024): Added multi-GPU configurations and more models.{' '}
+                <strong>V2.0</strong> (September 20, 2024): Added multi-GPU inference, more tasks, MLLMs, and diffusion models.{' '}
                 <a
                   href="https://github.com/ml-energy/leaderboard-v2"
                   target="_blank"
