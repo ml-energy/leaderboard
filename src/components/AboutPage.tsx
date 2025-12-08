@@ -188,7 +188,7 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
             </h3>
             <div className="space-y-3 text-gray-700 dark:text-gray-300">
               <p>
-                <strong>V3.0</strong> (December 1, 2025): Current version with LLMs, MLLMs, and diffusion models.{' '}
+                <strong>V3.0</strong> (December 1, 2025): Current version with expanded coverage of LLMs, MLLMs, diffusion models, and hardware/software stack.{' '}
                 <a
                   href="https://github.com/ml-energy/leaderboard"
                   target="_blank"
