@@ -10,9 +10,9 @@ if (import.meta.env.PROD) {
   document.head.appendChild(script);
 
   window.dataLayer = window.dataLayer || [];
-  function gtag(...args: unknown[]) { window.dataLayer.push(args); }
-  gtag('js', new Date());
-  gtag('config', 'G-8NM6L1X6ML');
+  window.gtag = function(...args: unknown[]) { window.dataLayer.push(args); };
+  window.gtag('js', new Date());
+  window.gtag('config', 'G-8NM6L1X6ML');
 }
 
 createRoot(document.getElementById('root')!).render(
