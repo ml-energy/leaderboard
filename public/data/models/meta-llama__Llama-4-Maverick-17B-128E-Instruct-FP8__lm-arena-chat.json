@@ -121,7 +121,7 @@
       "parallelization": {
         "tensor_parallel": 1,
         "expert_parallel": 8,
-        "data_parallel": 0,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.7573396700014222,
@@ -249,7 +249,7 @@
       "parallelization": {
         "tensor_parallel": 1,
         "expert_parallel": 8,
-        "data_parallel": 0,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 1.8157942573743913,
@@ -377,7 +377,7 @@
       "parallelization": {
         "tensor_parallel": 1,
         "expert_parallel": 8,
-        "data_parallel": 0,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.6416026507218848,
@@ -505,7 +505,7 @@
       "parallelization": {
         "tensor_parallel": 1,
         "expert_parallel": 8,
-        "data_parallel": 0,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.5604892165392596,
@@ -633,7 +633,7 @@
       "parallelization": {
         "tensor_parallel": 1,
         "expert_parallel": 8,
-        "data_parallel": 0,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 1.2655324258473077,
@@ -761,7 +761,7 @@
       "parallelization": {
         "tensor_parallel": 1,
         "expert_parallel": 8,
-        "data_parallel": 0,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.48419284725112327,
@@ -889,7 +889,7 @@
       "parallelization": {
         "tensor_parallel": 1,
         "expert_parallel": 8,
-        "data_parallel": 0,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.9439309067180714,
@@ -1017,7 +1017,7 @@
       "parallelization": {
         "tensor_parallel": 1,
         "expert_parallel": 8,
-        "data_parallel": 0,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 2.8045326473291636,
@@ -1145,7 +1145,7 @@
       "parallelization": {
         "tensor_parallel": 1,
         "expert_parallel": 8,
-        "data_parallel": 0,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.8487845785790009,

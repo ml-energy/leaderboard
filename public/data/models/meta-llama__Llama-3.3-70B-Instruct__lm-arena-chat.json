@@ -120,8 +120,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.6036206575024905,
@@ -248,8 +248,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 2.1016443053811678,
@@ -376,8 +376,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.5400161867812329,
@@ -504,8 +504,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.4910870247635751,
@@ -632,8 +632,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 1.2490713279290644,
@@ -760,8 +760,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.4437462324400039,
@@ -888,8 +888,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.42511732904780986,
@@ -1016,8 +1016,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.8223267233123469,
@@ -1144,8 +1144,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.42309416473966643,
@@ -1272,8 +1272,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 3.8469267248117465,
@@ -1400,8 +1400,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.6707632297133818,
@@ -1528,8 +1528,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.2185859542835205,
@@ -1656,8 +1656,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.48108686802094386,
@@ -1784,8 +1784,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 1.9214979320441667,
@@ -1912,8 +1912,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.35214391557233893,
@@ -2040,8 +2040,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 1.09837607324156,
@@ -2168,8 +2168,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.2726696708352643,
@@ -2296,8 +2296,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.6835897220173396,
@@ -2424,8 +2424,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 3.61682729251943,

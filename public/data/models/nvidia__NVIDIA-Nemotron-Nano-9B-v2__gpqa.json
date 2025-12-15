@@ -120,8 +120,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.1217189164071414,
@@ -248,8 +248,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.29249840943351546,
@@ -376,8 +376,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.11555187175691262,
@@ -504,8 +504,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.10892531500222859,
@@ -632,8 +632,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.19800835601455186,
@@ -760,8 +760,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.1509581841694076,
@@ -888,8 +888,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.48337250937519677,
@@ -1016,8 +1016,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.13321027691362877,
@@ -1144,8 +1144,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.15950403131571084,
@@ -1272,8 +1272,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.5212551517096778,
@@ -1400,8 +1400,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.1322580585142048,
@@ -1528,8 +1528,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.30169388358162796,
@@ -1656,8 +1656,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.11675020881368221,
@@ -1784,8 +1784,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.22121150797713868,
@@ -1912,8 +1912,8 @@
       "max_num_batched_tokens": null,
       "parallelization": {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": ""
       },
       "energy_per_token_joules": 0.8196465956608674,

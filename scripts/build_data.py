@@ -675,8 +675,8 @@ def parse_parallelization(run: BenchmarkRun) -> Dict:
 
     result = {
         "tensor_parallel": 1,
-        "expert_parallel": 0,
-        "data_parallel": 0,
+        "expert_parallel": 1,
+        "data_parallel": 1,
         "notes": "",
     }
 
@@ -690,11 +690,11 @@ def parse_parallelization(run: BenchmarkRun) -> Dict:
             result["expert_parallel"] = run.num_gpus
 
     if "data-parallel-size" in config:
-        result["data_parallel"] = config["data-parallel-size"]
+        # 0 means auto-expand to num_gpus
+        result["data_parallel"] = config["data-parallel-size"] or run.num_gpus
 
-    # Qwen3-Coder-480B uses hybrid parallelization: DP for attention, EP for MLP experts
-    if "Qwen3-Coder-480B" in run.model_id:
-        result["data_parallel"] = result["expert_parallel"]  # Same degree as EP
+    # Add notes for hybrid DP+EP configurations
+    if result["data_parallel"] > 1 and result["expert_parallel"] > 1:
         result["notes"] = "DP for attention, EP for MLP experts"
 
     return result
