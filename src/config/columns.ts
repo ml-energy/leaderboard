@@ -76,6 +76,14 @@ export const LLM_COLUMNS: ColumnDef[] = [
 
 export const LLM_ADVANCED_COLUMNS: ColumnDef[] = [
   {
+    key: 'avg_output_len',
+    label: 'Avg Output Tokens',
+    sortable: true,
+    format: (v: number) => v.toFixed(0),
+    align: 'right',
+    tooltip: 'Average number of output tokens per response. Different models respond to the same prompt with varying lengths of text, i.e., they have different verbosity.'
+  },
+  {
     key: 'avg_power_watts',
     label: 'Avg Power (W)',
     sortable: true,

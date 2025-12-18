@@ -35,6 +35,7 @@ export interface Configuration {
 
   energy_per_token_joules: number;
   energy_per_request_joules: number;
+  avg_output_len: number;
   avg_power_watts: number;
   median_itl_ms: number;
   output_throughput_tokens_per_sec: number;
@@ -119,6 +120,7 @@ export interface ModelConfiguration {
 
   energy_per_token_joules: number;
   energy_per_request_joules: number;
+  avg_output_len: number;
   avg_power_watts: number;
   median_itl_ms: number;
   p90_itl_ms: number;
