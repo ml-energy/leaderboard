@@ -146,7 +146,7 @@ export const IMAGE_COLUMNS: ColumnDef[] = [
     key: 'total_params_billions',
     label: 'Params',
     sortable: true,
-    format: (v: number) => v < 1 ? `${(v * 1000).toFixed(0)}M` : `${v.toFixed(0)}B`,
+    format: (v: number) => `${v.toFixed(1)}B`,
     align: 'right',
     tooltip: 'The total number of parameters in the model.'
   },
@@ -251,7 +251,7 @@ export const VIDEO_COLUMNS: ColumnDef[] = [
     key: 'total_params_billions',
     label: 'Params',
     sortable: true,
-    format: (v: number) => v < 1 ? `${(v * 1000).toFixed(0)}M` : `${v.toFixed(0)}B`,
+    format: (v: number) => `${v.toFixed(1)}B`,
     align: 'right',
     tooltip: 'The total number of parameters in the model.'
   },
