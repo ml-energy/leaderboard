@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { IndexData, TaskData, AnyConfiguration, Configuration } from './types';
 import { loadIndexData, loadTaskData } from './utils/dataLoader';
 import { getColumnsForTask } from './config/columns';
@@ -11,6 +11,9 @@ import { ComparisonModal } from './components/ComparisonModal';
 import { AboutPage } from './components/AboutPage';
 import { TaskAboutModal } from './components/TaskAboutModal';
 import { TimeEnergyTradeoffChart, ITLPercentile } from './components/TimeEnergyTradeoffChart';
+import { AnnouncementBanner } from './components/AnnouncementBanner';
+import { AnnouncementsModal } from './components/AnnouncementsModal';
+import { announcements } from './config/announcements';
 
 function App() {
   const [indexData, setIndexData] = useState<IndexData | null>(null);
@@ -29,6 +32,18 @@ function App() {
   const [modalOpen, setModalOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [taskAboutOpen, setTaskAboutOpen] = useState(false);
+  const [announcementsOpen, setAnnouncementsOpen] = useState(false);
+  const [readAnnouncementIds, setReadAnnouncementIds] = useState<Set<string>>(() => {
+    const stored = localStorage.getItem('readAnnouncementIds');
+    if (stored) {
+      try {
+        return new Set(JSON.parse(stored));
+      } catch {
+        return new Set();
+      }
+    }
+    return new Set();
+  });
 
   // Multi-model comparison state (single source of truth: selectedForCompare)
   const [selectedForCompare, setSelectedForCompare] = useState<Set<string>>(new Set());
@@ -48,6 +63,20 @@ function App() {
     }
     localStorage.setItem('darkMode', String(darkMode));
   }, [darkMode]);
+
+  useEffect(() => {
+    localStorage.setItem('readAnnouncementIds', JSON.stringify([...readAnnouncementIds]));
+  }, [readAnnouncementIds]);
+
+  const unreadAnnouncementCount = announcements.filter(a => !readAnnouncementIds.has(a.date)).length;
+
+  const handleMarkAnnouncementAsRead = (id: string) => {
+    setReadAnnouncementIds(prev => new Set([...prev, id]));
+  };
+
+  const handleMarkAllAnnouncementsAsRead = useCallback(() => {
+    setReadAnnouncementIds(new Set(announcements.map(a => a.date)));
+  }, []);
 
   useEffect(() => {
     loadIndexData()
@@ -317,6 +346,10 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <AnnouncementBanner
+        readIds={readAnnouncementIds}
+        onDismiss={handleMarkAnnouncementAsRead}
+      />
       <header className="bg-white dark:bg-gray-800 shadow">
         <div className="mx-auto py-6 px-6 flex justify-between items-center">
           <div>
@@ -344,6 +377,18 @@ function App() {
                 <svg className="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
                 </svg>
+              )}
+            </button>
+            <button
+              onClick={() => setAnnouncementsOpen(true)}
+              className="relative p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              title="Announcements"
+            >
+              <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+              </svg>
+              {unreadAnnouncementCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
               )}
             </button>
             <button
@@ -521,6 +566,14 @@ function App() {
       )}
 
       {aboutOpen && <AboutPage onClose={() => setAboutOpen(false)} />}
+
+      <AnnouncementsModal
+        isOpen={announcementsOpen}
+        onClose={() => {
+          setAnnouncementsOpen(false);
+          handleMarkAllAnnouncementsAsRead();
+        }}
+      />
 
       {taskAboutOpen && (
         <TaskAboutModal
