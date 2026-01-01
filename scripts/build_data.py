@@ -456,10 +456,13 @@ def extract_metrics(run: BenchmarkRun) -> Dict:
         if field not in results:
             raise ValueError(f"Missing required field '{field}' in {run.results_path}")
 
+    steady_state_tokens = results["steady_state_energy"] / results["steady_state_energy_per_token"]
+    steady_state_throughput = steady_state_tokens / results["steady_state_duration"]
+
     metrics = {
         "energy_per_token_joules": results["steady_state_energy_per_token"],
         "total_energy_joules": results["steady_state_energy"],
-        "output_throughput_tokens_per_sec": results["output_throughput"],
+        "output_throughput_tokens_per_sec": steady_state_throughput,
         "request_throughput_req_per_sec": results["request_throughput"],
         "total_token_throughput": results["total_token_throughput"],
         "total_input_tokens": results["total_input_tokens"],

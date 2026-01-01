@@ -132,7 +132,7 @@
       "p90_itl_ms": 43.72462259925669,
       "p95_itl_ms": 45.05074470034742,
       "p99_itl_ms": 46.65174832058254,
-      "output_throughput_tokens_per_sec": 1506.8565536135932,
+      "output_throughput_tokens_per_sec": 3418.85955596074,
       "avg_batch_size": 127.97902097902097,
       "output_length_distribution": {
         "bins": [
@@ -261,7 +261,7 @@
       "p90_itl_ms": 25.742184797127265,
       "p95_itl_ms": 26.12001999950735,
       "p99_itl_ms": 26.771409560169552,
-      "output_throughput_tokens_per_sec": 631.053211049158,
+      "output_throughput_tokens_per_sec": 668.3674570007665,
       "avg_batch_size": 15.996767676767677,
       "output_length_distribution": {
         "bins": [
@@ -390,7 +390,7 @@
       "p90_itl_ms": 60.28186200273922,
       "p95_itl_ms": 62.36090200400213,
       "p99_itl_ms": 86.3645200006431,
-      "output_throughput_tokens_per_sec": 1818.2131600753107,
+      "output_throughput_tokens_per_sec": 5135.31353738112,
       "avg_batch_size": 255.97607655502392,
       "output_length_distribution": {
         "bins": [
@@ -519,7 +519,7 @@
       "p90_itl_ms": 36.317284997494426,
       "p95_itl_ms": 37.307107500964776,
       "p99_itl_ms": 38.29792009710218,
-      "output_throughput_tokens_per_sec": 805.9447095465853,
+      "output_throughput_tokens_per_sec": 982.80649890588,
       "avg_batch_size": 31.993279569892472,
       "output_length_distribution": {
         "bins": [
@@ -648,7 +648,7 @@
       "p90_itl_ms": 44.22798000450712,
       "p95_itl_ms": 45.16777925164206,
       "p99_itl_ms": 46.848201301327215,
-      "output_throughput_tokens_per_sec": 1160.5857168272917,
+      "output_throughput_tokens_per_sec": 1717.706398129188,
       "avg_batch_size": 63.998511904761905,
       "output_length_distribution": {
         "bins": [
@@ -777,7 +777,7 @@
       "p90_itl_ms": 19.818756598397158,
       "p95_itl_ms": 20.0225453969324,
       "p99_itl_ms": 20.331353237852454,
-      "output_throughput_tokens_per_sec": 412.5740310098022,
+      "output_throughput_tokens_per_sec": 423.8413062291826,
       "avg_batch_size": 7.999508720216163,
       "output_length_distribution": {
         "bins": [
