@@ -44,6 +44,9 @@ function App() {
     }
     return new Set();
   });
+  const [bannerDismissedDate, setBannerDismissedDate] = useState<string | null>(() => {
+    return localStorage.getItem('bannerDismissedDate');
+  });
 
   // Multi-model comparison state (single source of truth: selectedForCompare)
   const [selectedForCompare, setSelectedForCompare] = useState<Set<string>>(new Set());
@@ -68,10 +71,24 @@ function App() {
     localStorage.setItem('readAnnouncementIds', JSON.stringify([...readAnnouncementIds]));
   }, [readAnnouncementIds]);
 
+  useEffect(() => {
+    if (bannerDismissedDate) {
+      localStorage.setItem('bannerDismissedDate', bannerDismissedDate);
+    }
+  }, [bannerDismissedDate]);
+
   const unreadAnnouncementCount = announcements.filter(a => !readAnnouncementIds.has(a.date)).length;
 
-  const handleMarkAnnouncementAsRead = (id: string) => {
-    setReadAnnouncementIds(prev => new Set([...prev, id]));
+  const markAllAnnouncementsAsRead = () => {
+    setReadAnnouncementIds(new Set(announcements.map(a => a.date)));
+  };
+
+  const handleDismissBanner = () => {
+    const latestDate = announcements[0]?.date;
+    if (latestDate) {
+      setBannerDismissedDate(latestDate);
+    }
+    markAllAnnouncementsAsRead();
   };
 
   useEffect(() => {
@@ -343,57 +360,67 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <AnnouncementBanner
-        readIds={readAnnouncementIds}
-        onDismiss={handleMarkAnnouncementAsRead}
+        dismissedDate={bannerDismissedDate}
+        onDismiss={handleDismissBanner}
       />
+      {/* Mobile notice - only visible on small screens */}
+      <div className="md:hidden bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-800 px-4 py-2">
+        <p className="text-sm text-amber-800 dark:text-amber-200 text-center">
+          This site is best viewed on a wider screen.
+        </p>
+      </div>
+
       <header className="bg-white dark:bg-gray-800 shadow">
-        <div className="mx-auto py-6 px-6 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+        <div className="mx-auto py-4 md:py-6 px-4 md:px-6">
+          <div className="flex justify-between items-start gap-3">
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white" style={{ fontFamily: 'Montserrat, sans-serif' }}>
               The ML.ENERGY Leaderboard
             </h1>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              How much time and energy do generative AI models consume?
-            </p>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              Version 3.0 / Last updated: {__LAST_UPDATED__}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-              title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {darkMode ? (
-                <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+            <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                {darkMode ? (
+                  <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                  </svg>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setAnnouncementsOpen(true);
+                  markAllAnnouncementsAsRead();
+                }}
+                className="relative p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                title="Announcements"
+              >
+                <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                 </svg>
-              ) : (
-                <svg className="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                </svg>
-              )}
-            </button>
-            <button
-              onClick={() => setAnnouncementsOpen(true)}
-              className="relative p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-              title="Announcements"
-            >
-              <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-              </svg>
-              {unreadAnnouncementCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
-              )}
-            </button>
-            <button
-              onClick={() => setAboutOpen(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              About
-            </button>
+                {unreadAnnouncementCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
+                )}
+              </button>
+              <button
+                onClick={() => setAboutOpen(true)}
+                className="px-3 md:px-4 py-2 text-sm md:text-base bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                About
+              </button>
+            </div>
           </div>
+          <p className="mt-2 text-xs md:text-sm text-gray-600 dark:text-gray-400">
+            How much time and energy do generative AI models consume?
+          </p>
+          <p className="mt-1 text-xs md:text-sm text-gray-600 dark:text-gray-400">
+            Version 3.0 / Last updated: {__LAST_UPDATED__}
+          </p>
         </div>
       </header>
 
