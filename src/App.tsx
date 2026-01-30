@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { IndexData, TaskData, AnyConfiguration, Configuration } from './types';
 import { loadIndexData, loadTaskData } from './utils/dataLoader';
 import { getColumnsForTask } from './config/columns';
@@ -73,10 +73,6 @@ function App() {
   const handleMarkAnnouncementAsRead = (id: string) => {
     setReadAnnouncementIds(prev => new Set([...prev, id]));
   };
-
-  const handleMarkAllAnnouncementsAsRead = useCallback(() => {
-    setReadAnnouncementIds(new Set(announcements.map(a => a.date)));
-  }, []);
 
   useEffect(() => {
     loadIndexData()
@@ -569,10 +565,7 @@ function App() {
 
       <AnnouncementsModal
         isOpen={announcementsOpen}
-        onClose={() => {
-          setAnnouncementsOpen(false);
-          handleMarkAllAnnouncementsAsRead();
-        }}
+        onClose={() => setAnnouncementsOpen(false)}
       />
 
       {taskAboutOpen && (

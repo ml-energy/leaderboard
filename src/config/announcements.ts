@@ -12,10 +12,10 @@ export interface Announcement {
 // Announcements ordered from newest to oldest
 export const announcements: Announcement[] = [
   {
-    date: "2026-01-13",
-    message: "New blog post: Reading the ML.ENERGY Leaderboard v3.0",
+    date: "2026-01-29",
+    message: "New blog post: Diagnosing Inference Energy Consumption with the MLenergy Leaderboard v3.0",
     links: [
-      { text: "Blog", url: "https://ml.energy/blog/measurement/energy/reading-the-mlenergy-leaderboard-v30/" },
+      { text: "Blog", url: "https://ml.energy/blog/measurement/energy/diagnosing-inference-energy-consumption-with-the-mlenergy-leaderboard-v30/" },
     ],
   },
   {
