@@ -1,15 +1,20 @@
 import { announcements } from '../config/announcements';
 
 interface AnnouncementBannerProps {
-  readIds: Set<string>;
-  onDismiss: (id: string) => void;
+  dismissedDate: string | null;
+  onDismiss: () => void;
 }
 
-export function AnnouncementBanner({ readIds, onDismiss }: AnnouncementBannerProps) {
-  // Find the latest unread announcement (announcements are ordered newest first)
-  const latestUnread = announcements.find(a => !readIds.has(a.date));
+export function AnnouncementBanner({ dismissedDate, onDismiss }: AnnouncementBannerProps) {
+  // Show banner if there's an announcement newer than the dismissed date
+  const latestAnnouncement = announcements[0];
 
-  if (!latestUnread) {
+  if (!latestAnnouncement) {
+    return null;
+  }
+
+  // Hide if the latest announcement has been dismissed
+  if (dismissedDate && latestAnnouncement.date <= dismissedDate) {
     return null;
   }
 
@@ -17,11 +22,11 @@ export function AnnouncementBanner({ readIds, onDismiss }: AnnouncementBannerPro
     <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-md">
       <div className="mx-auto py-2.5 px-6 flex items-center justify-center gap-3">
         <span className="text-sm">
-          <span className="font-medium">{latestUnread.message}</span>
-          {latestUnread.links && latestUnread.links.length > 0 && (
+          <span className="font-medium">{latestAnnouncement.message}</span>
+          {latestAnnouncement.links && latestAnnouncement.links.length > 0 && (
             <>
               {' '}
-              {latestUnread.links.map((link, index) => (
+              {latestAnnouncement.links.map((link, index) => (
                 <span key={link.url}>
                   {index > 0 && ' · '}
                   <a
@@ -41,7 +46,7 @@ export function AnnouncementBanner({ readIds, onDismiss }: AnnouncementBannerPro
           )}
         </span>
         <button
-          onClick={() => onDismiss(latestUnread.date)}
+          onClick={onDismiss}
           className="p-1 hover:bg-white/20 rounded transition-colors flex-shrink-0"
           aria-label="Dismiss announcement"
         >
