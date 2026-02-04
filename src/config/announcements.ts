@@ -16,6 +16,7 @@ export const announcements: Announcement[] = [
     message: "New blog post: Diagnosing Inference Energy Consumption with the MLenergy Leaderboard v3.0",
     links: [
       { text: "Blog", url: "https://ml.energy/blog/measurement/energy/diagnosing-inference-energy-consumption-with-the-mlenergy-leaderboard-v30/" },
+      { text: "arXiv", url: "https://arxiv.org/abs/2601.22076" },
     ],
   },
   {
