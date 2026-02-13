@@ -26,7 +26,6 @@ export interface Configuration {
   architecture: string;
   weight_precision: string;
   max_num_seqs: number | null;
-  max_num_batched_tokens: number | null;
 
   // Parallelization fields
   tensor_parallel: number;
@@ -115,7 +114,6 @@ export interface ModelConfiguration {
   gpu_model: string;
   num_gpus: number;
   max_num_seqs: number | null;
-  max_num_batched_tokens: number | null;
   parallelization: Parallelization;
 
   energy_per_token_joules: number;
