@@ -1065,7 +1065,7 @@ def generate_index_json(
     diffusion_runs: List[DiffusionBenchmarkRun],
     output_dir: Path,
     config_dir: Path,
-    diffusion_config_dir: Optional[Path] = None,
+    diffusion_config_dir: Path,
 ) -> None:
     """Generate index.json with task list, architecture groupings, and model metadata."""
     from datetime import datetime
@@ -1192,7 +1192,7 @@ def generate_diffusion_task_json(
     task: str,
     runs: List[DiffusionBenchmarkRun],
     output_dir: Path,
-    config_dir: Optional[Path] = None,
+    config_dir: Path,
 ) -> None:
     """Generate task-specific JSON for diffusion tasks."""
     task_runs = [run for run in runs if run.task == task]
@@ -1342,7 +1342,7 @@ def generate_diffusion_model_json(
     task: str,
     runs: List[DiffusionBenchmarkRun],
     output_dir: Path,
-    config_dir: Optional[Path] = None,
+    config_dir: Path,
 ) -> Path:
     """Generate model detail JSON for diffusion models."""
     params = get_diffusion_model_params(model_id, task, config_dir)
@@ -1463,13 +1463,11 @@ def main():
     parser.add_argument(
         "--llm-config-dir",
         type=str,
-        default=None,
         help="Path to LLM/MLLM config directory containing model_info.json files",
     )
     parser.add_argument(
         "--diffusion-config-dir",
         type=str,
-        default=None,
         help="Path to diffusion config directory containing model_info.json files",
     )
 
@@ -1482,8 +1480,8 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    llm_config_dir = Path(args.llm_config_dir) if args.llm_config_dir else None
-    diffusion_config_dir = Path(args.diffusion_config_dir) if args.diffusion_config_dir else None
+    llm_config_dir = Path(args.llm_config_dir)
+    diffusion_config_dir = Path(args.diffusion_config_dir)
 
     # Scan for LLM/MLLM runs
     print(f"Scanning {len(args.results_dirs)} results directories for LLM/MLLM...", flush=True)
@@ -1518,6 +1516,10 @@ def main():
     if runs:
         print("\nFiltering unstable LLM/MLLM runs...", flush=True)
         runs = filter_unstable_runs(runs)
+
+    # Sort runs for deterministic output (rglob returns filesystem-order which is arbitrary)
+    runs.sort(key=lambda r: (r.model_id, r.task, r.gpu_model, r.num_gpus, r.max_num_seqs or 0, r.max_num_batched_tokens or 0, r.num_request_repeats, r.seed, str(r.results_path)))
+    diffusion_runs.sort(key=lambda r: (r.model_id, r.task, r.gpu_model, r.num_gpus, r.batch_size, r.height, r.width, r.inference_steps, r.ulysses_degree, r.ring_degree, r.use_torch_compile, r.seed, str(r.results_path)))
 
     # Generate index.json with both LLM/MLLM and diffusion data
     print("\nGenerating index.json...", flush=True)
