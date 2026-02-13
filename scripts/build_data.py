@@ -1117,7 +1117,7 @@ def generate_index_json(
 
     output_path = output_dir / "index.json"
     with open(output_path, "w") as f:
-        json.dump(index_data, f, indent=2)
+        json.dump(index_data, f, indent=2, sort_keys=True)
 
     print(f"Generated {output_path}")
 
@@ -1183,7 +1183,7 @@ def generate_task_json(task: str, runs: List[BenchmarkRun], output_dir: Path, co
     output_path = output_dir / "tasks" / f"{task}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as f:
-        json.dump(task_data, f, indent=2)
+        json.dump(task_data, f, indent=2, sort_keys=True)
 
     print(f"Generated {output_path}")
 
@@ -1252,7 +1252,7 @@ def generate_diffusion_task_json(
     output_path = output_dir / "tasks" / f"{task}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as f:
-        json.dump(task_data, f, indent=2)
+        json.dump(task_data, f, indent=2, sort_keys=True)
 
     print(f"Generated {output_path}")
 
@@ -1332,7 +1332,7 @@ def generate_model_json(
     output_path = output_dir / "models" / f"{model_id.replace('/', '__')}__{task}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as f:
-        json.dump(model_data, f, indent=2)
+        json.dump(model_data, f, indent=2, sort_keys=True)
 
     return output_path
 
@@ -1393,7 +1393,7 @@ def generate_diffusion_model_json(
     output_path = output_dir / "models" / f"{model_id.replace('/', '__')}__{task}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as f:
-        json.dump(model_data, f, indent=2)
+        json.dump(model_data, f, indent=2, sort_keys=True)
 
     return output_path
 
