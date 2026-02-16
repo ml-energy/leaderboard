@@ -127,7 +127,7 @@
         "data_parallel": 1,
         "expert_parallel": 1,
         "notes": "",
-        "tensor_parallel": 1
+        "tensor_parallel": 8
       }
     },
     {
@@ -255,7 +255,7 @@
         "data_parallel": 1,
         "expert_parallel": 1,
         "notes": "",
-        "tensor_parallel": 1
+        "tensor_parallel": 8
       }
     },
     {
@@ -383,7 +383,7 @@
         "data_parallel": 1,
         "expert_parallel": 1,
         "notes": "",
-        "tensor_parallel": 1
+        "tensor_parallel": 8
       }
     },
     {
@@ -511,7 +511,7 @@
         "data_parallel": 1,
         "expert_parallel": 1,
         "notes": "",
-        "tensor_parallel": 1
+        "tensor_parallel": 8
       }
     },
     {
@@ -639,7 +639,7 @@
         "data_parallel": 1,
         "expert_parallel": 1,
         "notes": "",
-        "tensor_parallel": 1
+        "tensor_parallel": 8
       }
     },
     {
@@ -767,7 +767,7 @@
         "data_parallel": 1,
         "expert_parallel": 1,
         "notes": "",
-        "tensor_parallel": 1
+        "tensor_parallel": 8
       }
     },
     {
@@ -895,7 +895,7 @@
         "data_parallel": 1,
         "expert_parallel": 1,
         "notes": "",
-        "tensor_parallel": 1
+        "tensor_parallel": 8
       }
     },
     {
@@ -1023,7 +1023,7 @@
         "data_parallel": 1,
         "expert_parallel": 1,
         "notes": "",
-        "tensor_parallel": 1
+        "tensor_parallel": 8
       }
     },
     {
@@ -1151,7 +1151,7 @@
         "data_parallel": 1,
         "expert_parallel": 1,
         "notes": "",
-        "tensor_parallel": 1
+        "tensor_parallel": 8
       }
     },
     {
@@ -1279,7 +1279,7 @@
         "data_parallel": 1,
         "expert_parallel": 1,
         "notes": "",
-        "tensor_parallel": 1
+        "tensor_parallel": 8
       }
     },
     {
@@ -1407,7 +1407,7 @@
         "data_parallel": 1,
         "expert_parallel": 1,
         "notes": "",
-        "tensor_parallel": 1
+        "tensor_parallel": 8
       }
     },
     {
@@ -1535,7 +1535,7 @@
         "data_parallel": 1,
         "expert_parallel": 1,
         "notes": "",
-        "tensor_parallel": 1
+        "tensor_parallel": 8
       }
     }
   ],

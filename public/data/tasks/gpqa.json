@@ -1676,7 +1676,7 @@
       "p90_itl_ms": 17.58667640388012,
       "p95_itl_ms": 18.03741231560707,
       "p99_itl_ms": 18.79562646150588,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },
@@ -1700,7 +1700,7 @@
       "p90_itl_ms": 20.279159024357796,
       "p95_itl_ms": 20.528793334960938,
       "p99_itl_ms": 20.97995974123478,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },
@@ -1724,7 +1724,7 @@
       "p90_itl_ms": 27.05940790474415,
       "p95_itl_ms": 27.408520970493555,
       "p99_itl_ms": 27.905541099607944,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },
@@ -1748,7 +1748,7 @@
       "p90_itl_ms": 33.90912599861622,
       "p95_itl_ms": 34.28855501115322,
       "p99_itl_ms": 35.215739868581295,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },
@@ -3188,7 +3188,7 @@
       "p90_itl_ms": 4.903670208295807,
       "p95_itl_ms": 5.0160094047896555,
       "p99_itl_ms": 5.42817416368052,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3212,7 +3212,7 @@
       "p90_itl_ms": 5.898638404323719,
       "p95_itl_ms": 6.022722747002263,
       "p99_itl_ms": 7.582832919433715,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3236,7 +3236,7 @@
       "p90_itl_ms": 7.299648894695566,
       "p95_itl_ms": 7.457647251430899,
       "p99_itl_ms": 13.230332161183485,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3260,7 +3260,7 @@
       "p90_itl_ms": 9.287583603872918,
       "p95_itl_ms": 9.778764459770171,
       "p99_itl_ms": 16.495890735241122,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3284,7 +3284,7 @@
       "p90_itl_ms": 13.056740420870485,
       "p95_itl_ms": 14.86866000341251,
       "p99_itl_ms": 18.686776203103364,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3308,7 +3308,7 @@
       "p90_itl_ms": 19.89219079259783,
       "p95_itl_ms": 21.525613620178767,
       "p99_itl_ms": 25.227223421679767,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3332,7 +3332,7 @@
       "p90_itl_ms": 30.872450990136716,
       "p95_itl_ms": 32.35608909744769,
       "p99_itl_ms": 38.31311052374076,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3356,7 +3356,7 @@
       "p90_itl_ms": 65.67976798978636,
       "p95_itl_ms": 75.68022679188287,
       "p99_itl_ms": 85.90234324452462,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3380,7 +3380,7 @@
       "p90_itl_ms": 155.07174840313382,
       "p95_itl_ms": 176.24314289423634,
       "p99_itl_ms": 229.7573606693185,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3404,7 +3404,7 @@
       "p90_itl_ms": 217.16104648658074,
       "p95_itl_ms": 261.172524507856,
       "p99_itl_ms": 430.8699949106085,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3428,7 +3428,7 @@
       "p90_itl_ms": 291.7018283129438,
       "p95_itl_ms": 378.0616642499807,
       "p99_itl_ms": 633.2739127724216,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3548,7 +3548,7 @@
       "p90_itl_ms": 7.405425980687141,
       "p95_itl_ms": 7.466542534530163,
       "p99_itl_ms": 7.698871921747921,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3572,7 +3572,7 @@
       "p90_itl_ms": 9.507095068693161,
       "p95_itl_ms": 9.606552217155695,
       "p99_itl_ms": 10.510198529809712,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3596,7 +3596,7 @@
       "p90_itl_ms": 12.440547347068787,
       "p95_itl_ms": 12.622483540326357,
       "p99_itl_ms": 21.764685586094853,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3620,7 +3620,7 @@
       "p90_itl_ms": 16.466877050697803,
       "p95_itl_ms": 16.68805722147226,
       "p99_itl_ms": 25.734602697193623,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3644,7 +3644,7 @@
       "p90_itl_ms": 19.789204001426697,
       "p95_itl_ms": 20.003909431397915,
       "p99_itl_ms": 27.672958895564076,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3668,7 +3668,7 @@
       "p90_itl_ms": 23.41281995177269,
       "p95_itl_ms": 23.590007796883583,
       "p99_itl_ms": 30.726888962089998,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3692,7 +3692,7 @@
       "p90_itl_ms": 30.091804104449693,
       "p95_itl_ms": 30.722570798388915,
       "p99_itl_ms": 34.1212665657804,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3716,7 +3716,7 @@
       "p90_itl_ms": 31.859954996616576,
       "p95_itl_ms": 32.78333039197605,
       "p99_itl_ms": 38.00529548199845,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3740,7 +3740,7 @@
       "p90_itl_ms": 42.15094749815762,
       "p95_itl_ms": 43.16567475325428,
       "p99_itl_ms": 45.19459044677207,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3764,7 +3764,7 @@
       "p90_itl_ms": 51.67187621118501,
       "p95_itl_ms": 53.012487810337916,
       "p99_itl_ms": 60.52728712093086,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3788,7 +3788,7 @@
       "p90_itl_ms": 69.38796988979448,
       "p95_itl_ms": 71.45622423995519,
       "p99_itl_ms": 96.55798725638303,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3812,7 +3812,7 @@
       "p90_itl_ms": 87.2380607004743,
       "p95_itl_ms": 91.536516979977,
       "p99_itl_ms": 114.61825579055589,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3836,7 +3836,7 @@
       "p90_itl_ms": 142.54298806190496,
       "p95_itl_ms": 152.40283245220778,
       "p99_itl_ms": 196.24773861840376,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
@@ -3860,7 +3860,7 @@
       "p90_itl_ms": 174.04294423758984,
       "p95_itl_ms": 190.80506693571806,
       "p99_itl_ms": 271.0348512977364,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 117.0,
       "weight_precision": "mxfp4"
     },
