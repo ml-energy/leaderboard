@@ -7,23 +7,21 @@ Source code for [The ML.ENERGY Leaderboard](https://ml.energy/leaderboard), whic
 
 ### Building the Data
 
-After running the [benchmark](https://github.com/ml-energy/benchmark) and collecting results, you can build the data for the leaderboard using the following command (with path adjustments as necessary):
+After running the [benchmark](https://github.com/ml-energy/benchmark) and collecting results, you can build the data for the leaderboard using the following command.
+This depends on [The ML.ENERGY Data Toolkit](https://github.com/ml-energy/data), which can be installed with `pip install mlenergy-data` or used with `uv run` as shown below.
 
 ```bash
-BASE_DIR="/path/to/results"
-uv run --with numpy --with PyYAML scripts/build_data.py \
-  --results-dir "$BASE_DIR/llm/h100/run" \
-  --results-dir "$BASE_DIR/llm/b200/run" \
-  --results-dir "$BASE_DIR/diffusion/h100/run" \
-  --results-dir "$BASE_DIR/diffusion/b200/run" \
-  --output-dir public/data \
-  --llm-config-dir ../benchmark/configs/vllm \
-  --diffusion-config-dir ../benchmark/configs/xdit
+uv run --with mlenergy-data scripts/build_data.py \
+  --output-dir public/data
 ```
+
+If you are compiling the leaderboard data from a local directory that contains the ML.ENERGY Benchmark data, add `--mlenergy-data-dir /path/to/compiled/data` to the command above.
+In case you ran the benchmark on your own and have raw result data directories, modify the script to use `LLMRuns.from_raw_results`.
 
 ### Web App Preview
 
 ```bash
+npm install
 npm run dev
 ```
 

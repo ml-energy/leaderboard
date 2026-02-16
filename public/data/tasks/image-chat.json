@@ -2468,7 +2468,7 @@
       "p90_itl_ms": 15.92206548084505,
       "p95_itl_ms": 16.024292194924783,
       "p99_itl_ms": 22.027823201206026,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },
@@ -2492,7 +2492,7 @@
       "p90_itl_ms": 16.717714595142752,
       "p95_itl_ms": 17.841420869404423,
       "p99_itl_ms": 57.83402329339878,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },
@@ -2516,7 +2516,7 @@
       "p90_itl_ms": 19.3590039450167,
       "p95_itl_ms": 22.854162511066534,
       "p99_itl_ms": 72.44962169643297,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },
@@ -2540,7 +2540,7 @@
       "p90_itl_ms": 26.823773775497216,
       "p95_itl_ms": 53.14142275456105,
       "p99_itl_ms": 86.62330896768253,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },
@@ -2564,7 +2564,7 @@
       "p90_itl_ms": 33.18210100987926,
       "p95_itl_ms": 67.46957179275327,
       "p99_itl_ms": 97.21258907578887,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },
@@ -2588,7 +2588,7 @@
       "p90_itl_ms": 41.82081742291279,
       "p95_itl_ms": 79.97744850290472,
       "p99_itl_ms": 109.76323896087708,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },
@@ -3500,7 +3500,7 @@
       "p90_itl_ms": 15.304522486985661,
       "p95_itl_ms": 15.406824000820052,
       "p99_itl_ms": 39.097515764296986,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 27.0,
       "weight_precision": "bfloat16"
     },
@@ -3524,7 +3524,7 @@
       "p90_itl_ms": 15.76049451250583,
       "p95_itl_ms": 18.981650238856673,
       "p99_itl_ms": 41.971410585392725,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 27.0,
       "weight_precision": "bfloat16"
     },
@@ -3548,7 +3548,7 @@
       "p90_itl_ms": 20.473205787129707,
       "p95_itl_ms": 40.847870614379644,
       "p99_itl_ms": 44.44260292686522,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 27.0,
       "weight_precision": "bfloat16"
     },
@@ -3572,7 +3572,7 @@
       "p90_itl_ms": 43.23381799622439,
       "p95_itl_ms": 46.62160949665122,
       "p99_itl_ms": 66.80185103381515,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 27.0,
       "weight_precision": "bfloat16"
     },
@@ -3596,7 +3596,7 @@
       "p90_itl_ms": 50.58443721791264,
       "p95_itl_ms": 51.86817364592571,
       "p99_itl_ms": 74.10011598607521,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 27.0,
       "weight_precision": "bfloat16"
     },
@@ -3620,7 +3620,7 @@
       "p90_itl_ms": 56.31067559006624,
       "p95_itl_ms": 59.336438000900664,
       "p99_itl_ms": 86.63082778919473,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 27.0,
       "weight_precision": "bfloat16"
     },
@@ -3644,7 +3644,7 @@
       "p90_itl_ms": 67.62476489820983,
       "p95_itl_ms": 86.76845120207872,
       "p99_itl_ms": 138.73316316632554,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 27.0,
       "weight_precision": "bfloat16"
     },

@@ -2060,7 +2060,7 @@
       "p90_itl_ms": 15.988637879490852,
       "p95_itl_ms": 16.577761806547638,
       "p99_itl_ms": 56.785087734460845,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },
@@ -2084,7 +2084,7 @@
       "p90_itl_ms": 19.05963569879532,
       "p95_itl_ms": 21.863837353885167,
       "p99_itl_ms": 144.55379690974948,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },
@@ -2108,7 +2108,7 @@
       "p90_itl_ms": 25.1510828910839,
       "p95_itl_ms": 58.33889506757258,
       "p99_itl_ms": 156.63298651576045,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },
@@ -2132,7 +2132,7 @@
       "p90_itl_ms": 50.025426477721304,
       "p95_itl_ms": 85.70460369810459,
       "p99_itl_ms": 214.18161656707528,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },
@@ -2156,7 +2156,7 @@
       "p90_itl_ms": 76.34959444403648,
       "p95_itl_ms": 160.15007263049483,
       "p99_itl_ms": 436.40216583386075,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },
@@ -2180,7 +2180,7 @@
       "p90_itl_ms": 96.4976491308526,
       "p95_itl_ms": 163.92031125724316,
       "p99_itl_ms": 445.9056684374809,
-      "tensor_parallel": 1,
+      "tensor_parallel": 2,
       "total_params_billions": 32.0,
       "weight_precision": "bfloat16"
     },

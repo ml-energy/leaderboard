@@ -14,7 +14,7 @@
       "video-chat"
     ]
   },
-  "last_updated": "2026-02-13",
+  "last_updated": "2026-02-16",
   "models": {
     "Efficient-Large-Model/SANA1.5_1.6B_1024px_diffusers": {
       "activated_params_billions": 1.6,
