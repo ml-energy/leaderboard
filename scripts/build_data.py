@@ -426,8 +426,8 @@ def main() -> None:
         diff = DiffusionRuns.from_directory(args.mlenergy_data_dir)
     else:
         logger.info("Loading runs from Hugging Face Hub")
-        llm = LLMRuns.from_hf(download_raw=True)
-        diff = DiffusionRuns.from_hf(download_raw=True)
+        llm = LLMRuns.from_hf()
+        diff = DiffusionRuns.from_hf()
     if not llm and not diff:
         raise ValueError("No benchmark runs found")
 
