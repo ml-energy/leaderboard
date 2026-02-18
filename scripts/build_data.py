@@ -81,7 +81,6 @@ def _sort_llm_runs(runs: LLMRuns) -> list[LLMRun]:
             r.max_num_seqs,
             r.num_request_repeats or 1,
             r.seed or 0,
-            r.results_path,
         ),
     )
 
@@ -97,7 +96,6 @@ def _sort_diffusion_runs(runs: DiffusionRuns) -> list[DiffusionRun]:
             r.ulysses_degree or 0,
             r.ring_degree or 0,
             r.use_torch_compile or False,
-            r.results_path,
         ),
     )
 
@@ -238,26 +236,24 @@ def _build_llm_model_payload(
     task: str,
     runs: list[LLMRun],
 ) -> dict[str, Any]:
-    group_runs = LLMRuns(runs)
-    out_len_df = group_runs.output_lengths()
-    if out_len_df.empty:
-        raise ValueError(f"No output length samples for {model_id} / {task}")
+    all_lengths_list: list[int] = []
+    per_run_lengths: list[np.ndarray] = []
+    for r in runs:
+        lengths = np.array(r.output_lengths(), dtype=int)
+        all_lengths_list.extend(lengths)
+        per_run_lengths.append(lengths)
 
-    all_lengths = out_len_df["output_len"].astype(int).to_numpy()
+    all_lengths = np.array(all_lengths_list, dtype=int)
+    if len(all_lengths) == 0:
+        raise ValueError(f"No output length samples for {model_id} / {task}")
     _, bin_edges = np.histogram(all_lengths, bins=50)
     agg_dist = _compute_output_length_distribution(all_lengths, bin_edges=bin_edges)
 
-    per_run_lengths: dict[str, np.ndarray] = {}
-    for results_path, g in out_len_df.groupby("results_path", sort=False):
-        per_run_lengths[str(results_path)] = g["output_len"].astype(int).to_numpy()
-
     first = runs[0]
     configs: list[dict[str, Any]] = []
-    for r in runs:
-        if r.results_path not in per_run_lengths:
-            raise ValueError(f"Missing output length samples for results_path={r.results_path}")
+    for i, r in enumerate(runs):
         cfg_dist = _compute_output_length_distribution(
-            per_run_lengths[r.results_path], bin_edges=bin_edges
+            per_run_lengths[i], bin_edges=bin_edges
         )
 
         dp = int(r.data_parallel)
@@ -415,6 +411,7 @@ def main() -> None:
         level=logging.INFO,
         format="%(asctime)s %(name)s %(levelname)s %(message)s",
     )
+    logging.getLogger("httpx").setLevel(logging.WARNING)
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -428,6 +425,8 @@ def main() -> None:
         logger.info("Loading runs from Hugging Face Hub")
         llm = LLMRuns.from_hf()
         diff = DiffusionRuns.from_hf()
+        llm.download_raw_files()
+        diff.download_raw_files()
     if not llm and not diff:
         raise ValueError("No benchmark runs found")
 
