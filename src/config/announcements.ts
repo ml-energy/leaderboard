@@ -12,6 +12,14 @@ export interface Announcement {
 // Announcements ordered from newest to oldest
 export const announcements: Announcement[] = [
   {
+    date: "2026-03-17",
+    message: "New: ML.ENERGY Data Toolkit for loading, filtering, and analyzing benchmark data.",
+    links: [
+      { text: "Data Toolkit", url: "https://ml.energy/data" },
+      { text: "HF Hub (Raw Data)", url: "https://huggingface.co/datasets/ml-energy/benchmark-v3" },
+    ],
+  },
+  {
     date: "2026-01-29",
     message: "New blog post: Diagnosing Inference Energy Consumption with the MLenergy Leaderboard v3.0",
     links: [
