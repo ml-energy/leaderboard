@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { IndexData, TaskData, AnyConfiguration, Configuration } from './types';
-import { loadIndexData, loadTaskData } from './utils/dataLoader';
+import { loadIndexData, loadTaskData, prefetchAllTasks } from './utils/dataLoader';
 import { getColumnsForTask } from './config/columns';
 import { getTaskConfig, sortTasks, isDiffusionTask } from './config/tasks';
 import TaskTabs from './components/TaskTabs';
@@ -99,6 +99,7 @@ function App() {
           setActiveTask(data.tasks[0]);
         }
         setLoading(false);
+        prefetchAllTasks(data.tasks);
       })
       .catch((err) => {
         setError(err.message);

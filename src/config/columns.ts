@@ -72,6 +72,15 @@ export const LLM_COLUMNS: ColumnDef[] = [
     align: 'right',
     tooltip: 'Inter-Token Latency is the time between generating consecutive tokens. Lower values mean faster and more responsive text generation.'
   },
+  {
+    key: 'perf_per_watt',
+    label: 'Perf/Watt (tokens/s)',
+    sortable: true,
+    getValue: (config: any) => config.output_throughput_tokens_per_sec / config.avg_power_watts,
+    format: (v: number) => v.toFixed(2),
+    align: 'right',
+    tooltip: 'Token throughput divided by average power draw. Higher values indicate more power-efficient inference.'
+  },
 ];
 
 export const LLM_ADVANCED_COLUMNS: ColumnDef[] = [
@@ -209,6 +218,15 @@ export const IMAGE_COLUMNS: ColumnDef[] = [
     align: 'right',
     tooltip: 'The number of denoising steps used during image generation. More steps generally improve quality (with diminishing returns) but nearly linearly increase generation time and energy consumption.'
   },
+  {
+    key: 'perf_per_watt',
+    label: 'Perf/Watt (images/s)',
+    sortable: true,
+    getValue: (config: any) => config.throughput_images_per_sec / config.avg_power_watts,
+    format: (v: number) => v.toFixed(4),
+    align: 'right',
+    tooltip: 'Image throughput divided by average power draw. Higher values indicate more power-efficient inference.'
+  },
 ];
 
 export const IMAGE_ADVANCED_COLUMNS: ColumnDef[] = [
@@ -320,6 +338,15 @@ export const VIDEO_COLUMNS: ColumnDef[] = [
     sortable: true,
     align: 'right',
     tooltip: 'The number of denoising steps used during video generation. More steps generally improve quality (with diminishing returns) but nearly linearly increase generation time and energy consumption.'
+  },
+  {
+    key: 'perf_per_watt',
+    label: 'Perf/Watt (videos/s)',
+    sortable: true,
+    getValue: (config: any) => config.throughput_videos_per_sec / config.avg_power_watts,
+    format: (v: number) => v.toFixed(6),
+    align: 'right',
+    tooltip: 'Video throughput divided by average power draw. Higher values indicate more power-efficient inference.'
   },
 ];
 
