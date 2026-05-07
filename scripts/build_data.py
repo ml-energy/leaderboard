@@ -18,7 +18,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from mlenergy_data.records import DiffusionRun, DiffusionRuns, LLMRun, LLMRuns
+from mlenergy.data.records import DiffusionRun, DiffusionRuns, LLMRun, LLMRuns
 
 logger = logging.getLogger(__name__)
 
