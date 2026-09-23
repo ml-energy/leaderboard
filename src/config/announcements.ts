@@ -15,7 +15,7 @@ export const announcements: Announcement[] = [
     date: "2026-09-23",
     message: "Stay up to date with the ML.ENERGY Leaderboard.",
     links: [
-      { text: "Subscribe for updates", url: "https://ml.energy/#newsletter" },
+      { text: "Subscribe for updates", url: "https://buttondown.com/ml-energy" },
     ],
   },
   {
