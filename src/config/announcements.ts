@@ -12,6 +12,13 @@ export interface Announcement {
 // Announcements ordered from newest to oldest
 export const announcements: Announcement[] = [
   {
+    date: "2026-09-23",
+    message: "Stay up to date with the ML.ENERGY Leaderboard.",
+    links: [
+      { text: "Subscribe for updates", url: "https://ml.energy/#newsletter" },
+    ],
+  },
+  {
     date: "2026-03-17",
     message: "New: ML.ENERGY Data Toolkit for loading, filtering, and analyzing benchmark data.",
     links: [
